@@ -185,7 +185,36 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Entity'
-  '/entity/property/{propName}/{propValue}':
+    put:
+      tags:
+        - entity
+      summary: updates an entity
+      description: ''
+      operationId: updateEntity
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - name: entityId
+          in: path
+          description: ID of entity to update
+          required: true
+          type: string
+        - in: body
+          name: entity
+          required: true
+          schema:
+            $ref: '#/definitions/Entity'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/SourceEntity'
+        '404':
+          description: Entity not found
+    delete:
+  '/entities/property/{propName}/{propValue}':
     get:
       tags:
         - entity
