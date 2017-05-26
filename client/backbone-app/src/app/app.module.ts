@@ -6,6 +6,7 @@ import { HttpModule } from '@angular/http';
 import { AppComponent }  from './app.component';
 import { DashboardComponent }   from './dashboard.component';
 import { EntityDetailComponent } from './entity-detail.component';
+import { EntityDetailFormComponent } from './entity-detail-form.component';
 import { EntitiesComponent }      from './entities.component';
 import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 
@@ -22,6 +23,7 @@ import { AppRoutingModule }     from './app-routing.module';
     AppComponent,
     DashboardComponent,
     EntityDetailComponent,
+    EntityDetailFormComponent,
     EntitiesComponent
   ],
   providers: [ 

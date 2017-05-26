@@ -1,0 +1,23 @@
+<div *ngIf="entity">
+  <form name="entityForm" (ngSubmit)="onSubmit()" #entityForm="ngForm" (change)="onFormChange()" class="ui form">
+
+  <div>
+    <label>id: </label>{{entity.entity_id}}
+  </div>
+      <div class="grid grid-pad">
+            <div *ngFor="let prop of entity.values"  [routerLink]="['/detail', entity.entity_id]" class="col-1-4">
+              <div>
+                  <label>{{prop.source}} {{prop.data_name}}</label>
+                   <div [ngSwitch]="prop.data_type">
+                      <input *ngSwitchCase="'string'" [(ngModel)]="prop.data_value" name="{{prop.data_name}}" />
+                   </div>
+
+              </div>
+            </div>
+      </div>
+
+      <button [disabled]="!entityForm.form.valid" type="submit" i18n>SAVE</button>
+  </form>
+
+  <button (click)="goBack()">Back</button>
+</div>

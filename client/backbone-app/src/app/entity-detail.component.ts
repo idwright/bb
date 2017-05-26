@@ -1,5 +1,6 @@
 import 'rxjs/add/operator/switchMap';
-import { Component, OnInit }      from '@angular/core';
+import { Component, Input, OnInit }      from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
 
@@ -7,26 +8,10 @@ import { Entity } from './typescript-angular2-client/model/Entity';
 import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 @Component({
   selector: 'entity-detail',
-  templateUrl: './entity-detail.component.html',
+  template: '<entity-detail-form></entity-detail-form>',
   styleUrls: [ './entity-detail.component.css' ]
 })
-export class EntityDetailComponent implements OnInit {
-  entity: Entity;
+export class EntityDetailComponent {
 
-  constructor(
-    private entityService: EntityApi,
-    private route: ActivatedRoute,
-    private location: Location
-  ) {}
-
-  ngOnInit(): void {
-    this.route.params
-      .switchMap((params: Params) => this.entityService.downloadEntity(params['entity_id']))
-      .subscribe(response => this.entity = response);
-  }
-
-  goBack(): void {
-    this.location.back();
-  }
 }
 
