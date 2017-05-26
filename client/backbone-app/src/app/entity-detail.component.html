@@ -1,0 +1,9 @@
+<div *ngIf="entity">
+  <div>
+    <label>id: </label>{{entity.entityId}}</div>
+  <div>
+    <label>name: </label>
+    <input [(ngModel)]="entity.entityId" placeholder="name" />
+  </div>
+  <button (click)="goBack()">Back</button>
+</div>

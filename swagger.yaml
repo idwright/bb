@@ -1,0 +1,348 @@
+swagger: '2.0'
+info:
+  description: ''
+  version: 1.0.0
+  title: Backbone
+  termsOfService: 'http://swagger.io/terms/'
+  contact:
+    email: apiteam@swagger.io
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+host: 'localhost:8080'
+basePath: /v1
+tags:
+  - name: source
+    description: Everything about your sources
+    externalDocs:
+      description: Find out more
+      url: 'http://swagger.io'
+  - name: entity
+    description: Access to Backbone entities
+schemes:
+  - https
+paths:
+  '/source/{sourceId}/upload':
+    post:
+      tags:
+        - source
+      summary: bulk upload of entities for a given source
+      description: ''
+      operationId: uploadSource
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to update
+          required: true
+          type: integer
+          format: int64
+        - name: additionalMetadata
+          in: formData
+          description: Additional data to pass to server
+          required: false
+          type: string
+        - name: file
+          in: formData
+          description: file to upload
+          required: false
+          type: file
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ApiResponse'
+  '/source/{sourceId}/uploadEntity':
+    post:
+      tags:
+        - source
+      summary: uploads an entity
+      description: ''
+      operationId: uploadEntity
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to update
+          required: true
+          type: string
+        - name: entity
+          in: body
+          description: desc
+          required: true
+          schema:
+            $ref: '#/definitions/SourceEntity'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/ApiResponse'
+        '201':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entity'
+  '/source/{sourceId}':
+    get:
+      tags:
+        - source
+      summary: fetches an entity
+      description: ''
+      operationId: downloadSourceEntities
+      produces:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entities'
+  '/source/{sourceId}/{sourceEntityId}':
+    get:
+      tags:
+        - source
+      summary: fetches an entity
+      description: ''
+      operationId: downloadSourceEntity
+      produces:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+        - name: sourceEntityId
+          in: path
+          description: ID of entity to fetch
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entity'
+    put:
+      tags:
+        - source
+      summary: updates an entity
+      description: ''
+      operationId: uploadSourceEntity
+      produces:
+        - application/json
+      consumes:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to update
+          required: true
+          type: string
+        - name: sourceEntityId
+          in: path
+          description: ID of entity to update
+          required: true
+          type: string
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: '#/definitions/SourceEntity'
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/SourceEntity'
+        '404':
+          description: Entity not found
+    delete:
+      tags:
+        - source
+      operationId: deleteSourceEntity
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+        - name: sourceEntityId
+          in: path
+          description: ID of entity to fetch
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Delete successful
+        '404':
+          description: Entity not found
+  '/entity/{entityId}':
+    get:
+      tags:
+        - entity
+      summary: fetches an entity
+      description: ''
+      operationId: downloadEntity
+      produces:
+        - application/json
+      parameters:
+        - name: entityId
+          in: path
+          description: ID of entity to fetch
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entity'
+  '/entity/property/{propName}/{propValue}':
+    get:
+      tags:
+        - entity
+      summary: fetches entities by property value
+      description: ''
+      operationId: downloadEntitiesByProperty
+      produces:
+        - application/json
+      parameters:
+        - name: propName
+          in: path
+          description: name of property to search
+          required: true
+          type: string
+        - name: propValue
+          in: path
+          description: matching value of property to search
+          required: true
+          type: string
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entities'
+definitions:
+  Entities:
+    type: array
+    items:
+      $ref: '#/definitions/Entity'
+  Entity:
+    type: object
+    required:
+      - values
+    properties:
+      entity_id:
+        type: string
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+      refs:
+        type: array
+        items:
+          $ref: '#/definitions/Relationship'
+  SourceEntity:
+    type: object
+    required:
+      - values
+    properties:
+      values:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
+      refs:
+        type: array
+        items:
+          $ref: '#/definitions/SourceRelationship'
+  SourceRelationship:
+    type: object
+    required:
+      - data_name
+      - fk_source
+      - fk_value
+    allOf:
+      - $ref: '#/definitions/Property'
+      - properties:
+          fk_name:
+            description: The foreign key if not the same as data_name
+            type: string
+            default: ''
+          fk_source:
+            description: 'The source of the foreign id, ideally backbone'
+            type: string
+            default: backbone
+          values:
+            type: array
+            items:
+              $ref: '#/definitions/Property'
+  Relationship:
+    type: object
+    required:
+      - source_id
+      - target_id
+      - assoc_name
+    allOf:
+      - $ref: '#/definitions/Property'
+      - properties:
+          target_id:
+            description: The id of the target
+            type: string
+          source_id:
+            description: The id of the source
+            type: string
+          assoc_name:
+            description: Association type id
+            type: string
+          values:
+            type: array
+            items:
+              $ref: '#/definitions/Property'
+  Property:
+    type: object
+    required:
+      - data_name
+      - data_type
+      - data_value
+      - source
+    properties:
+      data_name:
+        description: The name of the property
+        type: string
+      data_type:
+        type: string
+        enum:
+          - string
+          - integer
+          - float
+          - double
+          - boolean
+          - json
+          - datetime
+        default: string
+      data_value:
+        type: string
+      source:
+        type: string
+      identity:
+        description: If this an identity column
+        type: boolean
+        default: false
+  ApiResponse:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      type:
+        type: string
+      message:
+        type: string
