@@ -33,9 +33,11 @@ export class EntityDetailFormComponent implements OnInit {
 
   public onSubmit(): void {
 
-      this.entityService.updateEntity(this.entity.entityId, this.entity)
+    console.log("Submitting:" + this.entity);
+      this.entityService.updateEntity(this.entity.entity_id, this.entity)
       .subscribe(
         (x) => {
+    console.log("Submitted");
         },
         (e) => { console.log('onError: %o', e); },
         () => {
@@ -45,6 +47,7 @@ export class EntityDetailFormComponent implements OnInit {
     }
 
     private onFormChange() {
+    console.log("Changing:" + this.entity.entity_id);
     }
 
 }
