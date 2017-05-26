@@ -1,3 +1,8 @@
 *.swp
 __pycache__/
 *.csv
+python-flask-server/
+server/git_push.sh
+swagger-codegen-cli.jar
+typescript-angular2-client/
+
