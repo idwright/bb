@@ -8,7 +8,7 @@ import { EntityDetailComponent }  from './entity-detail.component';
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'dashboard',  component: DashboardComponent },
-  { path: 'detail/:entityId', component: EntityDetailComponent },
+  { path: 'detail/:entity_id', component: EntityDetailComponent },
   { path: 'entities',     component: EntitiesComponent }
 ];
 

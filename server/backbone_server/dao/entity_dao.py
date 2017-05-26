@@ -2,6 +2,10 @@ import json
 import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
+from swagger_server.models.entity import Entity
+from swagger_server.models.property import Property
+from swagger_server.models.relationship import Relationship
+from typing import List, Dict
 import binascii
 import uuid
 import mysql.connector
@@ -314,21 +318,31 @@ class entity_dao(base_dao):
         connection = self.get_connection()
         cursor = connection.cursor()
 
+        if not added_id:
+            added_id_query = 'SELECT added_id FROM entities WHERE id = UNHEX(%s);'
+            cursor.execute(added_id_query, (entity_id,))
+            res = cursor.fetchone()
+            if res:
+                added_id = res[0]
+            else:
+                return "404"
+
+        entity = Entity(entity_id)
         props_query = 'SELECT `source`, `prop_name`, `prop_type`, `value`, `identity` FROM property_values WHERE `added_id` = %s'
 
         cursor.execute(props_query, (added_id,))
 
         properties = []
         for (source, prop_name, prop_type, value, identity) in cursor:
-            data = {
-                'data_value': value,
-                'data_type': prop_type,
-                'data_name': prop_name,
-                'identity': bool(identity),
-                'source': source
-            }
+            data = Property()
+            data.data_value = value
+            data.data_type = prop_type
+            data.data_name = prop_name
+            data.identity = bool(identity)
+            data.source = source
             properties.append(data)
 
+        entity.values = properties
         assocs_query = '''SELECT source_uuid, source_id, target_uuid, target_id, assoc_name, assoc_type_id FROM `associations`
         WHERE source_id = %s OR target_id = %s;'''
         cursor.execute(assocs_query, (added_id, added_id,))
@@ -366,7 +380,7 @@ class entity_dao(base_dao):
         connection.close()
 
         #print ("Fetched entity:" + str(added_id))
-        return { 'entity_id': entity_id, 'values': properties, 'refs': refs }
+        return entity
 
 
     def fetch_entities_by_property(self, prop_name, prop_value):

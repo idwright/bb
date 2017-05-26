@@ -1,9 +1,7 @@
 import connexion
-from swagger_server.models.body import Body
+from swagger_server.models.api_response import ApiResponse
 from swagger_server.models.entity import Entity
-from swagger_server.models.inline_response_200 import InlineResponse200
-from swagger_server.models.inline_response_200_1 import InlineResponse2001
-from swagger_server.models.inline_response_201 import InlineResponse201
+from swagger_server.models.source_entity import SourceEntity
 from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
@@ -36,13 +34,14 @@ def download_source_entity(sourceId, sourceEntityId):
     :param sourceEntityId: ID of entity to fetch
     :type sourceEntityId: str
 
-    :rtype: InlineResponse201
+    :rtype: Entity
     """
-    print("download_source_entity", file=sys.stderr)
+    print("download_source_entity:" + sourceId + "/" + sourceEntityId)
     sd = source_dao()
 
     result = sd.fetch_entity_by_source(sourceId, sourceEntityId)
 
+    print("result:" + repr(result))
     return result
 
 
@@ -55,7 +54,7 @@ def upload_entity(sourceId, entity):
     :param entity: desc
     :type entity: dict | bytes
 
-    :rtype: InlineResponse200
+    :rtype: ApiResponse
     """
     print("upload_entity1", file=sys.stderr)
     print(repr(entity), file=sys.stderr)
@@ -84,7 +83,7 @@ def upload_source(sourceId, additionalMetadata=None, file=None):
     :param file: file to upload
     :type file: werkzeug.datastructures.FileStorage
 
-    :rtype: InlineResponse200
+    :rtype: ApiResponse
     """
     print("upload_source", file=sys.stderr)
     return 'do some magic2!'
@@ -100,12 +99,12 @@ def upload_source_entity(sourceId, sourceEntityId, body):
     :param body: 
     :type body: dict | bytes
 
-    :rtype: InlineResponse2001
+    :rtype: SourceEntity
     """
     print("upload_source_entity", file=sys.stderr)
     print(repr(body), file=sys.stderr)
 #    if connexion.request.is_json:
-#        body = Entity.from_dict(connexion.request.get_json())
+#        body = SourceEntity.from_dict(connexion.request.get_json())
     sd = source_dao()
 
     result = sd.update_source_entity(sourceId, sourceEntityId, body)

@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 
-import * as models from './typescript-angular2-client/model/models';
+import { Entities } from './typescript-angular2-client/model/Entities';
 
 import { EntityApi } from './typescript-angular2-client/api/EntityApi';
 
@@ -11,14 +11,15 @@ import { EntityApi } from './typescript-angular2-client/api/EntityApi';
 })
 export class DashboardComponent implements OnInit {
 
-  entities: InlineResponse201[] = [];
+  entities: Entities;
 
   constructor(private entityApi: EntityApi) { }
 
   ngOnInit(): void {
-    this.entityApi.downloadEntitiesByProperty("test1", "DNAC")
+    this.entityApi.downloadEntitiesByProperty("sample_type", "DNAC")
     .subscribe(
-                (entities) => {
+    (entities) => {
+                    console.log(entities);
                     this.entities = entities;
                 },
                 (err) => console.log(err),

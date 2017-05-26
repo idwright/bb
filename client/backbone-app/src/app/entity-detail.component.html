@@ -1,9 +1,20 @@
 <div *ngIf="entity">
   <div>
-    <label>id: </label>{{entity.entityId}}</div>
+    <label>id: </label>{{entity.entity_id}}
+  </div>
+  <div class="grid grid-pad">
+        <div *ngFor="let prop of entity.values"  [routerLink]="['/detail', entity.entity_id]"
+       class="col-1-4">
+          <div>
+              <label>{{prop.source}} {{prop.data_name}}</label>
+              <input [(ngModel)]="prop.data_value" placeholder="{{prop.data_name}}" />
+          </div>
+        </div>
+  </div>
+
   <div>
     <label>name: </label>
-    <input [(ngModel)]="entity.entityId" placeholder="name" />
+    <input [(ngModel)]="entity.entity_id" placeholder="name" />
   </div>
   <button (click)="goBack()">Back</button>
 </div>

@@ -3,7 +3,7 @@ import { Component, OnInit }      from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
 
-import { EntityImpl } from './model/entityimpl';
+import { Entity } from './typescript-angular2-client/model/Entity';
 import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 @Component({
   selector: 'entity-detail',
@@ -11,7 +11,7 @@ import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
   styleUrls: [ './entity-detail.component.css' ]
 })
 export class EntityDetailComponent implements OnInit {
-  entity: EntityImpl;
+  entity: Entity;
 
   constructor(
     private entityService: EntityApi,
@@ -21,7 +21,7 @@ export class EntityDetailComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params
-      .switchMap((params: Params) => this.entityService.downloadEntity(params['entityId']))
+      .switchMap((params: Params) => this.entityService.downloadEntity(params['entity_id']))
       .subscribe(response => this.entity = response);
   }
 

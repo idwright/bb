@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 
-import { EntityImpl } from './model/entityimpl';
+import { Entities } from './typescript-angular2-client/model/Entities';
+import { Entity } from './typescript-angular2-client/model/Entity';
 import { EntityApi } from './typescript-angular2-client/api/EntityApi';
 @Component({
 selector: 'my-entities',
@@ -11,8 +12,8 @@ providers: [ EntityApi ],
 export class EntitiesComponent  implements OnInit { 
 name = 'Angular';
 
-    entities: EntityImpl[];
-    selectedEntity: EntityImpl;
+    entities: Entities;
+    selectedEntity: Entity;
 
     constructor(private entityApi: EntityApi) { }
 
@@ -24,7 +25,7 @@ name = 'Angular';
         this.getEntities();
     }
 
-    onSelect(entity: EntityImpl): void {
+    onSelect(entity: Entity): void {
         this.selectedEntity = entity;
     }
 }

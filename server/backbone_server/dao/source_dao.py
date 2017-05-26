@@ -3,6 +3,7 @@ import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
+from swagger_server.models.entity import Entity
 import binascii
 import uuid
 import mysql.connector

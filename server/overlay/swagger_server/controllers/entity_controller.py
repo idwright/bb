@@ -1,5 +1,6 @@
 import connexion
-from swagger_server.models.inline_response_201 import InlineResponse201
+from swagger_server.models.entities import Entities
+from swagger_server.models.entity import Entity
 from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
@@ -18,7 +19,7 @@ def download_entities_by_property(propName, propValue):
     :param propValue: matching value of property to search
     :type propValue: str
 
-    :rtype: List[InlineResponse201]
+    :rtype: Entities
     """
     print("download_entities_by_property", file=sys.stderr)
     ed = entity_dao()
@@ -36,6 +37,12 @@ def download_entity(entityId):
     :param entityId: ID of entity to fetch
     :type entityId: str
 
-    :rtype: InlineResponse201
+    :rtype: Entity
     """
-    return 'do some magic!'
+    print("download_entity", file=sys.stderr)
+    ed = entity_dao()
+
+    result = ed.fetch_entity_by_id(entityId, None)
+
+    return result
+

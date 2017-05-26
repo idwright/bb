@@ -9,7 +9,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-host: 'localhost:8080'
+host: 'localhost'
 basePath: /v1
 tags:
   - name: source
@@ -20,7 +20,7 @@ tags:
   - name: entity
     description: Access to Backbone entities
 schemes:
-  - https
+  - http
 paths:
   '/source/{sourceId}/upload':
     post:
@@ -87,26 +87,6 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Entity'
-  '/source/{sourceId}':
-    get:
-      tags:
-        - source
-      summary: fetches an entity
-      description: ''
-      operationId: downloadSourceEntities
-      produces:
-        - application/json
-      parameters:
-        - name: sourceId
-          in: path
-          description: ID of source to query
-          required: true
-          type: string
-      responses:
-        '200':
-          description: successful operation
-          schema:
-            $ref: '#/definitions/Entities'
   '/source/{sourceId}/{sourceEntityId}':
     get:
       tags:
