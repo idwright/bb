@@ -1,0 +1,1 @@
+curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@VOBS.json;type=text/json" -F dataFile="@VOBS.txt;type=text/csv" 'http://localhost:8080/v1/source/VOBS/upload' 

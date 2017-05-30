@@ -1,0 +1,34 @@
+{
+    "refs": {
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "source": "lims"
+        },
+        "alfresco_code": {
+            "column": 2,
+            "type": "string",
+            "source": "alfresco"
+        }
+    },
+    "values":
+    {
+        "oxford_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "study_group": {
+            "column": 1,
+            "type": "string"
+        },
+        "alfresco_code": {
+            "column": 2,
+            "type": "string"
+        },
+        "name": {
+            "column": 3,
+            "type": "string",
+            "id": true
+        }
+    }
+}

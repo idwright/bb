@@ -1,0 +1,34 @@
+{
+    "values":
+    {
+        "location_id": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "country": {
+            "column": 2,
+            "type": "string"
+        },
+        "location": {
+            "column": 3,
+            "type": "string"
+        },
+        "lat": {
+            "column": 4,
+            "type": "float"
+        },
+        "long": {
+            "column": 5,
+            "type": "float"
+        },
+        "public_location": {
+            "column": 6,
+            "type": "string"
+        },
+        "public_gps": {
+            "column": 7,
+            "type": "float"
+        }
+    }
+}

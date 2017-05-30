@@ -1,0 +1,1 @@
+curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@sanger_ega_dataset.json;type=text/json" -F dataFile="@sanger_ega_dataset.txt;type=text/csv" 'http://localhost:8080/v1/source/sanger_ega_dataset/upload' 

@@ -1,0 +1,30 @@
+{
+    "values":
+    {
+        "identifier": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "blood_draw_id": {
+            "column": 1,
+            "type": "string"
+        },
+        "individual_id": {
+            "column": 2,
+            "type": "string"
+        },
+        "collection_date": {
+            "column": 3,
+            "type": "datetime"
+        },
+        "collection_year": {
+            "column": 4,
+            "type": "datetime"
+        },
+        "collection_location": {
+            "column": 5,
+            "type": "string"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "values":
+    {
+        "Sample_ID": {
+            "column": 0,
+            "type": "string"
+        },
+        "SRA_identifier": {
+            "column": 1,
+            "type": "string"
+        },
+        "SRA_run_accession": {
+            "column": 2,
+            "type": "string",
+            "id": true
+        }
+    }
+}

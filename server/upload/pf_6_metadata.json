@@ -1,0 +1,71 @@
+{
+    "refs": {
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "source": "lims"
+        },
+        "alfresco_code": {
+            "column": 4,
+            "type": "string",
+            "source": "alfresco"
+        },
+        "type": {
+            "column": 5,
+            "type": "string",
+            "source": "lims"
+        }
+    },
+    "values":
+    {
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "oxford_src_code": {
+            "column": 1,
+            "type": "string"
+        },
+        "oxford_donor_code": {
+            "column": 2,
+            "type": "string"
+        },
+        "individual_id": {
+            "column": 3,
+            "type": "string"
+        },
+        "alfresco_code": {
+            "column": 4,
+            "type": "string"
+        },
+        "type": {
+            "column": 5,
+            "type": "string"
+        },
+        "site": {
+            "column": 6,
+            "type": "string"
+        },
+        "lat": {
+            "column": 7,
+            "type": "float"
+        },
+        "long": {
+            "column": 8,
+            "type": "float"
+        },
+        "collection_date": {
+            "column": 9,
+            "type": "datetime"
+        },
+        "collection_year": {
+            "column": 10,
+            "type": "datetime"
+        },
+        "release_exclusion_reason": {
+            "column": 11,
+            "type": "string"
+        }
+    }
+}

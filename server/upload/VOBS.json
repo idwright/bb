@@ -1,0 +1,102 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string",
+            "source": "alfresco"
+        },
+        "type": {
+            "column": 5,
+            "type": "string",
+            "source": "lims"
+        }
+    },
+    "values":
+    {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "sample_roma_id": {
+            "column": 1,
+            "type": "string",
+            "id": true
+        },
+        "sample_external_id": {
+            "column": 1,
+            "type": "string"
+        },
+        "collection_date": {
+            "column": 2,
+            "type": "datetime"
+        },
+        "location": {
+            "column": 3,
+            "type": "string"
+        },
+        "country": {
+            "column": 5,
+            "type": "string"
+        },
+        "collection_context": {
+            "column": 6,
+            "type": "string"
+        },
+        "collection_method": {
+            "column": 7,
+            "type": "string"
+        },
+        "collection_time": {
+            "column": 8,
+            "type": "string"
+        },
+        "dna_concentration": {
+            "column": 9,
+            "type": "string"
+        },
+        "dna_extraction_method": {
+            "column": 10,
+            "type": "string"
+        },
+        "dna_quantification_method": {
+            "column": 11,
+            "type": "string"
+        },
+        "dna_extraction_date": {
+            "column": 12,
+            "type": "datetime"
+        },
+        "S05_box_num": {
+            "column": 13,
+            "type": "integer"
+        },
+        "sample_type": {
+            "column": 14,
+            "type": "string"
+        },
+        "sample_volume": {
+            "column": 15,
+            "type": "integer"
+        },
+        "species": {
+            "column": 16,
+            "type": "string"
+        },
+        "specimen_gender": {
+            "column": 17,
+            "type": "string"
+        },
+        "specimen_storage": {
+            "column": 18,
+            "type": "string"
+        },
+        "specimen_type": {
+            "column": 19,
+            "type": "string"
+        },
+        "well_position": {
+            "column": 20,
+            "type": "string"
+        }
+    }
+}
