@@ -7,8 +7,17 @@ from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 
-from backbone_server.dao.entity_dao import entity_dao
-import sys
+
+def delete_entity(entityId):
+    """
+    deletes an entity
+    
+    :param entityId: ID of entity to fetch
+    :type entityId: str
+
+    :rtype: None
+    """
+    return 'do some magic!'
 
 
 def download_entities_by_property(propName, propValue):
@@ -22,7 +31,7 @@ def download_entities_by_property(propName, propValue):
 
     :rtype: Entities
     """
-    print("download_entities_by_property", file=sys.stderr)
+    rint("download_entities_by_property", file=sys.stderr)
     ed = entity_dao()
 
     result = ed.fetch_entities_by_property(propName, propValue)

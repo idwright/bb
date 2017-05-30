@@ -9,6 +9,8 @@ from ..util import deserialize_date, deserialize_datetime
 
 from backbone_server.dao.source_dao import source_dao
 import sys
+import io
+import json
 
 def delete_source_entity(sourceId, sourceEntityId):
     """
@@ -21,7 +23,7 @@ def delete_source_entity(sourceId, sourceEntityId):
 
     :rtype: None
     """
-    print("delete_source_entity", file=sys.stderr)
+    print("delete_source_entity")
     return 'do some magic!'
 
 
@@ -56,42 +58,49 @@ def upload_entity(sourceId, entity):
 
     :rtype: ApiResponse
     """
-    print("upload_entity1", file=sys.stderr)
-    print(repr(entity), file=sys.stderr)
+    print("upload_entity1")
+    print(repr(entity))
     if connexion.request.is_json:
-        print("upload_entity is json", file=sys.stderr)
-        print(repr(connexion.request.get_json()), file=sys.stderr)
+        print("upload_entity is json")
+        print(repr(connexion.request.get_json()))
 #        entity = Entity.from_dict(connexion.request.get_json())
 
     sd = source_dao()
 
-    print("upload_entity2", file=sys.stderr)
-    print(repr(entity), file=sys.stderr)
+    print("upload_entity2")
+    print(repr(entity))
     result = sd.create_source_entity(sourceId, entity)
 
     return entity
 
 
-def upload_source(sourceId, additionalMetadata=None, file=None):
+def upload_source(sourceId, dataFile, additionalMetadata=None):
     """
     bulk upload of entities for a given source
-    
+
     :param sourceId: ID of source to update
     :type sourceId: int
+    :param dataFile: file to upload
+    :type dataFile: werkzeug.datastructures.FileStorage
     :param additionalMetadata: Additional data to pass to server
     :type additionalMetadata: str
-    :param file: file to upload
-    :type file: werkzeug.datastructures.FileStorage
 
     :rtype: ApiResponse
     """
-    print("upload_source", file=sys.stderr)
-    return 'do some magic2!'
+    print("upload_source")
+    data_def = None
+    if additionalMetadata:
+        data_def = json.load(io.TextIOWrapper(additionalMetadata.stream, encoding='utf-8'))
+
+    sd = source_dao()
+
+    result = sd.load_data(sourceId, data_def, io.TextIOWrapper(dataFile.stream, encoding='utf-8'))
+    return result
 
 def upload_source_entity(sourceId, sourceEntityId, body):
     """
     updates an entity
-    
+
     :param sourceId: ID of source to update
     :type sourceId: str
     :param sourceEntityId: ID of entity to update
@@ -101,8 +110,8 @@ def upload_source_entity(sourceId, sourceEntityId, body):
 
     :rtype: SourceEntity
     """
-    print("upload_source_entity", file=sys.stderr)
-    print(repr(body), file=sys.stderr)
+    print("upload_source_entity")
+    print(repr(body))
 #    if connexion.request.is_json:
 #        body = SourceEntity.from_dict(connexion.request.get_json())
     sd = source_dao()

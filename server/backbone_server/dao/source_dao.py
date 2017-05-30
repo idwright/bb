@@ -14,13 +14,19 @@ class source_dao(entity_dao):
     _connection = None
     _cursor = None
 
-#https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
-    def load_data(self, source, data_def):
+    def load_data_file(self, source, data_def, filename):
 
-        with open('example.csv') as csvfile:
+        input_stream = open('example.csv')
+
+        return self.load_data(source,data_def, input_stream)
+
+#https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
+    def load_data(self, source, data_def, input_stream):
+
+        with input_stream as csvfile:
             has_header = csv.Sniffer().has_header(csvfile.read(1024))
             csvfile.seek(0)
-            data_reader = csv.reader(csvfile)
+            data_reader = csv.reader(csvfile, delimiter = '\t')
             if has_header:
                 next(data_reader)
 
@@ -36,6 +42,8 @@ class source_dao(entity_dao):
                     #Done here for efficiency
                     if not 'type_id' in defn:
                         defn['type_id'] = self.find_or_create_prop_defn(source, name, defn['type'], identity)
+                    #print(repr(defn))
+                    #print(repr(row))
                     data = {
                         'data_value': row[defn['column']],
                         'data_type': defn['type'],
@@ -231,6 +239,6 @@ class source_dao(entity_dao):
 if __name__ == '__main__':
     sd = source_dao()
     data_def = json.loads('{ "refs": { "oxf_code": { "column": 1, "type": "string", "source": "lims" }}, "values":{ "id": { "column": 24, "type": "integer", "id": true }, "sample_type": { "column": 6, "type": "string" } } }')
-    sd.load_data('test', data_def)
+    sd.load_data_file('test', data_def, "example.csv")
 
-    print(repr(sd.fetch_entity_by_source('test',1)))
+    #print(repr(sd.fetch_entity_by_source('test',1)))
