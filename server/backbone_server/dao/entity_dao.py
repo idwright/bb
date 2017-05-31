@@ -392,27 +392,27 @@ class entity_dao(base_dao):
 
         property_type_id = None
         property_type = None
+        ents = []
+        props = []
         for (pti,pt) in self._cursor:
             property_type_id = pti
             property_type = pt
+            props.append({ 'pti': pti, 'pt': pt})
 
-        if not property_type_id:
-            return "404"
+        for (prop) in props:
+            props_query = '''SELECT
+                HEX(e.id), e.added_id
+                FROM
+                    properties p
+                LEFT JOIN entity_properties ep ON ep.property_id = p.id
+                LEFT JOIN entities e ON e.added_id = ep.entity_id
+                WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
 
-        props_query = '''SELECT
-            HEX(e.id), e.added_id
-            FROM
-                properties p
-            LEFT JOIN entity_properties ep ON ep.property_id = p.id
-            LEFT JOIN entities e ON e.added_id = ep.entity_id
-            WHERE prop_type_id = %s AND ''' + self.get_data_field(property_type) + ' = %s'
+            self._cursor.execute(props_query, (prop['pti'],self.get_data_value(prop['pt'], prop_value),))
 
-        self._cursor.execute(props_query, (property_type_id,self.get_data_value(property_type, prop_value),))
 
-        ents = []
-
-        for (ent_id,added_id,) in self._cursor:
-            ents.append(self.fetch_entity_by_id(ent_id, added_id))
+            for (ent_id,added_id,) in self._cursor:
+                ents.append(self.fetch_entity_by_id(ent_id, added_id))
 
         self._cursor.close()
         self._connection.close()

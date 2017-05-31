@@ -4,6 +4,7 @@ import csv
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
 from swagger_server.models.entity import Entity
+from swagger_server.models.summary_item import SummaryItem
 import binascii
 import uuid
 import mysql.connector
@@ -70,7 +71,7 @@ class source_dao(entity_dao):
                         'data_name': name,
                         'source': defn['source'],
                         'assoc_type_id': defn['assoc_type_id'],
-                        'fk_name': defn['fk_name'] if 'fk_name' in defn else None  
+                        'fk_name': defn['fk_name'] if 'fk_name' in defn else None
                     }
                     refs.append(data)
 
@@ -235,6 +236,98 @@ class source_dao(entity_dao):
         self._connection.close()
 
         return entity_id
+
+    def get_summary_by_property(self, source, prop_name, threshold):
+
+        th = 0
+        if threshold:
+            th = threshold
+
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+        q= ("SELECT id, prop_type FROM `property_types` WHERE `source` = %s AND `prop_name` = %s")
+        self._cursor.execute(q, (source, prop_name,))
+
+        property_type_id = None
+        property_type = None
+        for (pti,pt) in self._cursor:
+            property_type_id = pti
+            property_type = pt
+
+        query = ('''SELECT count(ep.property_id), pt.`source`, pt.prop_name, pt.prop_type, p.''' + self.get_data_field(property_type) +
+                ''' from entity_properties ep
+            LEFT JOIN properties p ON p.id = ep.property_id
+            LEFT JOIN property_types pt ON pt.id = p.prop_type_id
+            WHERE `pt`.`source` = %s AND `pt`.`prop_name` = %s
+            GROUP BY (ep.property_id) HAVING COUNT(ep.property_id) > %s order by prop_name, ''' +
+                 self.get_data_field(property_type))
+
+
+        self._cursor.execute(query, (source, prop_name, th))
+
+        results = []
+        for (count, source, pname, ptype, pvalue) in self._cursor:
+            summ = SummaryItem()
+            summ.source_name = pvalue
+            summ.num_items = count
+            results.append(summ)
+
+        self._connection.commit()
+        self._cursor.close()
+        self._connection.close()
+
+        return results
+
+    def get_source_properties(self, source):
+
+        query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
+            LEFT JOIN properties p ON p.prop_type_id = pt.id
+                WHERE `pt`.source = %s
+                    GROUP BY (pt.prop_name);'''
+
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+        self._cursor.execute(query, (source,))
+
+        results = []
+        for (count, pname) in self._cursor:
+            summ = SummaryItem()
+            summ.source_name = pname
+            summ.num_items = count
+            results.append(summ)
+
+        self._connection.commit()
+        self._cursor.close()
+        self._connection.close()
+
+        return results
+
+    def get_report_count_by_source(self):
+
+        query = '''SELECT count(ep.property_id), `pt`.`source` from entity_properties ep
+            LEFT JOIN properties p ON p.id = ep.property_id
+            JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = 1
+            GROUP BY `pt`.`source`;'''
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+        self._cursor.execute(query)
+
+        results = []
+        for (count, source) in self._cursor:
+            summ = SummaryItem()
+            summ.source_name = source
+            summ.num_items = count
+            results.append(summ)
+
+        self._connection.commit()
+        self._cursor.close()
+        self._connection.close()
+
+        print(repr(results))
+        return results
 
 if __name__ == '__main__':
     sd = source_dao()

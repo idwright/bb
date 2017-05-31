@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Entities } from './typescript-angular2-client/model/Entities';
+import { Summary } from './typescript-angular2-client/model/Summary';
 
-import { EntityApi } from './typescript-angular2-client/api/EntityApi';
+import { ReportApi } from './typescript-angular2-client/api/ReportApi';
 
 @Component({
   selector: 'my-dashboard',
@@ -11,19 +11,19 @@ import { EntityApi } from './typescript-angular2-client/api/EntityApi';
 })
 export class DashboardComponent implements OnInit {
 
-  entities: Entities;
+  summary: Summary;
 
-  constructor(private entityApi: EntityApi) { }
+  constructor(private reportApi: ReportApi) { }
 
   ngOnInit(): void {
-    this.entityApi.downloadEntitiesByProperty("sample_type", "DNAC")
+    this.reportApi.getSummary()
     .subscribe(
-    (entities) => {
-                    console.log(entities);
-                    this.entities = entities;
+    (summary) => {
+                    console.log(summary);
+                    this.summary = summary;
                 },
                 (err) => console.log(err),
-                () => { console.log("Downloaded entities") }
+                () => { console.log("Downloaded summary") }
                 );
   }
 }

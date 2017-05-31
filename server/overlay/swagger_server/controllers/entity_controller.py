@@ -8,6 +8,9 @@ from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 
 
+from backbone_server.dao.entity_dao import entity_dao
+import sys
+
 def delete_entity(entityId):
     """
     deletes an entity
@@ -31,7 +34,7 @@ def download_entities_by_property(propName, propValue):
 
     :rtype: Entities
     """
-    rint("download_entities_by_property", file=sys.stderr)
+    print("download_entities_by_property", file=sys.stderr)
     ed = entity_dao()
 
     result = ed.fetch_entities_by_property(propName, propValue)

@@ -9,7 +9,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-host: 'localhost:8080'
+host: 'localhost'
 basePath: /v1
 tags:
   - name: source
@@ -19,6 +19,8 @@ tags:
       url: 'http://swagger.io'
   - name: entity
     description: Access to Backbone entities
+  - name: report
+    description: Reports
 schemes:
   - http
 paths:
@@ -164,6 +166,75 @@ paths:
           description: Delete successful
         '404':
           description: Entity not found
+  '/source/summary/{sourceId}':
+    get:
+      tags:
+        - report
+      summary: fetches a summary of the properties in the source
+      description: ''
+      operationId: getPropertiesSummary
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Summary'
+        '404':
+          description: source not found
+  '/source/summary/{sourceId}/{propName}':
+    get:
+      tags:
+        - report
+      summary: fetches a summary of the property values in the source
+      description: ''
+      operationId: getPropertyValuesSummary
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+        - name: propName
+          in: path
+          description: name of property to search
+          required: true
+          type: string
+        - name: threshold
+          in: query
+          description: the lower bound to return
+          required: false
+          default: 5
+          type: integer
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/Summary'
+        '404':
+          description: Not found
+  /sources/summary:
+    get:
+      tags:
+        - report
+      summary: fetches a summary of the records in the db
+      description: ''
+      operationId: getSummary
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/Summary'
   '/entity/{entityId}':
     get:
       tags:
@@ -362,6 +433,20 @@ definitions:
         description: If this an identity column
         type: boolean
         default: false
+  Summary:
+    type: array
+    items:
+      $ref: '#/definitions/SummaryItem'
+  SummaryItem:
+    type: object
+    properties:
+      source_name:
+        type: string
+      num_items:
+        type: integer
+      implied_items:
+        type: integer
+        required: false
   ApiResponse:
     type: object
     properties:

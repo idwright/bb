@@ -1,5 +1,5 @@
 <div class="grid grid-pad">
-  <a *ngFor="let summaryItem of summary"  [routerLink]="['/sourceSummary', summaryItem.source_name]"  class="col-1-4">
+  <a *ngFor="let summaryItem of summary"  [routerLink]="['/sourcePropertySummary/', sourceName, summaryItem.source_name]"  class="col-1-4">
     <div class="module hero">
         <h4>{{summaryItem.source_name}} {{summaryItem.num_items}}</h4>
     </div>
