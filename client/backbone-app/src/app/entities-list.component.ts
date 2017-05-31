@@ -19,7 +19,7 @@ export class EntitiesListComponent implements OnInit {
 
     propertyName: string;
 
-    constructor(private entityApi: EntityApi
+    constructor(private entityApi: EntityApi,
               private route: ActivatedRoute,
               private location: Location
               ) { 

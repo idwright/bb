@@ -17,7 +17,7 @@ export class SourceSummaryComponent implements OnInit {
 
     sourceName: string;
 
-    constructor(private reportApi: ReportApi
+    constructor(private reportApi: ReportApi,
               private route: ActivatedRoute,
               private location: Location
               ) { 

@@ -18,7 +18,7 @@ export class SourcePropertySummaryComponent implements OnInit {
     sourceName: string;
     propertyName: string;
 
-    constructor(private reportApi: ReportApi
+    constructor(private reportApi: ReportApi,
               private route: ActivatedRoute,
               private location: Location
               ) { 
