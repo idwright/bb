@@ -5,6 +5,7 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
 
 import { Entity } from './typescript-angular2-client/model/Entity';
+import { Property } from './typescript-angular2-client/model/Property';
 import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 @Component({
   selector: 'entity-detail-form',
@@ -24,7 +25,9 @@ export class EntityDetailFormComponent implements OnInit {
   ngOnInit(): void {
     this.route.params
       .switchMap((params: Params) => this.entityService.downloadEntity(params['entity_id']))
-      .subscribe(response => this.entity = response);
+      .subscribe(response => {
+      this.entity = response;
+        });
   }
 
   goBack(): void {

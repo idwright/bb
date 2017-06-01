@@ -6,13 +6,13 @@
   </div>
       <div>
             <div *ngFor="let prop of entity.values">
-              <div>
                   <label style="width: 33%">{{prop.source}} {{prop.data_name}}</label>
+                <div *ngIf="prop.source == 'backbone'else elseBlock">
                    <span [ngSwitch]="prop.data_type">
                       <input *ngSwitchCase="'string'" [(ngModel)]="prop.data_value" name="{{prop.data_name}}" />
                    </span>
-
-              </div>
+                </div>
+                <ng-template #elseBlock><div>{{prop.data_value}}</div></ng-template>
             </div>
             Parent associations
             <div *ngFor="let assoc of entity.refs">
