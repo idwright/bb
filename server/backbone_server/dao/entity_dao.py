@@ -403,11 +403,15 @@ class entity_dao(base_dao):
         properties = []
         for (source, prop_name, prop_type, value, identity) in self._cursor:
             data = Property()
-            data.data_value = value
             data.data_type = prop_type
             data.data_name = prop_name
             data.identity = bool(identity)
             data.source = source
+            if value:
+                data.data_value = value
+            else:
+                #print("Null value for:" + repr(data))
+                pass
             properties.append(data)
 
         entity.values = properties
