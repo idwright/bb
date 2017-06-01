@@ -1,0 +1,8 @@
+*.txt
+*.csv
+*.zip
+*.docx
+*.pptx
+*.xlsx
+*/
+.~lock*
