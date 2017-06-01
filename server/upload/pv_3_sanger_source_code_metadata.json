@@ -8,12 +8,13 @@
         "oxford_donor_code": {
             "column": 1,
             "type": "string",
-            "source": "lims"
+            "fk_name": "individual_code",
+            "source": "oxford_central_samples"
         },
         "type": {
             "column": 5,
             "type": "string",
-            "source": "lims"
+            "source": "oxford_central_samples"
         }
     },
     "values":
@@ -24,7 +25,8 @@
         },
         "oxford_src_code": {
             "column": 1,
-            "type": "string"
+            "type": "string",
+            "id": true
         },
         "oxford_donor_code": {
             "column": 2,
