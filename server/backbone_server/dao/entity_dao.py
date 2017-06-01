@@ -10,6 +10,7 @@ import binascii
 import uuid
 import mysql.connector
 from mysql.connector import errorcode
+import datetime
 
 class entity_dao(base_dao):
 
@@ -58,7 +59,7 @@ class entity_dao(base_dao):
         assoc_name = source + "_" + target
 #        cnx = self.get_connection()
 #        cursor = cnx.cursor()
-        return self.find_or_create_assoc_defn(assoc_name)
+        return self.find_or_create_assoc_type(assoc_name)
 
     def find_or_create_assoc_type(self, assoc_name):
 
@@ -162,19 +163,21 @@ class entity_dao(base_dao):
             'double': "double_value",
             'json': "json_value",
             'boolean': "boolean_value",
+            'datetime': "string_value",
         }.get(data_type, 'string_value')
 
         return data_field
 
     def get_data_value(self, data_type, data_value):
         converted_field = {
-                            'string': lambda x: x,
-                            'integer': lambda x: int(x),
-                            'float': lambda x: float(x),
-                            'double': lambda x: float(x),
-                            'json': lambda x: x,
-                            'boolean': lambda x: 1 if x.lower() == 'true' else 0,
-                        }.get(data_type)(data_value)
+            'string': lambda x: x,
+            'integer': lambda x: int(x),
+            'float': lambda x: float(x),
+            'double': lambda x: float(x),
+            'json': lambda x: x,
+            'boolean': lambda x: 1 if x.lower() == 'true' else 0,
+            'datetime': lambda x: x,
+            }.get(data_type)(data_value)
 
         return converted_field
 

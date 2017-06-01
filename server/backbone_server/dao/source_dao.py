@@ -101,7 +101,7 @@ class source_dao(entity_dao):
             for prop in source_rec['values']:
                 self.add_entity_property(entity_id, prop, prop.type_id)
         else:
-             self._logger.critical("Missing id for %s", row, exc_info=1)
+             self._logger.critical("Missing id for %s", repr(source_rec), exc_info=1)
              return None
 
         if 'refs' in source_rec:
@@ -116,9 +116,10 @@ class source_dao(entity_dao):
                     assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'])
                 fk, found = self.find_entity(assoc['source'], fk_name, assoc['data_value'])
                 if not found:
-                    system_fk_data['data_value'] = True
+                    system_fk_data.data_value = "true"
                     self.add_entity_property(fk, system_fk_data, system_fk_type_id)
-                    self.add_entity_property(fk, assoc, assoc['type_id'])
+                    assoc_prop = Property(assoc['data_name'], assoc['data_type'], assoc['data_value'], assoc['source'], False)
+                    self.add_entity_property(fk, assoc_prop, assoc['type_id'])
                 self.add_assoc(entity_id, fk, assoc['assoc_type_id'])
                 if 'values' in source_rec['refs']:
                     for prop in source_rec['refs']['values']:
