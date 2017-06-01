@@ -3,7 +3,9 @@ import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
+from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
 from swagger_server.models.entity import Entity
+from swagger_server.models.property import Property
 from swagger_server.models.summary_item import SummaryItem
 import binascii
 import uuid
@@ -45,35 +47,30 @@ class source_dao(entity_dao):
                         defn['type_id'] = self.find_or_create_prop_defn(source, name, defn['type'], identity)
                     #print(repr(defn))
                     #print(repr(row))
-                    data = {
-                        'data_value': row[defn['column']],
-                        'data_type': defn['type'],
-                        'type_id': defn['type_id'],
-                        'data_name': name,
-                        'identity': identity,
-                        'source': source
-                    }
+                    data = BulkLoadProperty(name, defn['type'], row[defn['column']], source, identity)
+                    data.type_id = defn['type_id']
                     values.append(data)
 
                 refs = []
-                for name, defn in data_def['refs'].items():
-                    fk_name = name
-                    if 'fk_name' in defn:
-                        fk_name = defn['fk_name']
-                    if not 'type_id' in defn:
-                        defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
-                    if not 'assoc_type_id' in defn:
-                        defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'])
-                    data = {
-                        'data_value': row[defn['column']],
-                        'data_type': defn['type'],
-                        'type_id': defn['type_id'],
-                        'data_name': name,
-                        'source': defn['source'],
-                        'assoc_type_id': defn['assoc_type_id'],
-                        'fk_name': defn['fk_name'] if 'fk_name' in defn else None
-                    }
-                    refs.append(data)
+                if 'refs' in data_def:
+                    for name, defn in data_def['refs'].items():
+                        fk_name = name
+                        if 'fk_name' in defn:
+                            fk_name = defn['fk_name']
+                        if not 'type_id' in defn:
+                            defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
+                        if not 'assoc_type_id' in defn:
+                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'])
+                        data = {
+                            'data_value': row[defn['column']],
+                            'data_type': defn['type'],
+                            'type_id': defn['type_id'],
+                            'data_name': name,
+                            'source': defn['source'],
+                            'assoc_type_id': defn['assoc_type_id'],
+                            'fk_name': defn['fk_name'] if 'fk_name' in defn else None
+                        }
+                        refs.append(data)
 
                 record = { 'values': values, 'refs': refs}
                 self.edit_source(record)
@@ -84,32 +81,25 @@ class source_dao(entity_dao):
     def edit_source(self, source_rec):
 
         system_fk_type_id = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False)
-        system_fk_data = {
-                        'data_type': 'boolean',
-                        'type_id': system_fk_type_id,
-                        'data_name': 'implied_id',
-                        'source': 'system'
-                    }
+        system_fk_data = BulkLoadProperty('implied_id', 'boolean', 'false', 'system', False)
+        system_fk_data.type_id = system_fk_type_id
 
         entity_id = None
 
         for prop in source_rec['values']:
+            if type(prop) == 'BulkLoadProperty':
+                if not prop.type_id:
+                    prop.type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
 
-            prop['data_value'] = self.get_data_value(prop['data_type'],prop['data_value'])
-            identity = False
-            if 'identity' in prop and prop['identity']:
-                identity = True
-            if not 'type_id' in prop:
-                 prop['type_id'] = self.find_or_create_prop_defn(prop['source'], prop['data_name'], prop['data_type'], identity)
-            if identity:
+            if prop.identity:
 #                print (repr(prop))
-                entity_id, found = self.find_entity(prop['source'], prop['data_name'], prop['data_value'])
-                system_fk_data['data_value'] = False
+                entity_id, found = self.find_entity(prop.source, prop.data_name, prop.data_value)
+                system_fk_data.data_value = 'false'
                 self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
 
         if entity_id:
             for prop in source_rec['values']:
-                self.add_entity_property(entity_id, prop, prop['type_id'])
+                self.add_entity_property(entity_id, prop, prop.type_id)
         else:
              self._logger.critical("Missing id for %s", row, exc_info=1)
              return None
