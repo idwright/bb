@@ -55,8 +55,8 @@ class entity_dao(base_dao):
 
         return retval
 
-    def find_or_create_assoc_defn(self, source, target):
-        assoc_name = source + "_" + target
+    def find_or_create_assoc_defn(self, source, target, key):
+        assoc_name = key + "_" + source + "_" + target
 #        cnx = self.get_connection()
 #        cursor = cnx.cursor()
         return self.find_or_create_assoc_type(assoc_name)

@@ -60,7 +60,7 @@ class source_dao(entity_dao):
                         if not 'type_id' in defn:
                             defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
                         if not 'assoc_type_id' in defn:
-                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'])
+                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], fk_name)
                         data = {
                             'data_value': row[defn['column']],
                             'data_type': defn['type'],
@@ -113,14 +113,14 @@ class source_dao(entity_dao):
                 if not 'type_id' in assoc:
                     assoc['type_id'] = self.find_or_create_prop_defn(assoc['source'], fk_name, assoc['type'], True)
                 if not 'assoc_type_id' in assoc:
-                    assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'])
+                    assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'], fk_name)
                 fk, found = self.find_entity(assoc['source'], fk_name, assoc['data_value'])
                 if not found:
                     system_fk_data.data_value = "true"
                     self.add_entity_property(fk, system_fk_data, system_fk_type_id)
                     assoc_prop = Property(assoc['data_name'], assoc['data_type'], assoc['data_value'], assoc['source'], False)
                     self.add_entity_property(fk, assoc_prop, assoc['type_id'])
-                self.add_assoc(entity_id, fk, assoc['assoc_type_id'])
+                self.add_assoc(fk, entity_id, assoc['assoc_type_id'])
                 if 'values' in source_rec['refs']:
                     for prop in source_rec['refs']['values']:
                         if not 'type_id' in prop:
