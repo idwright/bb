@@ -15,7 +15,7 @@ CREATE TABLE `entities` (
 CREATE TABLE `property_types` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
     `source` varchar(32) NOT NULL,
-    `prop_name` varchar(32) NOT NULL,
+    `prop_name` varchar(64) NOT NULL,
     `prop_type` varchar(32) DEFAULT 'string',
     `prop_order` int(4) DEFAULT 0,
     `identity` bit(1) DEFAULT NULL,
