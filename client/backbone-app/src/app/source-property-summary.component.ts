@@ -30,7 +30,7 @@ export class SourcePropertySummaryComponent implements OnInit {
         this.propertyName = this.route.snapshot.params['propertyName'];
 
       this.route.params.switchMap((params: Params) =>
-        this.reportApi.getPropertyValuesSummary(params['sourceId'], params['propertyName'], 2)).subscribe(
+        this.reportApi.getPropertyValuesSummary(params['sourceId'], params['propertyName'], 0)).subscribe(
             (summary) => {
                             console.log(summary);
                             this.summary = summary;

@@ -4,14 +4,26 @@
   <div>
     <label>id: </label>{{entity.entity_id}}
   </div>
-      <div class="grid grid-pad">
-            <div *ngFor="let prop of entity.values"  [routerLink]="['/detail', entity.entity_id]" class="col-1-4">
+      <div>
+            <div *ngFor="let prop of entity.values">
               <div>
-                  <label>{{prop.source}} {{prop.data_name}}</label>
-                   <div [ngSwitch]="prop.data_type">
+                  <label style="width: 33%">{{prop.source}} {{prop.data_name}}</label>
+                   <span [ngSwitch]="prop.data_type">
                       <input *ngSwitchCase="'string'" [(ngModel)]="prop.data_value" name="{{prop.data_name}}" />
-                   </div>
+                   </span>
 
+              </div>
+            </div>
+            Parent associations
+            <div *ngFor="let assoc of entity.refs">
+                <div *ngIf="assoc.source_id == entity.entity_id">
+                 {{assoc.assoc_name}} <a [routerLink]="['/detail/', assoc.target_id]">{{assoc.target_id}}</a>
+              </div>
+            </div>
+            Child associations
+            <div *ngFor="let assoc of entity.refs">
+                <div *ngIf="assoc.target_id == entity.entity_id">
+                 {{assoc.assoc_name}} <a [routerLink]="['/detail/', assoc.source_id]">{{assoc.source_id}}</a>
               </div>
             </div>
       </div>
