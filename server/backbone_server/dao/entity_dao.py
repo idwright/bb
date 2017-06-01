@@ -449,6 +449,7 @@ class entity_dao(base_dao):
             refs.append(data)
 
 
+        entity.refs = refs
         #print ("Fetched entity:" + str(added_id))
         return entity
 
