@@ -11,7 +11,10 @@ CREATE OR REPLACE VIEW `property_values` AS
     CASE pt.prop_type
         WHEN 'string' THEN CONVERT (p.string_value, CHAR CHARACTER SET utf8)
         WHEN 'integer' THEN CONVERT (p.long_value, CHAR CHARACTER SET utf8)
-        WHEN 'boolean' THEN CONVERT (p.boolean_value, CHAR CHARACTER SET utf8)
+        WHEN 'boolean' THEN CASE p.boolean_value
+								WHEN 0 THEN 'false'
+                                WHEN 1 THEN 'true'
+							END
         WHEN 'float' THEN CONVERT (p.float_value, CHAR CHARACTER SET utf8)
 		WHEN 'double' THEN CONVERT (p.double_value, CHAR CHARACTER SET utf8)
         WHEN 'blob' THEN CONVERT (p.serializable_value, CHAR CHARACTER SET utf8)

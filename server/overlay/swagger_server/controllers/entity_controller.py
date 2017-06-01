@@ -70,8 +70,14 @@ def update_entity(entityId, entity):
 
     :rtype: SourceEntity
     """
-    print("update_entity", file=sys.stderr)
+    #print("update_entity", file=sys.stderr)
     if connexion.request.is_json:
       entity = Entity.from_dict(connexion.request.get_json())
-    return 'do some magic!'
+      #print(repr(entity))
+    ed = entity_dao()
+
+    retval = ed.update_entity(entity)
+
+    #print(repr(retval))
+    return retval
 
