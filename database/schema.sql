@@ -54,7 +54,7 @@ CREATE TABLE `entity_properties` (
 
 CREATE TABLE `assoc_types` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
-    `assoc_name` varchar(32) NOT NULL,
+    `assoc_name` varchar(64) NOT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `an` (`assoc_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
