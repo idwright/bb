@@ -60,7 +60,7 @@ class source_dao(entity_dao):
                         if not 'type_id' in defn:
                             defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
                         if not 'assoc_type_id' in defn:
-                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], fk_name)
+                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], name)
                         data = {
                             'data_value': row[defn['column']],
                             'data_type': defn['type'],
@@ -85,6 +85,7 @@ class source_dao(entity_dao):
         system_fk_data.type_id = system_fk_type_id
 
         entity_id = None
+        id_prop = None
 
         for prop in source_rec['values']:
             if type(prop) == 'BulkLoadProperty':
@@ -95,6 +96,7 @@ class source_dao(entity_dao):
 #                print (repr(prop))
                 entity_id, found = self.find_entity(prop.source, prop.data_name, prop.data_value)
                 system_fk_data.data_value = 'false'
+                id_prop = prop
                 self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
 
         if entity_id:
@@ -104,6 +106,7 @@ class source_dao(entity_dao):
              self._logger.critical("Missing id for %s", repr(source_rec), exc_info=1)
              return None
 
+        #print("Identity property:" + repr(id_prop))
         if 'refs' in source_rec:
             for assoc in source_rec['refs']:
                 if 'fk_name' in assoc and assoc['fk_name']:
@@ -113,8 +116,20 @@ class source_dao(entity_dao):
                 if not 'type_id' in assoc:
                     assoc['type_id'] = self.find_or_create_prop_defn(assoc['source'], fk_name, assoc['type'], True)
                 if not 'assoc_type_id' in assoc:
-                    assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'], fk_name)
-                fk, found = self.find_entity(assoc['source'], fk_name, assoc['data_value'])
+                    assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'], assoc['data_name'])
+                fk = None
+                if not assoc['data_value'] or assoc['data_value'].lower() == "null":
+                    continue
+                #If it's reference itself, which it's allowed to do
+                if id_prop and assoc['source'] == id_prop.source:
+                    #print ("Self ref candidate:" + repr(assoc))
+                    for prop in source_rec['values']:
+                        #print ("Checking:" + repr(prop))
+                        if prop.data_name == fk_name and prop.data_value == assoc['data_value']:
+                            fk = entity_id
+                            found = True
+                if not found:
+                    fk, found = self.find_entity(assoc['source'], fk_name, assoc['data_value'])
                 if not found:
                     system_fk_data.data_value = "true"
                     self.add_entity_property(fk, system_fk_data, system_fk_type_id)
@@ -317,7 +332,7 @@ class source_dao(entity_dao):
         self._cursor.close()
         self._connection.close()
 
-        print(repr(results))
+        #print(repr(results))
         return results
 
 if __name__ == '__main__':

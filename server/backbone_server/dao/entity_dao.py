@@ -171,7 +171,7 @@ class entity_dao(base_dao):
     def get_data_value(self, data_type, data_value):
         converted_field = {
             'string': lambda x: x,
-            'integer': lambda x: int(x),
+            'integer': lambda x: None if x.lower() == "null" else int(x),
             'float': lambda x: float(x),
             'double': lambda x: float(x),
             'json': lambda x: x,
