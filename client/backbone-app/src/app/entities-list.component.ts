@@ -18,6 +18,7 @@ export class EntitiesListComponent implements OnInit {
     sourceName: string;
 
     propertyName: string;
+    propertyValue: string;
 
     constructor(private entityApi: EntityApi,
               private route: ActivatedRoute,
@@ -28,6 +29,7 @@ export class EntitiesListComponent implements OnInit {
     ngOnInit(): void {
         this.sourceName = this.route.snapshot.params['sourceId'];
         this.propertyName = this.route.snapshot.params['propertyName'];
+        this.propertyValue = this.route.snapshot.params['propertyValue'];
 
         console.log("entities list:" + this.sourceName + "/" + this.propertyName);
 

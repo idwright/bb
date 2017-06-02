@@ -11,6 +11,7 @@ import { DashboardComponent }   from './dashboard.component';
 import { EntityDetailComponent } from './entity-detail.component';
 import { EntityDetailFormComponent } from './entity-detail-form.component';
 import { EntitiesListComponent }      from './entities-list.component';
+import { EntitiesDisplayComponent }      from './entities-display.component';
 import { EntitiesComponent }      from './entities.component';
 import { SourceSummaryComponent }      from './source-summary.component';
 import { SourcePropertySummaryComponent }      from './source-property-summary.component';
@@ -35,6 +36,7 @@ import { AppRoutingModule }     from './app-routing.module';
     EntityDetailComponent,
     EntityDetailFormComponent,
     EntitiesListComponent,
+    EntitiesDisplayComponent,
     EntitiesComponent,
     SourceSummaryComponent,
     SourcePropertySummaryComponent,

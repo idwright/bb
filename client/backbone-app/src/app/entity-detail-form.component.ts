@@ -24,7 +24,7 @@ export class EntityDetailFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params
-      .switchMap((params: Params) => this.entityService.downloadEntity(params['entity_id']))
+      .switchMap((params: Params) => this.entityService.downloadEntity(params['entityId']))
       .subscribe(response => {
       this.entity = response;
         });
@@ -37,7 +37,7 @@ export class EntityDetailFormComponent implements OnInit {
   public onSubmit(): void {
 
     console.log("Submitting:" + JSON.stringify(this.entity));
-      this.entityService.updateEntity(this.entity.entity_id, this.entity)
+      this.entityService.updateEntity(this.entity.entityId, this.entity)
       .subscribe(
         (x) => {
     console.log("Submitted");

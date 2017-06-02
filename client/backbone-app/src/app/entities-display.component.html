@@ -1,0 +1,18 @@
+<div class="grid grid-pad">
+  <a *ngFor="let entity of entities"  [routerLink]="['/detail/', entity.entity_id]">
+    <div class="module hero">
+        <h4>{{entity.entityId}}</h4>
+		<div *ngFor="let prop of entity.values">
+            <div *ngIf="prop.identity">
+              <div>
+                  <label>{{prop.source}} {{prop.data_name}} {{prop.data_value}}</label>
+                   <div [ngSwitch]="prop.data_type">
+                      <input *ngSwitchCase="'string'" [(ngModel)]="prop.data_value" name="{{prop.data_name}}" />
+                   </div>
+
+              </div>
+            </div>
+		</div>
+    </div>
+  </a>
+</div>

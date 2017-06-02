@@ -11,7 +11,7 @@ import { SourcePropertySummaryComponent }  from './source-property-summary.compo
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
   { path: 'dashboard',  component: DashboardComponent },
-  { path: 'detail/:entity_id', component: EntityDetailComponent },
+  { path: 'detail/:entityId', component: EntityDetailComponent },
   { path: 'sourceSummary/:sourceId', component: SourceSummaryComponent },
   { path: 'sourcePropertySummary/:sourceId/:propertyName', component: SourcePropertySummaryComponent },
   { path: 'list/:sourceId/:propertyName/:propertyValue', component: EntitiesListComponent },
