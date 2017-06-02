@@ -3,7 +3,14 @@
         "oxford_code": {
             "column": 0,
             "type": "string",
-            "source": "lims"
+            "fk_name": "individual_code",
+            "source": "oxford_central_samples"
+        },
+        "oxford_donor_code": {
+            "column": 2,
+            "type": "string",
+            "fk_name": "individual_code",
+            "source": "oxford_central_donor"
         },
         "alfresco_code": {
             "column": 4,
@@ -13,7 +20,7 @@
         "type": {
             "column": 5,
             "type": "string",
-            "source": "lims"
+            "source": "oxford_central_samples"
         }
     },
     "values":

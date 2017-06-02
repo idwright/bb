@@ -2,7 +2,7 @@
     "refs": {
         "OXFORD_DATABASE_RECORDS_PARENT_ID": {
             "column": 1,
-            "type": "string",
+            "type": "integer",
             "fk_name": "OXFORD_DATABASE_RECORDS_UNIQUE_ID",
             "source": "oxford_central_samples"
         },
@@ -14,27 +14,27 @@
         },
         "parent_id1": {
             "column": 8,
-            "type": "string",
+            "type": "integer",
             "fk_name": "individual_id",
-            "source": "oxford_central_samples"
+            "source": "oxford_central_donor"
         },
         "parent_code1": {
             "column": 9,
             "type": "string",
             "fk_name": "individual_code",
-            "source": "oxford_central_samples"
+            "source": "oxford_central_donor"
         },
         "parent_id2": {
             "column": 10,
-            "type": "string",
+            "type": "integer",
             "fk_name": "individual_id",
-            "source": "oxford_central_samples"
+            "source": "oxford_central_donor"
         },
         "parent_code2": {
             "column": 11,
             "type": "string",
             "fk_name": "individual_code",
-            "source": "oxford_central_samples"
+            "source": "oxford_central_donor"
         }
     },
     "values":

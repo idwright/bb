@@ -8,7 +8,7 @@
         "type": {
             "column": 5,
             "type": "string",
-            "source": "lims"
+            "source": "oxford_central_samples"
         }
     },
     "values":

@@ -3,7 +3,8 @@
         "oxford_code": {
             "column": 0,
             "type": "string",
-            "source": "lims"
+            "fk_name": "individual_code",
+            "source": "oxford_central_samples"
         },
         "alfresco_code": {
             "column": 2,
