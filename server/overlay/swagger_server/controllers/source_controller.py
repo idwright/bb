@@ -12,6 +12,8 @@ import sys
 import io
 import json
 
+#import cProfile
+
 def delete_source_entity(sourceId, sourceEntityId):
     """
     delete_source_entity
@@ -94,7 +96,18 @@ def upload_source(sourceId, dataFile, additionalMetadata=None):
 
     sd = source_dao()
 
-    result = sd.load_data(sourceId, data_def, io.TextIOWrapper(dataFile.stream, encoding='utf-8'))
+    input_stream = io.TextIOWrapper(dataFile.stream, encoding='utf-8')
+
+#    profile = cProfile.Profile()
+#    profile.enable()
+    result = sd.load_data(sourceId, data_def, input_stream)
+#    profile.disable()
+#    profile.print_stats()
+#    profile.dump_stats('upload_source_stats.cprof')
+#$ pyprof2calltree -k -i upload_source_stats.cprof
+
+
+
     return result
 
 def upload_source_entity(sourceId, sourceEntityId, body):
