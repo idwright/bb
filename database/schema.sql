@@ -21,7 +21,8 @@ CREATE TABLE `property_types` (
     `identity` bit(1) DEFAULT NULL,
     `versionable` bit(1) DEFAULT 1,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `ptn` (`source`, `prop_name`, `prop_type`)
+    UNIQUE KEY `psn` (`source`, `prop_name`),
+    UNIQUE KEY `psnt` (`source`, `prop_name`, `prop_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `properties` (
@@ -38,6 +39,7 @@ CREATE TABLE `properties` (
     PRIMARY KEY (`id`),
     KEY `eprop_id` (`prop_type_id`),
     KEY `string_value` (`string_value`(255)),
+    KEY `svt` (`prop_type_id`, `string_value`(255)),
     KEY `long_value` (`long_value`),
     CONSTRAINT `fk_prop_type_id` FOREIGN KEY (`prop_type_id`) REFERENCES `property_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
