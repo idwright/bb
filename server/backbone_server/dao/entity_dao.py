@@ -252,7 +252,7 @@ class entity_dao(base_dao):
 
         if not multiple_values:
             #print ("insert_or_update_property: not multiple_values")
-            count_query = ("SELECT p.id FROM `properties` p LEFT JOIN `property_types` AS pt ON pt.id = p.prop_type_id LEFT JOIN `entity_properties` AS ep ON ep.property_id = p.id LEFT JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `" + data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
+            count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
 
             #print(count_query)
             #print(repr(prop))
