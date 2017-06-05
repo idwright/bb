@@ -3,7 +3,7 @@ SPLIT_SIZE=1000
 
 ./oxford_central_samples_upload.sh
 
-for SOURCE in sanger_ega_dataset vw_vrpipe pf_6_metadata pv_3_sanger_source_code_metadata pv_3_broad_metadata pv_3_broad_sra_accessions pv_3_locations pv_3_chapellhill_sra_accessions pv_3_sanger_source_code_metadata_test
+for SOURCE in sanger_ega_dataset vw_vrpipe pf_6_metadata pv_3_sanger_source_code_metadata pv_3_broad_metadata pv_3_broad_sra_accessions pv_3_locations pv_3_chapellhill_sra_accessions pv_3_sanger_source_code_metadata_test VOBS
 do
     split -l ${SPLIT_SIZE} ${SOURCE}.txt ${SOURCE}_split_
 
