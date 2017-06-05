@@ -321,7 +321,7 @@ class entity_dao(base_dao):
 
 
         property_details = []
-        for (entity_id, added_id, prop_id) in self._cursor:
+        for (entity_id, added_id) in self._cursor:
             property_details.append({ 'entity_id': entity_id, 'added_id': added_id})
 #        print(fetch_row)
 #        print((prop_name, source, prop_value))
