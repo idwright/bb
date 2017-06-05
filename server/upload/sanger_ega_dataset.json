@@ -1,11 +1,4 @@
 {
-    "refs": {
-        "file_name": {
-            "column": 0,
-            "type": "string",
-            "source": "solaris"
-        }
-    },
     "values":
     {
         "file_name": {
