@@ -476,7 +476,6 @@ class entity_dao(base_dao):
 
         property_type_id = None
         property_type = None
-        ents = []
         entities = []
         props = []
         for (pti,pt) in self._cursor:
@@ -495,8 +494,11 @@ class entity_dao(base_dao):
 
             try:
                 query_value = self.get_data_value(prop['pt'], prop_value)
+                #print(props_query)
+                #print("{} {}".format(repr(prop), repr(query_value)))
                 self._cursor.execute(props_query, (prop['pti'], query_value,))
 
+                ents = []
                 for (ent_id,added_id,) in self._cursor:
                     ents.append({ 'ent_id': ent_id, 'added_id': added_id})
 
