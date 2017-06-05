@@ -493,14 +493,17 @@ class entity_dao(base_dao):
                 LEFT JOIN entities e ON e.added_id = ep.entity_id
                 WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
 
-            self._cursor.execute(props_query, (prop['pti'],self.get_data_value(prop['pt'], prop_value),))
+            try:
+                query_value = self.get_data_value(prop['pt'], prop_value)
+                self._cursor.execute(props_query, (prop['pti'], query_value,))
 
+                for (ent_id,added_id,) in self._cursor:
+                    ents.append({ 'ent_id': ent_id, 'added_id': added_id})
 
-            for (ent_id,added_id,) in self._cursor:
-                ents.append({ 'ent_id': ent_id, 'added_id': added_id})
-
-            for ent in ents:
-                entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
+                for ent in ents:
+                    entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
+            except ValueError:
+                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
 
         self._cursor.close()
         self._connection.close()
