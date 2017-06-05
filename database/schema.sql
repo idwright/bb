@@ -22,7 +22,8 @@ CREATE TABLE `property_types` (
     `versionable` bit(1) DEFAULT 1,
     PRIMARY KEY (`id`),
     UNIQUE KEY `psn` (`source`, `prop_name`),
-    UNIQUE KEY `psnt` (`source`, `prop_name`, `prop_type`)
+    UNIQUE KEY `psnt` (`source`, `prop_name`, `prop_type`),
+    KEY `identity` (`identity`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 CREATE TABLE `properties` (
