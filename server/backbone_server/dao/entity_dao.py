@@ -171,7 +171,7 @@ class entity_dao(base_dao):
     def get_data_value(self, data_type, data_value):
         converted_field = {
             'string': lambda x: x,
-            'integer': lambda x: None if x.lower() == "null" else int(x),
+            'integer': lambda x: None if x.lower() == "null" or x == '' else int(x),
             'float': lambda x: float(x),
             'double': lambda x: float(x),
             'json': lambda x: x,
@@ -293,23 +293,36 @@ class entity_dao(base_dao):
 #            cnx.close()
 
 
-    def find_property(self, source, prop_name, prop_value):
-#        cnx = self.get_connection()
-#        cursor = cnx.cursor()
+    def find_entity_by_properties(self, properties):
 
-        #This is a view that is potentially quite slow
-        fetch_row = ("SELECT HEX(entity_id),added_id, property_id, value FROM `property_values` WHERE `prop_name` = %s AND `source`=%s")
+        fetch_row = ('''SELECT
+                        HEX(entity_id), added_id
+                    FROM
+                        `properties` p
+                        JOIN property_types pt ON pt.id = p.prop_type_id
+                        JOIN entity_properties ep ON ep.property_id = p.id
+                        JOIN entities e ON e.added_id = ep.entity_id
+                    WHERE ''')
 
-        if prop_value:
-            fetch_row = fetch_row + " AND `value` = %s"
-            self._cursor.execute(fetch_row, (prop_name, source, prop_value))
-        else:
-            self._cursor.execute(fetch_row, (prop_name, source))
+        filters = []
+        values = []
+        for prop in properties:
+            pfilter = '`prop_name` = %s AND `source` = %s'
+            values.append(prop.data_name)
+            values.append(prop.source)
+            if prop.data_value:
+                pfilter = pfilter + " AND `" + self.get_data_field(prop.data_type) +"` = %s"
+                values.append(prop.data_value)
+            filters.append(pfilter)
+
+        fetch_row = fetch_row + ' AND '.join(filters)
+
+        self._cursor.execute(fetch_row, values)
 
 
         property_details = []
-        for (entity_id, added_id, prop_id, value) in self._cursor:
-            property_details.append({ 'entity_id': entity_id, 'property_id': prop_id, 'value': value , 'added_id': added_id})
+        for (entity_id, added_id, prop_id) in self._cursor:
+            property_details.append({ 'entity_id': entity_id, 'added_id': added_id})
 #        print(fetch_row)
 #        print((prop_name, source, prop_value))
 #        print (property_details)
@@ -318,10 +331,10 @@ class entity_dao(base_dao):
 
         return property_details
 
-    def find_entity(self, source, prop_name, entity_id):
+    def find_entity(self, id_properties):
 
         found = False
-        property_details = self.find_property(source, prop_name, entity_id)
+        property_details = self.find_entity_by_properties(id_properties)
 
         #print(property_details)
         if len(property_details) == 1:

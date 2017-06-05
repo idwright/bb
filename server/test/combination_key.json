@@ -1,0 +1,61 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string",
+            "source": "alfresco"
+        },
+        "oxford_donor_code": {
+            "column": 1,
+            "type": "string",
+            "fk_name": "individual_code",
+            "source": "oxford_central_samples"
+        },
+        "type": {
+            "column": 5,
+            "type": "string",
+            "source": "oxford_central_samples"
+        }
+    },
+    "values":
+    {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "oxford_src_code": {
+            "column": 1,
+            "type": "string",
+            "id": true
+        },
+        "oxford_donor_code": {
+            "column": 2,
+            "type": "string"
+        },
+        "related_src_code": {
+            "column": 3,
+            "type": "string"
+        },
+        "relationship": {
+            "column": 4,
+            "type": "string"
+        },
+        "blood_draw_id": {
+            "column": 5,
+            "type": "string"
+        },
+        "individual_id": {
+            "column": 6,
+            "type": "string"
+        },
+        "collection_date": {
+            "column": 7,
+            "type": "datetime"
+        },
+        "collection_location": {
+            "column": 8,
+            "type": "string"
+        }
+    }
+}

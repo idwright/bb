@@ -87,17 +87,21 @@ class source_dao(entity_dao):
         entity_id = None
         id_prop = None
 
+        id_properties = []
         for prop in source_rec['values']:
             if type(prop) == 'BulkLoadProperty':
                 if not prop.type_id:
                     prop.type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
 
             if prop.identity:
+                id_properties.append(prop)
 #                print (repr(prop))
-                entity_id, found = self.find_entity(prop.source, prop.data_name, prop.data_value)
-                system_fk_data.data_value = 'false'
-                id_prop = prop
-                self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
+
+
+        entity_id, found = self.find_entity(id_properties)
+        system_fk_data.data_value = 'false'
+        id_prop = prop
+        self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
 
         if entity_id:
             for prop in source_rec['values']:
@@ -114,27 +118,19 @@ class source_dao(entity_dao):
                 else:
                     fk_name = assoc['data_name']
                 if not 'type_id' in assoc:
-                    assoc['type_id'] = self.find_or_create_prop_defn(assoc['source'], fk_name, assoc['type'], True)
+                    assoc['type_id'] = self.find_or_create_prop_defn(assoc['source'], fk_name, assoc['data_type'], True)
                 if not 'assoc_type_id' in assoc:
                     assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'], assoc['data_name'])
                 fk = None
                 if not assoc['data_value'] or assoc['data_value'].lower() == "null":
                     continue
-                #If it's reference itself, which it's allowed to do
-                if id_prop and assoc['source'] == id_prop.source:
-                    #print ("Self ref candidate:" + repr(assoc))
-                    for prop in source_rec['values']:
-                        #print ("Checking:" + repr(prop))
-                        if prop.data_name == fk_name and prop.data_value == assoc['data_value']:
-                            fk = entity_id
-                            found = True
+                fk_prop = BulkLoadProperty(fk_name, assoc['data_type'], assoc['data_value'], assoc['source'], False)
                 if not found:
-                    fk, found = self.find_entity(assoc['source'], fk_name, assoc['data_value'])
+                    fk, found = self.find_entity([ fk_prop ])
                 if not found:
                     system_fk_data.data_value = "true"
                     self.add_entity_property(fk, system_fk_data, system_fk_type_id)
-                    assoc_prop = Property(assoc['data_name'], assoc['data_type'], assoc['data_value'], assoc['source'], False)
-                    self.add_entity_property(fk, assoc_prop, assoc['type_id'])
+                    self.add_entity_property(fk, fk_prop, assoc['type_id'])
                 self.add_assoc(fk, entity_id, assoc['assoc_type_id'])
                 if 'values' in source_rec['refs']:
                     for prop in source_rec['refs']['values']:
@@ -312,10 +308,10 @@ class source_dao(entity_dao):
 
     def get_report_count_by_source(self):
 
-        query = '''SELECT count(ep.property_id), `pt`.`source` from entity_properties ep
-            LEFT JOIN properties p ON p.id = ep.property_id
-            JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = 1
-            GROUP BY `pt`.`source`;'''
+        query = '''SELECT DISTINCT count(ep.property_id), `pt`.`source` from entity_properties ep
+                    JOIN properties p ON p.id = ep.property_id
+                    JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = 1
+                    GROUP BY `pt`.`source`, pt.id;'''
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
 
