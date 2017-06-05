@@ -6,3 +6,6 @@
 *.xlsx
 */
 .~lock*
+*_split_*
+*.sql
+nohup.out
