@@ -22,10 +22,10 @@ CREATE OR REPLACE VIEW `property_values` AS
     END AS 'value'
 	FROM
 		`properties` AS p
-			LEFT JOIN
+			JOIN
 				`property_types` AS pt ON pt.id = p.prop_type_id
-			LEFT JOIN `entity_properties` AS ep ON ep.property_id = p.id
-            LEFT JOIN `entities` AS e ON ep.entity_id = e.added_id;
+			JOIN `entity_properties` AS ep ON ep.property_id = p.id
+            JOIN `entities` AS e ON ep.entity_id = e.added_id;
                 
 CREATE OR REPLACE VIEW `associations` AS
 	SELECT 
@@ -37,11 +37,11 @@ CREATE OR REPLACE VIEW `associations` AS
     ea.assoc_type_id
 	FROM
 		`entity_assoc` AS ea
-			LEFT JOIN
+			JOIN
 				`entities` AS s ON ea.source_entity_id = s.added_id
-			LEFT JOIN
+			JOIN
 				`entities` AS t ON ea.target_entity_id = t.added_id
-			LEFT JOIN `assoc_types` AS a ON ea.assoc_type_id = a.id;
+			JOIN `assoc_types` AS a ON ea.assoc_type_id = a.id;
 
 CREATE OR REPLACE VIEW `association_property_values` AS
     SELECT 
@@ -67,12 +67,11 @@ CREATE OR REPLACE VIEW `association_property_values` AS
         END AS 'value'
     FROM
         `assoc_properties` AS ap
-            LEFT JOIN
+            JOIN
         `entities` AS s ON ap.source_entity_id = s.added_id
-            LEFT JOIN
+            JOIN
         `entities` AS t ON ap.target_entity_id = t.added_id
-            LEFT JOIN
+            JOIN
         `assoc_types` AS a ON ap.assoc_type_id = a.id
-		LEFT JOIN `properties` p ON ap.property_id = p.id
-            LEFT JOIN
-        `property_types` AS pt ON pt.id = p.prop_type_id;
+            JOIN `properties` p ON ap.property_id = p.id
+            JOIN `property_types` AS pt ON pt.id = p.prop_type_id;
