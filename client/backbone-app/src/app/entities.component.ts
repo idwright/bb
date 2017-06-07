@@ -11,7 +11,11 @@ templateUrl: './entities.component.html',
 })
 export class EntitiesComponent  implements OnInit { 
 
+    sourceName: string;
 
+    propertyName: string;
+    propertyValue: string;
+    
     constructor(private entityApi: EntityApi) { }
 
 
