@@ -37,7 +37,7 @@ export class EntityDetailFormComponent implements OnInit {
   public onSubmit(): void {
 
     console.log("Submitting:" + JSON.stringify(this.entity));
-      this.entityService.updateEntity(this.entity.entityId, this.entity)
+      this.entityService.updateEntity(this.entity.entity_id, this.entity)
       .subscribe(
         (x) => {
     console.log("Submitted");
@@ -50,7 +50,7 @@ export class EntityDetailFormComponent implements OnInit {
     }
 
     private onFormChange() {
-    console.log("Changing:" + this.entity.entityId);
+    console.log("Changing:" + this.entity.entity_id);
     }
 
 }
