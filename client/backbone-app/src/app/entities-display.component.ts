@@ -96,7 +96,6 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
                     let refsColumn = {
                         'prop': 'refs',
                         'name': 'Associations',
-                        cellTemplate: this.identityTmpl,
                         headerTemplate: this.hdrTpl
                     };
                     allCols.push(refsColumn);
