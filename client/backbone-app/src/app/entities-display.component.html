@@ -1,15 +1,16 @@
-<div class="grid grid-pad">
-  <a *ngFor="let entity of entities"  [routerLink]="['/detail/', entity.entity_id]">
-    <div class="module hero">
-        <h4><span>{{entity.entity_id}}</span></h4>
-		<div *ngFor="let prop of entity.values">
-            <div *ngIf="prop.identity">
-              <div>
-                  <span class="ident_prop">{{prop.source}} {{prop.data_name}} {{prop.data_value}}</span>
-              </div>
-            </div>
-		</div>
-        <span *ngIf="entity.refs">({{entity.refs.length}})</span>
-    </div>
-  </a>
+<div>
+  <ngx-datatable class="material" [rows]="rows" [columns]="columns"  [columnMode]="'force'">
+  </ngx-datatable>
 </div>
+
+<ng-template #hdrTpl let-column="column" >
+        {{column.name}}
+</ng-template>
+
+<ng-template #identityTmpl let-row="row" let-value="value">
+  <a [routerLink]="['/detail/', value]">{{value}}</a>
+</ng-template>
+
+<ng-template #propertyValueTmpl let-column="column" let-row="row" let-value="value">
+  <a [routerLink]="['/list/', column.propSource, column.propName, value]">{{value}}</a>
+</ng-template>
