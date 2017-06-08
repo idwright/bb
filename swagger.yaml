@@ -9,7 +9,7 @@ info:
   license:
     name: Apache 2.0
     url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
-host: 'localhost'
+host: localhost
 basePath: /v1
 tags:
   - name: source
@@ -51,6 +51,12 @@ paths:
           description: file to upload
           required: true
           type: file
+        - name: update_only
+          in: query
+          description: Only update existing records e.g. for filling in implied values
+          required: false
+          default: false
+          type: boolean
       responses:
         '200':
           description: successful operation
