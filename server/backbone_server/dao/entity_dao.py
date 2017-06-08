@@ -343,7 +343,7 @@ class entity_dao(base_dao):
             parent_entity_id = property_details[0]['added_id']
             found = True
         elif len(property_details) > 1:
-            self._logger.critical("Duplicate entities:" + source + " " + prop_name + " " + str(entity_id))
+            self._logger.critical("Duplicate entities:" + repr(id_properties))
         else:
 #            cnx = self.get_connection()
 #            cursor = cnx.cursor()
