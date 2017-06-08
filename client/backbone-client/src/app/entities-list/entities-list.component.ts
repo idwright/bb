@@ -2,9 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
 
-import { Entities } from './typescript-angular2-client/model/Entities';
+import { Entities } from '../typescript-angular2-client/model/Entities';
 
-import { EntityApi } from './typescript-angular2-client/api/EntityApi';
+import { EntityApi } from '../typescript-angular2-client/api/EntityApi';
 
 @Component({
   selector: 'entities-list',

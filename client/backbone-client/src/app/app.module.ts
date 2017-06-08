@@ -1,0 +1,55 @@
+import { BrowserModule } from '@angular/platform-browser';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { HttpModule } from '@angular/http';
+
+import { AppRoutingModule }     from './app-routing.module';
+
+import { MaterialModule } from '@angular/material';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import { NgxDatatableModule } from '@swimlane/ngx-datatable';
+import 'hammerjs';
+
+import { AppComponent } from './app.component';
+import { EntitiesComponent } from './entities/entities.component';
+import { EntitiesListComponent } from './entities-list/entities-list.component';
+import { EntityDetailFormComponent } from './entity-detail-form/entity-detail-form.component';
+import { SourceSummaryComponent } from './source-summary/source-summary.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { EntitiesDisplayComponent } from './entities-display/entities-display.component';
+import { EntityDetailComponent } from './entity-detail/entity-detail.component';
+import { SourcePropertySummaryComponent } from './source-property-summary/source-property-summary.component';
+import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
+import { ReportApi }          from './typescript-angular2-client/api/ReportApi';
+import { SourceApi }          from './typescript-angular2-client/api/SourceApi';
+
+
+@NgModule({
+  declarations: [
+    AppComponent,
+    EntitiesComponent,
+    EntitiesListComponent,
+    EntityDetailFormComponent,
+    SourceSummaryComponent,
+    DashboardComponent,
+    EntitiesDisplayComponent,
+    EntityDetailComponent,
+    SourcePropertySummaryComponent
+  ],
+  imports: [
+    BrowserModule,
+    FormsModule,
+    HttpModule,
+    AppRoutingModule,
+    MaterialModule,
+    BrowserAnimationsModule,
+    NgxDatatableModule
+  ],
+  providers: [
+      EntityApi,
+      ReportApi,
+      SourceApi,
+  ],
+  bootstrap: [AppComponent]
+})
+export class AppModule { }

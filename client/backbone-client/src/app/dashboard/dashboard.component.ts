@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 
-import { Summary } from './typescript-angular2-client/model/Summary';
+import { Summary } from '../typescript-angular2-client/model/Summary';
 
-import { ReportApi } from './typescript-angular2-client/api/ReportApi';
+import { ReportApi } from '../typescript-angular2-client/api/ReportApi';
 
 @Component({
   selector: 'my-dashboard',

@@ -1,12 +1,12 @@
 import { NgModule }             from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
-import { DashboardComponent }   from './dashboard.component';
-import { EntitiesComponent }      from './entities.component';
-import { EntitiesListComponent }      from './entities-list.component';
-import { EntityDetailComponent }  from './entity-detail.component';
-import { SourceSummaryComponent }  from './source-summary.component';
-import { SourcePropertySummaryComponent }  from './source-property-summary.component';
+import { DashboardComponent }   from './dashboard/dashboard.component';
+import { EntitiesComponent }      from './entities/entities.component';
+import { EntitiesListComponent }      from './entities-list/entities-list.component';
+import { EntityDetailComponent }  from './entity-detail/entity-detail.component';
+import { SourceSummaryComponent }  from './source-summary/source-summary.component';
+import { SourcePropertySummaryComponent }  from './source-property-summary/source-property-summary.component';
 
 const routes: Routes = [
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },

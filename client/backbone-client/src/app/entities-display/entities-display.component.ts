@@ -2,13 +2,13 @@ import { Component, Input, OnInit, OnChanges, SimpleChange, ViewChild, TemplateR
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
 
-import { Entities } from './typescript-angular2-client/model/Entities';
-import { Entity } from './typescript-angular2-client/model/Entity';
-import { Property } from './typescript-angular2-client/model/Property';
+import { Entities } from '../typescript-angular2-client/model/Entities';
+import { Entity } from '../typescript-angular2-client/model/Entity';
+import { Property } from '../typescript-angular2-client/model/Property';
 
-import { EntityApi } from './typescript-angular2-client/api/EntityApi';
+import { EntityApi } from '../typescript-angular2-client/api/EntityApi';
 
-import { Page } from "./model/page";
+import { Page } from "../model/page";
 
 @Component({
     selector: 'entities-display',

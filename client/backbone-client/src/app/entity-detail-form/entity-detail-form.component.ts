@@ -4,9 +4,9 @@ import { FormGroup } from '@angular/forms';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
 
-import { Entity } from './typescript-angular2-client/model/Entity';
-import { Property } from './typescript-angular2-client/model/Property';
-import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
+import { Entity } from '../typescript-angular2-client/model/Entity';
+import { Property } from '../typescript-angular2-client/model/Property';
+import { EntityApi }          from '../typescript-angular2-client/api/EntityApi';
 @Component({
   selector: 'entity-detail-form',
   templateUrl: './entity-detail-form.component.html',
