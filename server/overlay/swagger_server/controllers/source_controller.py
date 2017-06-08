@@ -14,20 +14,6 @@ import json
 
 #import cProfile
 
-def delete_source_entity(sourceId, sourceEntityId):
-    """
-    delete_source_entity
-
-    :param sourceId: ID of source to query
-    :type sourceId: str
-    :param sourceEntityId: ID of entity to fetch
-    :type sourceEntityId: str
-
-    :rtype: None
-    """
-    print("delete_source_entity")
-    return 'do some magic!'
-
 
 def download_source_entity(sourceId, sourceEntityId):
     """
@@ -76,16 +62,18 @@ def upload_entity(sourceId, entity):
     return entity
 
 
-def upload_source(sourceId, dataFile, additionalMetadata=None):
+def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None):
     """
     bulk upload of entities for a given source
-
+    
     :param sourceId: ID of source to update
-    :type sourceId: int
+    :type sourceId: str
     :param dataFile: file to upload
     :type dataFile: werkzeug.datastructures.FileStorage
     :param additionalMetadata: Additional data to pass to server
     :type additionalMetadata: str
+    :param update_only: Only update existing records e.g. for filling in implied values
+    :type update_only: bool
 
     :rtype: ApiResponse
     """
@@ -109,26 +97,3 @@ def upload_source(sourceId, dataFile, additionalMetadata=None):
 
 
     return result
-
-def upload_source_entity(sourceId, sourceEntityId, body):
-    """
-    updates an entity
-
-    :param sourceId: ID of source to update
-    :type sourceId: str
-    :param sourceEntityId: ID of entity to update
-    :type sourceEntityId: str
-    :param body: 
-    :type body: dict | bytes
-
-    :rtype: SourceEntity
-    """
-    print("upload_source_entity")
-    print(repr(body))
-#    if connexion.request.is_json:
-#        body = SourceEntity.from_dict(connexion.request.get_json())
-    sd = source_dao()
-
-    result = sd.update_source_entity(sourceId, sourceEntityId, body)
-
-    return body

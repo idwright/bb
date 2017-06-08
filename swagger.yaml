@@ -51,7 +51,7 @@ paths:
           description: file to upload
           required: true
           type: file
-        - name: update_only
+        - name: updateOnly
           in: query
           description: Only update existing records e.g. for filling in implied values
           required: false
@@ -305,8 +305,8 @@ definitions:
     properties:
       entities:
         type: array
-        items: null
-        $ref: '#/definitions/Entity'
+        items:
+          $ref: '#/definitions/Entity'
       count:
         type: integer
         description: Used when pagination is applied to return the number of results

@@ -23,7 +23,7 @@ def delete_entity(entityId):
     return 'do some magic!'
 
 
-def download_entities_by_property(propName, propValue):
+def download_entities_by_property(propName, propValue, start=None, count=None, orderby=None):
     """
     fetches entities by property value
 
@@ -31,13 +31,19 @@ def download_entities_by_property(propName, propValue):
     :type propName: str
     :param propValue: matching value of property to search
     :type propValue: str
+    :param start: for pagination start the result set at a record x
+    :type start: int
+    :param count: for pagination the number of entries to return
+    :type count: int
+    :param orderby: how to order the result set
+    :type orderby: str
 
     :rtype: Entities
     """
     print("download_entities_by_property", file=sys.stderr)
     ed = entity_dao()
 
-    result = ed.fetch_entities_by_property(propName, propValue)
+    result = ed.fetch_entities_by_property(propName, propValue, start, count, orderby)
 
     return result
 

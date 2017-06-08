@@ -186,28 +186,6 @@ class source_dao(entity_dao):
 
         return self.fetch_entity_by_id(entity_id, added_id)
 
-    def update_source_entity(self, source, source_id, entity):
-
-        id_found = False
-        for prop in entity['values']:
-            if 'identity' in prop and prop['identity']:
-                id_found = True
-
-        if not id_found:
-            existing_entity = self.fetch_entity_by_source(source,source_id)
-            for prop in existing_entity['values']:
-                if 'identity' in prop and prop['identity']:
-                    entity['values'].append(prop)
-
-        self._connection = self.get_connection()
-        self._cursor = self._connection.cursor()
-        entity_id = self.edit_source(entity)
-        self._connection.commit()
-        self._cursor.close()
-        self._connection.close()
-
-        return entity_id
-
     def create_source_entity(self, source, entity):
 
         id_found = False

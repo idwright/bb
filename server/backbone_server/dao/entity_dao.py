@@ -3,6 +3,7 @@ import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
 from swagger_server.models.entity import Entity
+from swagger_server.models.entities import Entities
 from swagger_server.models.property import Property
 from swagger_server.models.relationship import Relationship
 from typing import List, Dict
@@ -467,13 +468,14 @@ class entity_dao(base_dao):
         return entity
 
 
-    def fetch_entities_by_property(self, prop_name, prop_value):
+    def fetch_entities_by_property(self, prop_name, prop_value, start, count, orderby):
 
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
 
         self._cursor.execute("SELECT id, prop_type FROM `property_types` WHERE `prop_name` = %s", (prop_name,))
 
+        result = Entities()
         property_type_id = None
         property_type = None
         entities = []
@@ -492,6 +494,10 @@ class entity_dao(base_dao):
                 JOIN entities e ON e.added_id = ep.entity_id
                 WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
 
+            #print(str(start) + str(count))
+            if not (start is None and count is None):
+                props_query = props_query + ' LIMIT ' + str(start) + "," + str(count)
+            #print(props_query)
             try:
                 query_value = self.get_data_value(prop['pt'], prop_value)
                 #print(props_query)
@@ -507,10 +513,30 @@ class entity_dao(base_dao):
             except ValueError:
                 self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
 
+
+        count_query = '''SELECT
+                COUNT(e.added_id)
+                FROM
+                    properties p
+                JOIN entity_properties ep ON ep.property_id = p.id
+                JOIN entities e ON e.added_id = ep.entity_id
+                WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
+
+        try:
+                query_value = self.get_data_value(prop['pt'], prop_value)
+                #print(props_query)
+                #print("{} {}".format(repr(prop), repr(query_value)))
+                self._cursor.execute(count_query, (prop['pti'], query_value,))
+
+                result.count = self._cursor.fetchone()[0]
+        except ValueError:
+                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+
         self._cursor.close()
         self._connection.close()
 
-        return entities
+        result.entities = entities
+        return result
 #if __name__ == '__main__':
 #    sd = source_dao()
 #    data_def = json.loads('{ "refs": { "oxf_code": { "column": 1, "type": "string", "source": "lims" }}, "values":{ "id": { "column": 24, "type": "integer", "id": true }, "sample_type": { "column": 6, "type": "string" } } }')

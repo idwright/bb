@@ -3,8 +3,12 @@ import { ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
 
 import { Entities } from './typescript-angular2-client/model/Entities';
+import { Entity } from './typescript-angular2-client/model/Entity';
+import { Property } from './typescript-angular2-client/model/Property';
 
 import { EntityApi } from './typescript-angular2-client/api/EntityApi';
+
+import { Page } from "./model/page";
 
 @Component({
     selector: 'entities-display',
@@ -14,6 +18,7 @@ import { EntityApi } from './typescript-angular2-client/api/EntityApi';
 
 export class EntitiesDisplayComponent implements OnInit, OnChanges {
 
+    page: Page = new Page();
     entities: Entities;
 
     private _sourceName: string;
@@ -58,14 +63,18 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
 
     constructor(private entityApi: EntityApi,
         private route: ActivatedRoute,
-        private location: Location
+        private location: Location,
     ) {
+        this.page.pageNumber = 0;
+        this.page.size = 10;
     }
 
     ngOnInit(): void {
         console.log("entities display:" + this._sourceName + "/" + this._propertyName);
 
         this.loadEntities();
+
+        this.setPage({ offset: 0 });
     }
 
     ngOnChanges(changes: { [propKey: string]: SimpleChange }) {
@@ -79,9 +88,14 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
 
     loadEntities(): void {
         if (this._sourceName && this._propertyName && this._propertyValue) {
-            this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue).subscribe(
+            this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => {
                     console.log(entities);
+
+                    this.page.totalElements = entities.count;
+                    this.page.totalPages = this.page.totalElements / this.page.size;
+                    let start = this.page.pageNumber * this.page.size;
+                    let end = Math.min((start + this.page.size), this.page.totalElements);
 
                     let entityRows: string[] = [];
                     let identityCols: any[] = [];
@@ -100,7 +114,7 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
                     };
                     allCols.push(refsColumn);
                     identityCols.push(refsColumn);
-                    entities.forEach(entity => {
+                    entities.entities.forEach(entity => {
                         let entityRow: any = {
                             'entityId': entity.entity_id,
                             'refs': entity.refs.length
@@ -159,6 +173,15 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
         return this.columns.find(c => {
             return c.name === col.name;
         });
+    }
+
+    /**
+     * Populate the table with new data based on the page number
+     * @param page The page to select
+     */
+    setPage(pageInfo) {
+        this.page.pageNumber = pageInfo.offset;
+        this.loadEntities();
     }
 
     goBack(): void {
