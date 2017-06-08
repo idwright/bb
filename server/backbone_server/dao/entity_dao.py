@@ -109,7 +109,7 @@ class entity_dao(base_dao):
 
         data_field = self.get_data_field(prop.data_type)
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p LEFT JOIN `property_types` AS pt ON pt.id = p.prop_type_id JOIN `entity_properties` AS ep ON ep.property_id = p.id LEFT JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `added_id` = %s")
+        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id JOIN `entity_properties` AS ep ON ep.property_id = p.id JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `added_id` = %s")
 
         self._cursor.execute(fetch_row, (prop.data_name, prop.source, entity_id))
         property_id = None
@@ -189,7 +189,7 @@ class entity_dao(base_dao):
 
         data_field = self.get_data_field(prop['data_type'])
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p LEFT JOIN `property_types` AS pt ON pt.id = p.prop_type_id LEFT JOIN `assoc_properties` AS ap ON ap.property_id = p.id LEFT JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
+        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id JOIN `assoc_properties` AS ap ON ap.property_id = p.id JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
 
 
         self._cursor.execute(fetch_row, (prop['data_name'], prop['source'], entity_id, fk, assoc_type_id))
@@ -488,8 +488,8 @@ class entity_dao(base_dao):
                 HEX(e.id), e.added_id
                 FROM
                     properties p
-                LEFT JOIN entity_properties ep ON ep.property_id = p.id
-                LEFT JOIN entities e ON e.added_id = ep.entity_id
+                JOIN entity_properties ep ON ep.property_id = p.id
+                JOIN entities e ON e.added_id = ep.entity_id
                 WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
 
             try:

@@ -164,10 +164,10 @@ class source_dao(entity_dao):
             HEX(e.id), ep.entity_id
             FROM
                 properties p
-            LEFT JOIN property_types pt
+            JOIN property_types pt
                 ON pt.id = p.prop_type_id AND pt.identity = 1
-            LEFT JOIN entity_properties ep ON ep.property_id = p.id
-            LEFT JOIN entities e ON e.added_id = ep.entity_id
+            JOIN entity_properties ep ON ep.property_id = p.id
+            JOIN entities e ON e.added_id = ep.entity_id
             WHERE `''' + data_field + "` = %s AND p.prop_type_id = %s"
 
         cursor.execute(entity_query, (source_id,prop_type_id))
@@ -259,8 +259,8 @@ class source_dao(entity_dao):
 
         query = ('''SELECT count(ep.property_id), pt.`source`, pt.prop_name, pt.prop_type, p.''' + self.get_data_field(property_type) +
                 ''' from entity_properties ep
-            LEFT JOIN properties p ON p.id = ep.property_id
-            LEFT JOIN property_types pt ON pt.id = p.prop_type_id
+            JOIN properties p ON p.id = ep.property_id
+            JOIN property_types pt ON pt.id = p.prop_type_id
             WHERE `pt`.`source` = %s AND `pt`.`prop_name` = %s
             GROUP BY (ep.property_id) HAVING COUNT(ep.property_id) > %s order by prop_name, ''' +
                  self.get_data_field(property_type))
@@ -284,7 +284,7 @@ class source_dao(entity_dao):
     def get_source_properties(self, source):
 
         query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
-            LEFT JOIN properties p ON p.prop_type_id = pt.id
+            JOIN properties p ON p.prop_type_id = pt.id
                 WHERE `pt`.source = %s
                     GROUP BY (pt.prop_name);'''
 
