@@ -32,19 +32,6 @@ export class EntitiesListComponent implements OnInit {
         this.propertyValue = this.route.snapshot.params['propertyValue'];
 
         console.log("entities list:" + this.sourceName + "/" + this.propertyName);
-
-        this.sourceName = this.route.snapshot.params['sourceId'];
-
-      this.route.params.switchMap((params: Params) =>
-        this.entityApi.downloadEntitiesByProperty(params['propertyName'], params['propertyValue'])).subscribe(
-            (entities) => {
-                            console.log(entities);
-                            this.entities = entities;
-                        },
-                        (err) => console.log(err),
-                        () => { console.log("Downloaded entities") }
-        );
-
     }
 
 

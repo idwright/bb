@@ -72,9 +72,8 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
     ngOnInit(): void {
         console.log("entities display:" + this._sourceName + "/" + this._propertyName);
 
-        this.loadEntities();
-
-        this.setPage({ offset: 0 });
+        console.log("entities-display ngOnInit");
+        this.setPage({ offset: 0, size: 10 });
     }
 
     ngOnChanges(changes: { [propKey: string]: SimpleChange }) {
@@ -83,11 +82,13 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
             let changedProp = changes[propName];
             console.log("Changed:" + JSON.stringify(changedProp));
         }
-        this.loadEntities();
+        console.log("entities-display ngOnChanges");
+        //this.loadEntities();
     }
 
     loadEntities(): void {
         if (this._sourceName && this._propertyName && this._propertyValue) {
+            console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
             this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => {
                     console.log(entities);
@@ -121,7 +122,6 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
                         };
 
                         entity.values.forEach(prop => {
-                            console.log(prop);
                             let propKey = prop.source + "." + prop.data_name;
                             let colIdx: number = -1;
                             for (let i = 0; i < allCols.length; i++) {
@@ -180,6 +180,7 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
      * @param page The page to select
      */
     setPage(pageInfo) {
+        console.log("Set page:" + JSON.stringify(pageInfo));
         this.page.pageNumber = pageInfo.offset;
         this.loadEntities();
     }
