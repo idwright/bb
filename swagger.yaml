@@ -119,59 +119,6 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Entity'
-    put:
-      tags:
-        - source
-      summary: updates an entity
-      description: ''
-      operationId: uploadSourceEntity
-      produces:
-        - application/json
-      consumes:
-        - application/json
-      parameters:
-        - name: sourceId
-          in: path
-          description: ID of source to update
-          required: true
-          type: string
-        - name: sourceEntityId
-          in: path
-          description: ID of entity to update
-          required: true
-          type: string
-        - in: body
-          name: body
-          required: true
-          schema:
-            $ref: '#/definitions/SourceEntity'
-      responses:
-        '200':
-          description: successful operation
-          schema:
-            $ref: '#/definitions/SourceEntity'
-        '404':
-          description: Entity not found
-    delete:
-      tags:
-        - source
-      operationId: deleteSourceEntity
-      parameters:
-        - name: sourceId
-          in: path
-          description: ID of source to query
-          required: true
-          type: string
-        - name: sourceEntityId
-          in: path
-          description: ID of entity to fetch
-          required: true
-          type: string
-      responses:
-        '200':
-          description: Delete successful
-        '404':
-          description: Entity not found
   '/source/summary/{sourceId}':
     get:
       tags:
