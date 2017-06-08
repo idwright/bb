@@ -275,6 +275,25 @@ paths:
           description: matching value of property to search
           required: true
           type: string
+        - name: start
+          in: query
+          description: for pagination start the result set at a record x
+          required: false
+          type: integer
+        - name: count
+          in: query
+          description: for pagination the number of entries to return
+          required: false
+          type: integer
+        - name: orderby
+          in: query
+          description: how to order the result set
+          required: false
+          type: string
+          default: value
+          enum:
+            - value
+            - source
       responses:
         '200':
           description: successful operation
@@ -282,9 +301,15 @@ paths:
             $ref: '#/definitions/Entities'
 definitions:
   Entities:
-    type: array
-    items:
-      $ref: '#/definitions/Entity'
+    type: object
+    properties:
+      entities:
+        type: array
+        items: null
+        $ref: '#/definitions/Entity'
+      count:
+        type: integer
+        description: Used when pagination is applied to return the number of results
   Entity:
     type: object
     required:
