@@ -43,7 +43,7 @@ CREATE TABLE `properties` (
     KEY `svt` (`prop_type_id`, `string_value`(255)),
     KEY `long_value` (`long_value`),
     CONSTRAINT `fk_prop_type_id` FOREIGN KEY (`prop_type_id`) REFERENCES `property_types` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 CREATE TABLE `entity_properties` (
     `entity_id` bigint(20) NOT NULL,
