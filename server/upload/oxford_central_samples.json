@@ -4,7 +4,7 @@
             "column": 1,
             "type": "integer",
             "fk_name": "OXFORD_DATABASE_RECORDS_UNIQUE_ID",
-            "source": "oxford_central_samples"
+            "source": "oxford_central_donor_parent"
         },
         "individual_parent_source_code": {
             "column": 7,
