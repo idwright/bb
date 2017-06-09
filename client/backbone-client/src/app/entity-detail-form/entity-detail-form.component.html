@@ -1,6 +1,6 @@
 <div *ngIf="entity">
 
-  <form [formGroup]="entityForm" novalidate (ngSubmit)="save(entityForm)">
+  <form [formGroup]="entityForm" novalidate (ngSubmit)="onSubmit(entityForm)">
     <div class="form-group">
       <label>Name</label>
       <input type="text" class="form-control" formControlName="entity_id">
@@ -27,17 +27,35 @@
           </a>
     </div>
 
-    <div class="margin-20">
-      <button type="submit" class="btn btn-primary pull-right" [disabled]="!entityForm.valid">Submit</button>
+    <!-- refs -->
+    <div formArrayName="refs">
+      <div *ngFor="let property of entityForm.controls.refs.controls; let i=index" class="panel panel-default">
+        <div class="panel-heading">
+          <span>Association {{i + 1}}</span>
+          <span class="glyphicon glyphicon-remove pull-right" *ngIf="entityForm.controls.refs.controls.length > 1" (click)="removeProperty(i)"></span>
+        </div>
+        <div class="panel-body" [formGroupName]="i">
+          <app-assoc-form [group]="entityForm.controls.refs.controls[i]"></app-assoc-form>
+          <div class="margin-20">
+            <a (click)="addAssocProperty(i)" style="cursor: default">
+            Add another property +
+          </a>
+        </div>
+      </div>
     </div>
-    <div class="clearfix"></div>
+</div>
 
-    <div class="margin-20">
-      <div>myForm details:-</div>
-      <pre>Is myForm valid?: <br>{{entityForm.valid | json}}</pre>
-      <pre>form value: <br>{{entityForm.value | json}}</pre>
-    </div>
-  </form>
+<div class="margin-20">
+  <button type="submit" class="btn btn-primary pull-right" [disabled]="!entityForm.valid">Submit</button>
+</div>
+<div class="clearfix"></div>
 
-  <button (click)="goBack()">Back</button>
+<div class="margin-20">
+  <div>myForm details:-</div>
+  <pre>Is myForm valid?: <br>{{entityForm.valid | json}}</pre>
+  <pre>form value: <br>{{entityForm.value | json}}</pre>
+</div>
+</form>
+
+<button (click)="goBack()">Back</button>
 </div>

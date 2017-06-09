@@ -59,7 +59,7 @@ export class EntityDetailFormComponent implements OnInit {
     return this._fb.group({
       source: [source, Validators.required],
       data_name: [data_name, [Validators.required, Validators.minLength(3)]],
-      data_value: [data_value ],
+      data_value: [data_value],
       data_type: [data_type]
     });
   }
@@ -86,23 +86,29 @@ export class EntityDetailFormComponent implements OnInit {
     });
   }
 
+  addAssocProperty(i) {
+    console.log(i);
+    const refs = <FormArray>this.entityForm.controls['refs'];
+    console.log(refs);
+    const ref = <FormGroup>refs.at(i);
+    console.log(ref);
+    const control = <FormArray>ref.controls['values'];
+    console.log(control);
+    control.push(this.initProperty('backbone', '', '', Property.DataTypeEnum.String));
+  }
   pushAssoc(propControl) {
     const control = <FormArray>this.entityForm.controls['refs'];
     control.push(propControl);
   }
 
-  removeAssoc(i: number) {
-    const control = <FormArray>this.entityForm.controls['refs'];
-    control.removeAt(i);
-  }
   goBack(): void {
     this.location.back();
   }
 
-  public onSubmit(): void {
+  public onSubmit({ value, valid }: { value: Entity, valid: boolean }): void {
 
-    console.log("Submitting:" + JSON.stringify(this.entity));
-    this.entityService.updateEntity(this.entity.entity_id, this.entity)
+    console.log("Submitting:" + JSON.stringify(value));
+    this.entityService.updateEntity(value.entity_id, value)
       .subscribe(
       (x) => {
         console.log("Submitted");

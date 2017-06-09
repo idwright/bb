@@ -1,0 +1,38 @@
+<div [formGroup]="aForm">
+  <div>
+    <div class="form-group col-xs-4">
+      <label>Name</label>
+      <input type="text" class="form-control" formControlName="assoc_name">
+      <small *ngIf="!aForm.controls.assoc_name.valid" class="text-danger">
+              Name is required (minimum 5 characters).
+            </small>
+    </div>
+    <div class="form-group col-xs-4">
+      <label>Source</label>
+      <input type="text" class="form-control" formControlName="source_id">
+      <small [hidden]="aForm.controls.source_id.valid" class="text-danger">
+                    Source id is required
+                </small>
+    </div>
+    <div class="form-group col-xs-4">
+      <label>Target</label>
+      <input type="text" class="form-control" formControlName="target_id">
+      <small [hidden]="aForm.controls.target_id.valid" class="text-danger">
+                    Target Id id is required
+                </small>
+    </div>
+  </div>
+  <!-- properties -->
+  <div formArrayName="values">
+    <div *ngFor="let property of aForm.controls.values.controls; let i=index" class="panel panel-default">
+      <div class="panel-heading">
+        <span>Property {{i + 1}}</span>
+        <span class="glyphicon glyphicon-remove pull-right" *ngIf="aForm.controls.values.controls.length > 1" (click)="removeProperty(i)"></span>
+      </div>
+      <div class="panel-body" [formGroupName]="i">
+        <app-property-form [group]="aForm.controls.values.controls[i]"></app-property-form>
+      </div>
+    </div>
+  </div>
+
+</div>

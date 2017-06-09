@@ -23,6 +23,7 @@ import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 import { ReportApi }          from './typescript-angular2-client/api/ReportApi';
 import { SourceApi }          from './typescript-angular2-client/api/SourceApi';
 import { PropertyFormComponent } from './property-form/property-form.component';
+import { AssocFormComponent } from './assoc-form/assoc-form.component';
 
 
 @NgModule({
@@ -36,7 +37,8 @@ import { PropertyFormComponent } from './property-form/property-form.component';
     EntitiesDisplayComponent,
     EntityDetailComponent,
     SourcePropertySummaryComponent,
-    PropertyFormComponent
+    PropertyFormComponent,
+    AssocFormComponent
   ],
   imports: [
     BrowserModule,
