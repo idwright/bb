@@ -1,6 +1,6 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { HttpModule } from '@angular/http';
 
 import { AppRoutingModule }     from './app-routing.module';
@@ -22,6 +22,7 @@ import { SourcePropertySummaryComponent } from './source-property-summary/source
 import { EntityApi }          from './typescript-angular2-client/api/EntityApi';
 import { ReportApi }          from './typescript-angular2-client/api/ReportApi';
 import { SourceApi }          from './typescript-angular2-client/api/SourceApi';
+import { PropertyFormComponent } from './property-form/property-form.component';
 
 
 @NgModule({
@@ -34,11 +35,13 @@ import { SourceApi }          from './typescript-angular2-client/api/SourceApi';
     DashboardComponent,
     EntitiesDisplayComponent,
     EntityDetailComponent,
-    SourcePropertySummaryComponent
+    SourcePropertySummaryComponent,
+    PropertyFormComponent
   ],
   imports: [
     BrowserModule,
     FormsModule,
+    ReactiveFormsModule,
     HttpModule,
     AppRoutingModule,
     MaterialModule,
