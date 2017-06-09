@@ -1,4 +1,7 @@
 import connexion
+
+from backbone_server.errors.no_such_type_exception import NoSuchTypeException
+
 from swagger_server.models.entities import Entities
 from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
@@ -6,7 +9,7 @@ from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
-
+import logging
 
 from backbone_server.dao.entity_dao import entity_dao
 import sys
@@ -41,11 +44,19 @@ def download_entities_by_property(propName, propValue, start=None, count=None, o
     :rtype: Entities
     """
     print("download_entities_by_property", file=sys.stderr)
+
+    result = None
+    retcode = 200
+
     ed = entity_dao()
 
-    result = ed.fetch_entities_by_property(propName, propValue, start, count, orderby)
+    try:
+        result = ed.fetch_entities_by_property(propName, propValue, start, count, orderby)
+    except NoSuchTypeException as t:
+        logging.getLogger().error("download_entities_by_property: {}".format(t))
+        retcode = 404
 
-    return result
+    return result, retcode
 
 
 

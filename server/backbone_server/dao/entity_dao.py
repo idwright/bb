@@ -2,6 +2,7 @@ import json
 import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
+from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
 from swagger_server.models.property import Property
@@ -476,6 +477,7 @@ class entity_dao(base_dao):
         self._cursor.execute("SELECT id, prop_type FROM `property_types` WHERE `prop_name` = %s", (prop_name,))
 
         result = Entities()
+        result.count = 0
         property_type_id = None
         property_type = None
         entities = []
@@ -484,6 +486,9 @@ class entity_dao(base_dao):
             property_type_id = pti
             property_type = pt
             props.append({ 'pti': pti, 'pt': pt})
+
+        if len(props) == 0:
+            raise NoSuchTypeException("No such type:" + prop_name)
 
         for (prop) in props:
             props_query = '''SELECT
@@ -498,39 +503,39 @@ class entity_dao(base_dao):
             if not (start is None and count is None):
                 props_query = props_query + ' LIMIT ' + str(start) + "," + str(count)
             #print(props_query)
+            if count is None or int(count) == 0 or len(entities) < int(count):
+                try:
+                    query_value = self.get_data_value(prop['pt'], prop_value)
+                    #print(props_query)
+                    #print("{} {}".format(repr(prop), repr(query_value)))
+                    self._cursor.execute(props_query, (prop['pti'], query_value,))
+
+                    ents = []
+                    for (ent_id,added_id,) in self._cursor:
+                        ents.append({ 'ent_id': ent_id, 'added_id': added_id})
+
+                    for ent in ents:
+                        entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
+                except ValueError:
+                    self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+
+            count_query = '''SELECT
+                    COUNT(e.added_id)
+                    FROM
+                        properties p
+                    JOIN entity_properties ep ON ep.property_id = p.id
+                    JOIN entities e ON e.added_id = ep.entity_id
+                    WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
+
             try:
-                query_value = self.get_data_value(prop['pt'], prop_value)
-                #print(props_query)
-                #print("{} {}".format(repr(prop), repr(query_value)))
-                self._cursor.execute(props_query, (prop['pti'], query_value,))
+                    query_value = self.get_data_value(prop['pt'], prop_value)
+                    #print(props_query)
+                    #print("{} {}".format(repr(prop), repr(query_value)))
+                    self._cursor.execute(count_query, (prop['pti'], query_value,))
 
-                ents = []
-                for (ent_id,added_id,) in self._cursor:
-                    ents.append({ 'ent_id': ent_id, 'added_id': added_id})
-
-                for ent in ents:
-                    entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
+                    result.count = result.count + self._cursor.fetchone()[0]
             except ValueError:
-                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
-
-
-        count_query = '''SELECT
-                COUNT(e.added_id)
-                FROM
-                    properties p
-                JOIN entity_properties ep ON ep.property_id = p.id
-                JOIN entities e ON e.added_id = ep.entity_id
-                WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
-
-        try:
-                query_value = self.get_data_value(prop['pt'], prop_value)
-                #print(props_query)
-                #print("{} {}".format(repr(prop), repr(query_value)))
-                self._cursor.execute(count_query, (prop['pti'], query_value,))
-
-                result.count = self._cursor.fetchone()[0]
-        except ValueError:
-                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+                    self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
 
         self._cursor.close()
         self._connection.close()
