@@ -83,7 +83,7 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
             console.log("Changed:" + JSON.stringify(changedProp));
         }
         console.log("entities-display ngOnChanges");
-        //this.loadEntities();
+        this.setPage({ offset: 0, size: 10 });
     }
 
     loadEntities(): void {
