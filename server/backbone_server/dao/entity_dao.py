@@ -437,7 +437,10 @@ class entity_dao(base_dao):
             data.data_name = prop_name
             data.identity = bool(identity)
             data.source = source
-            data.data_value = value
+            if value is None:
+                data.data_value = ''
+            else:
+                data.data_value = value
             properties.append(data)
 
         entity.values = properties
