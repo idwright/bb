@@ -1,34 +1,59 @@
 <div *ngIf="entity">
-  <form name="entityForm" (ngSubmit)="onSubmit()" #entityForm="ngForm" (change)="onFormChange()" class="ui form">
 
-  <div>
-    <label>id: </label>{{entity.entity_id}}
-  </div>
-      <div>
-            <div *ngFor="let prop of entity.values">
-                  <label style="width: 33%">{{prop.source}} {{prop.data_name}}</label>
-                <div *ngIf="prop.source == 'backbone'else elseBlock">
-                   <span [ngSwitch]="prop.data_type">
-                      <input *ngSwitchCase="'string'" [(ngModel)]="prop.data_value" name="{{prop.data_name}}" />
-                   </span>
-                </div>
-                <ng-template #elseBlock><div>{{prop.data_value}}</div></ng-template>
-            </div>
-            Parent associations
-            <div *ngFor="let assoc of entity.refs">
-                <div *ngIf="assoc.source_id == entity.entity_id">
-                 {{assoc.assoc_name}} <a [routerLink]="['/detail/', assoc.target_id]">{{assoc.target_id}}</a>
-              </div>
-            </div>
-            Child associations
-            <div *ngFor="let assoc of entity.refs">
-                <div *ngIf="assoc.target_id == entity.entity_id">
-                 {{assoc.assoc_name}} <a [routerLink]="['/detail/', assoc.source_id]">{{assoc.source_id}}</a>
-              </div>
-            </div>
+  <form [formGroup]="entityForm" novalidate (ngSubmit)="save(entityForm)">
+    <div class="form-group">
+      <label>Name</label>
+      <input type="text" class="form-control" formControlName="entity_id">
+      <small *ngIf="!entityForm.controls.entity_id.valid" class="text-danger">
+              Name is required (minimum 5 characters).
+            </small>
+    </div>
+    <!-- properties -->
+    <div formArrayName="values">
+      <div *ngFor="let property of entityForm.controls.values.controls; let i=index" class="panel panel-default">
+        <div class="panel-heading">
+          <span>Property {{i + 1}}</span>
+          <span class="glyphicon glyphicon-remove pull-right" *ngIf="entityForm.controls.values.controls.length > 1" (click)="removeProperty(i)"></span>
+        </div>
+        <div class="panel-body" [formGroupName]="i">
+          <div class="form-group col-xs-4">
+            <label>source</label>
+            <input type="text" class="form-control" formControlName="source">
+            <small [hidden]="entityForm.controls.values.controls[i].controls.source.valid" class="text-danger">
+                    Source is required
+                </small>
+          </div>
+          <div class="form-group col-xs-4">
+            <label>Name</label>
+            <input type="text" class="form-control" formControlName="data_name">
+            <small [hidden]="entityForm.controls.values.controls[i].controls.data_name.valid" class="text-danger">
+                    Name is required
+                </small>
+          </div>
+          <div class="form-group col-xs-4">
+            <label>Value</label>
+            <input type="text" class="form-control" formControlName="data_value">
+          </div>
+        </div>
       </div>
+    </div>
 
-      <button [disabled]="!entityForm.form.valid" type="submit" i18n>SAVE</button>
+    <div class="margin-20">
+      <a (click)="addProperty()" style="cursor: default">
+            Add another address +
+          </a>
+    </div>
+
+    <div class="margin-20">
+      <button type="submit" class="btn btn-primary pull-right" [disabled]="!entityForm.valid">Submit</button>
+    </div>
+    <div class="clearfix"></div>
+
+    <div class="margin-20">
+      <div>myForm details:-</div>
+      <pre>Is myForm valid?: <br>{{entityForm.valid | json}}</pre>
+      <pre>form value: <br>{{entityForm.value | json}}</pre>
+    </div>
   </form>
 
   <button (click)="goBack()">Back</button>
