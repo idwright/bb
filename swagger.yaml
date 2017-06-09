@@ -366,7 +366,6 @@ definitions:
       - target_id
       - assoc_name
     allOf:
-      - $ref: '#/definitions/Property'
       - properties:
           target_id:
             description: The id of the target
