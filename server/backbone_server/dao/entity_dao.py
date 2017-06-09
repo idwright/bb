@@ -120,7 +120,8 @@ class entity_dao(base_dao):
         #print (fetch_row)
         #print ((prop['data_name'], prop['source'], entity_id))
         prop_matched_id = None
-        for (ent_id, added_id, prop_id, old_val) in self._cursor:
+        for (ent_id, added_id, prop_id, old_v) in self._cursor:
+            old_val = self.get_db_prop_value(prop, old_v)
             #print ("comparing: " + str(old_val) + " vs " + str(self.get_prop_value(prop)))
             #print ("comparing types: " + str(type(old_val)) + " vs " + str(type(self.get_prop_value(prop))))
             if old_val == self.get_prop_value(prop):
@@ -145,10 +146,10 @@ class entity_dao(base_dao):
         :rtype: None
     """
     def add_entity_property(self, entity_id, prop, property_type_id):
-#        print("Add entity_property:" + str(entity_id) + " " + source + " " + repr(prop))
+        #print("Add entity_property:" + str(entity_id) + " " + repr(prop))
         property_id, create, delete_old, exists, linked = self.add_or_update_property_entity(entity_id, prop, property_type_id)
 
-        #print("add_entity_property:" + str(property_id) + str(create) + str(delete_old) + str(exists))
+        #print("add_entity_property:" + str(property_id) + str(create) + str(delete_old) + str(exists) + str(linked))
         if delete_old:
             old_property_id = delete_old
             #Note - do not delete the old property, intended to be used for history
@@ -173,7 +174,7 @@ class entity_dao(base_dao):
     def get_data_value(self, data_type, data_value):
         converted_field = {
             'string': lambda x: x,
-            'integer': lambda x: None if x.lower() == "null" or x == '' else int(x),
+            'integer': lambda x: None if x is None or x.lower() == "null" or x == '' else int(x),
             'float': lambda x: float(x),
             'double': lambda x: float(x),
             'json': lambda x: x,
@@ -186,6 +187,20 @@ class entity_dao(base_dao):
     def get_prop_value(self, prop):
 
         return self.get_data_value(prop.data_type, prop.data_value)
+
+    def get_db_prop_value(self, prop, db_value):
+
+        converted_field = {
+            'string': lambda x: x.decode('utf-8'),
+            'integer': lambda x: x,
+            'float': lambda x: x,
+            'double': lambda x: x,
+            'json': lambda x: x,
+            'boolean': lambda x: x,
+            'datetime': lambda x: x,
+            }.get(prop.data_type)(db_value)
+
+        return converted_field
 
     def add_or_update_assoc_property(self, entity_id, fk, assoc_type_id, source, prop):
 
@@ -422,11 +437,7 @@ class entity_dao(base_dao):
             data.data_name = prop_name
             data.identity = bool(identity)
             data.source = source
-            if value:
-                data.data_value = value
-            else:
-                #print("Null value for:" + repr(data))
-                pass
+            data.data_value = value
             properties.append(data)
 
         entity.values = properties
