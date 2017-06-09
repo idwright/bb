@@ -385,7 +385,6 @@ definitions:
     required:
       - data_name
       - data_type
-      - data_value
       - source
     properties:
       data_name:
