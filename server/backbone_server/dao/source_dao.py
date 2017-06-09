@@ -249,7 +249,7 @@ class source_dao(entity_dao):
         results = []
         for (count, source, pname, ptype, pvalue) in self._cursor:
             summ = SummaryItem()
-            summ.source_name = pvalue
+            summ.source_name = pvalue.decode("utf-8")
             summ.num_items = count
             results.append(summ)
 
