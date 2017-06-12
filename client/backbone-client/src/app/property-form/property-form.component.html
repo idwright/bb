@@ -1,6 +1,6 @@
 <td class="col-xs-3">
   <div [formGroup]="pForm">
-    <input type="text" class="form-control" formControlName="source">
+    <input [readonly]="true" type="text" class="form-control" formControlName="source">
     <small [hidden]="pForm.controls.source.valid" class="text-danger">
                     Source is required
                 </small>
@@ -8,7 +8,7 @@
 </td>
 <td class="col-xs-3">
   <div [formGroup]="pForm">
-    <input type="text" class="form-control" formControlName="data_name">
+    <input [readonly]="!userEditable" type="text" class="form-control" formControlName="data_name">
     <small [hidden]="pForm.controls.data_name.valid" class="text-danger">
                     Name is required
                 </small>
@@ -16,7 +16,7 @@
 </td>
 <td class="col-xs-6">
   <div [formGroup]="pForm">
-    <input type="text" class="form-control" formControlName="data_value">
+    <input [readonly]="!userEditable" type="text" class="form-control" formControlName="data_value">
   </div>
 </td>
 <td>

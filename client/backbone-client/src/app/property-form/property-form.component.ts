@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Component({
@@ -6,7 +6,7 @@ import { FormGroup, FormControl, Validators } from '@angular/forms';
   templateUrl: './property-form.component.html',
   styleUrls: ['./property-form.component.css']
 })
-export class PropertyFormComponent {
+export class PropertyFormComponent implements OnInit {
 
   @Input('group')
   public pForm: FormGroup;
@@ -14,15 +14,25 @@ export class PropertyFormComponent {
   @Input('index')
   public index: number;
 
+  private userEditable: boolean = false;
+
   @Output()
   public removed: EventEmitter<number> = new EventEmitter<number>();
-  
+
+  ngOnInit(): void {
+    if (this.pForm.controls["source"].value == 'backbone') {
+      this.userEditable = true;
+    }
+  }
   static initProperty(source, data_name, data_value, data_type) {
-    return new FormGroup({
-      source: new FormControl(source, Validators.required),
-      data_name: new FormControl(data_name, Validators.required),
-      data_value: new FormControl(data_value),
+    
+    let prop = new FormGroup({
+      source: new FormControl( source, Validators.required),
+      data_name: new FormControl( data_name, Validators.required),
+      data_value: new FormControl( data_value),
       data_type: new FormControl(data_type)
     });
+    
+    return prop;
   }
 }
