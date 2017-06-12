@@ -40,11 +40,11 @@ export class EntityDetailFormComponent implements OnInit {
         });
         const control = <FormArray>this.entityForm.controls['values'];
         this.initValues(control, this.entity.values);
-
         this.entity.refs.forEach(ref => {
           let propControl = this.initAssoc(ref.assoc_name, ref.source_id, ref.target_id, '');
           this.pushAssoc(propControl);
-          this.initValues(propControl, ref.values);
+          console.log(propControl);
+          this.initValues(propControl.controls['values'], ref.values);
         })
       });
   }
