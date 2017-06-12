@@ -40,13 +40,14 @@ class entity_dao(base_dao):
 
         if entity.refs:
             for assoc in entity.refs:
-                assoc_type_id = self.find_or_create_assoc_type(assoc.assoc_name)
+                assoc_type_id, assoc_name = self.find_or_create_assoc_type(assoc.assoc_name)
+                internal_source_id = self.get_internal_id(assoc.source_id)
                 internal_target_id = self.get_internal_id(assoc.target_id)
-                self.add_assoc(internal_id, internal_target_id, assoc_type_id)
+                self.add_assoc(internal_source_id, internal_target_id, assoc_type_id)
                 if assoc.values:
                     for prop in assoc.values:
                         property_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
-                        self.add_assoc_property(internal_id, internal_target_id, assoc['assoc_type_id'], prop, property_type_id)
+                        self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
 
 
         retval = self.get_entity_by_id(entity.entity_id, internal_id)
@@ -202,19 +203,29 @@ class entity_dao(base_dao):
 
         return converted_field
 
-    def add_or_update_assoc_property(self, entity_id, fk, assoc_type_id, source, prop):
+    def add_or_update_assoc_property(self, entity_id, fk, assoc_type_id, prop, property_type_id):
 
-        data_field = self.get_data_field(prop['data_type'])
+        data_field = self.get_data_field(prop.data_type)
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id JOIN `assoc_properties` AS ap ON ap.property_id = p.id JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
+        fetch_row = ("SELECT p.id as property_id, " + data_field + " FROM `properties` p JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `p`.`prop_type_id` = %s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
 
+        values = (property_type_id, entity_id, fk, assoc_type_id)
+        #print(fetch_row)
+        #print(repr(values))
+        self._cursor.execute(fetch_row, values)
+        property_id = None
+        old_value = None
 
-        self._cursor.execute(fetch_row, (prop['data_name'], prop['source'], entity_id, fk, assoc_type_id))
-        property_details = []
-        for (entity_id, added_id, prop_id, value) in self._cursor:
-            property_details.append({ 'entity_id': entity_id, 'property_id': prop_id, 'value': value , 'added_id': added_id})
+        for (prop_id, value) in self._cursor:
+            old_val = self.get_db_prop_value(prop, value)
+            if old_val == self.get_prop_value(prop):
+                prop_matched_id = prop_id
+                return prop_id, False, None, False, True
+            else:
+                old_value = old_val
+                property_id = prop_id
 
-        return self.insert_or_update_property(property_details, prop, data_field)
+        return self.insert_or_update_property(prop, property_type_id, data_field, property_id, old_value)
 
     """
         adds or updates a Property
@@ -296,9 +307,16 @@ class entity_dao(base_dao):
 
     def add_assoc_property(self, entity_id, fk, assoc_type_id, prop, property_type_id):
 
-        property_id, create = self.add_or_update_assoc_property(entity_id, fk, assoc_type_id, prop, property_type_id)
+        property_id, create, delete_old, exists, linked = self.add_or_update_assoc_property(entity_id, fk, assoc_type_id, prop, property_type_id)
 
-        if create:
+        if delete_old:
+            old_property_id = delete_old
+            #Note - do not delete the old property, intended to be used for history
+            #            print ("Delete reference to old property value:" +
+            #            str(entity_id) + ":" + str(old_property_id))
+            self._cursor.execute("DELETE FROM `entity_properties` WHERE `source_entity_id` = %s AND target_entity_id = %s AND assoc_type_id = %s AND `property_id` = %s", (entity_id, fk, assoc_type_id, old_property_id))
+
+        if not linked:
 #            cnx = self.get_connection()
 #            cursor = cnx.cursor()
             query = ("INSERT INTO `assoc_properties` (`source_entity_id`, `target_entity_id`, `assoc_type_id`, `property_id`) VALUES (%s, %s, %s, %s)")
@@ -431,16 +449,16 @@ class entity_dao(base_dao):
         self._cursor.execute(props_query, (added_id,))
 
         properties = []
-        for (source, prop_name, prop_type, value, identity) in self._cursor:
+        for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
             data = Property()
             data.data_type = prop_type
             data.data_name = prop_name
             data.identity = bool(identity)
             data.source = source
-            if value is None:
+            if prop_value is None:
                 data.data_value = ''
             else:
-                data.data_value = value
+                data.data_value = prop_value
             properties.append(data)
 
         entity.values = properties
@@ -457,24 +475,23 @@ class entity_dao(base_dao):
             tad = ad[3]
             assoc_name = ad[4]
             ati = ad[5]
-            fetch_row = '''select `prop_name`, `prop_type`, `value`, `identity` from association_property_values
+            fetch_row = '''select `source`, `prop_name`, `prop_type`, `value`, `identity` from association_property_values
                             WHERE `source_id` = %s AND `target_id` = %s AND `assoc_type_id` = %s'''
             self._cursor.execute(fetch_row, (sad, tad, ati))
             values = []
-            for (prop_name, prop_type, prop_value, identity) in self._cursor:
-                value = {
-                    'data_value': prop_value,
-                    'data_type': prop_type,
-                    'data_name': prop_name,
-                    'identity': bool(identity),
-                }
-                values.append(value)
-            data = {
-                'source_id': ad[0],
-                'target_id': ad[2],
-                'assoc_name': assoc_name,
-                'values': values
-            }
+            for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
+                data = Property()
+                data.data_type = prop_type
+                data.data_name = prop_name
+                data.identity = bool(identity)
+                data.source = source
+                if prop_value is None:
+                    data.data_value = ''
+                else:
+                    data.data_value = prop_value
+                values.append(data)
+
+            data = Relationship(ad[2], ad[0], assoc_name, values)
             refs.append(data)
 
 
