@@ -1,0 +1,160 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string",
+            "source": "alfresco"
+        }
+    },
+    "values": {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "sample_roma_id": {
+            "column": 1,
+            "type": "string",
+            "id": true
+        },
+        "sample_external_id": {
+            "column": 2,
+            "type": "string"
+        },
+        "collection_date": {
+            "column": 3,
+            "type": "datetime"
+        },
+        "location": {
+            "column": 4,
+            "type": "string"
+        },
+        "country": {
+            "column": 5,
+            "type": "string"
+        },
+        "12. Parasitaemia (p/ul)": {
+            "column": 6,
+            "type": "string"
+        },
+        "13. Clinical Severity": {
+            "column": 7,
+            "type": "string"
+        },
+        "14. Time spent in culture (days)": {
+            "column": 8,
+            "type": "string"
+        },
+        "15. Sample Volume (uL)": {
+            "column": 9,
+            "type": "string"
+        },
+        "16. Sample Type": {
+            "column": 10,
+            "type": "string"
+        },
+        "18. DNA concentration (ng/uL)": {
+            "column": 11,
+            "type": "string"
+        },
+        "19. Total DNA (ng)": {
+            "column": 12,
+            "type": "string"
+        },
+        "20. DNA quantification method": {
+            "column": 13,
+            "type": "string"
+        },
+        "21. WBC Depletion Method": {
+            "column": 14,
+            "type": "string"
+        },
+        "22. Relationship to other sample": {
+            "column": 15,
+            "type": "string"
+        },
+        "23. Related sample": {
+            "column": 16,
+            "type": "string"
+        },
+        "24. Patient Id": {
+            "column": 17,
+            "type": "string"
+        },
+        "26. Sequenom Pass Rate": {
+            "column": 18,
+            "type": "string"
+        },
+        "27. original_oxford_code": {
+            "column": 19,
+            "type": "string"
+        },
+        "28. Previous_sanger_supplier_id": {
+            "column": 20,
+            "type": "string"
+        },
+        "Collected according to SPOTMalaria Protocol": {
+            "column": 21,
+            "type": "string"
+        },
+        "Collected according to SpoTMalaria Protocol": {
+            "column": 22,
+            "type": "string"
+        },
+        "Day of follow up": {
+            "column": 23,
+            "type": "string"
+        },
+        "Donor Age (years)": {
+            "column": 24,
+            "type": "string"
+        },
+        "Donor Gender": {
+            "column": 25,
+            "type": "string"
+        },
+        "Oxford code": {
+            "column": 26,
+            "type": "string"
+        },
+        "Parasitaemia (%)": {
+            "column": 27,
+            "type": "string"
+        },
+        "Parasitaemia (PF/uL)": {
+            "column": 28,
+            "type": "string"
+        },
+        "Parasitaemia (parasites/uL)": {
+            "column": 29,
+            "type": "string"
+        },
+        "Parasites/µl": {
+            "column": 30,
+            "type": "string"
+        },
+        "Patient ID": {
+            "column": 31,
+            "type": "string"
+        },
+        "Phenotypes Collected": {
+            "column": 32,
+            "type": "string"
+        },
+        "Plate Position": {
+            "column": 33,
+            "type": "string"
+        },
+        "Plate name": {
+            "column": 34,
+            "type": "string"
+        },
+        "Species": {
+            "column": 35,
+            "type": "string"
+        },
+        "Volume (ul)*": {
+            "column": 36,
+            "type": "string"
+        }
+    }
+}

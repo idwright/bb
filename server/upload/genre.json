@@ -6,8 +6,7 @@
             "source": "alfresco"
         }
     },
-    "values":
-    {
+    "values": {
         "alfresco_code": {
             "column": 0,
             "type": "string"
@@ -33,64 +32,68 @@
             "column": 5,
             "type": "string"
         },
-        "collection_context": {
+        "clinical_severity": {
             "column": 6,
             "type": "string"
         },
-        "collection_method": {
+        "dna_concentration": {
             "column": 7,
             "type": "string"
         },
-        "collection_time": {
+        "dna_quantification_method": {
             "column": 8,
             "type": "string"
         },
-        "dna_concentration": {
+        "dna_extraction_date": {
             "column": 9,
-            "type": "string"
+            "type": "datetime"
         },
-        "dna_extraction_method": {
+        "Day after admission": {
             "column": 10,
             "type": "string"
         },
-        "dna_quantification_method": {
+        "Parasitaemia (%)": {
             "column": 11,
             "type": "string"
         },
-        "dna_extraction_date": {
+        "Partner ID": {
             "column": 12,
-            "type": "datetime"
+            "type": "string"
         },
-        "S05_box_num": {
+        "Patient code": {
             "column": 13,
-            "type": "integer"
+            "type": "string"
         },
-        "sample_type": {
+        "Relationship to other sample": {
             "column": 14,
             "type": "string"
         },
-        "sample_volume": {
+        "SAMPLE TYPE": {
             "column": 15,
-            "type": "integer"
+            "type": "string"
         },
-        "species": {
+        "Sample Type": {
             "column": 16,
             "type": "string"
         },
-        "specimen_gender": {
+        "Sample Volume (uL)": {
             "column": 17,
             "type": "string"
         },
-        "specimen_storage": {
+        "Species": {
             "column": 18,
             "type": "string"
         },
-        "specimen_type": {
+        "Time Point": {
             "column": 19,
             "type": "string"
         },
-        "well_position": {
+        "Time spent in culture (days)": {
             "column": 20,
+            "type": "string"
+        },
+        "Total DNA (ng)": {
+            "column": 21,
             "type": "string"
         }
     }

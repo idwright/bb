@@ -1,0 +1,37 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string",
+            "source": "alfresco"
+        }
+    },
+    "values":
+    {
+        "alfresco_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "sample_roma_id": {
+            "column": 1,
+            "type": "string",
+            "id": true
+        },
+        "sample_external_id": {
+            "column": 2,
+            "type": "string"
+        },
+        "collection_date": {
+            "column": 3,
+            "type": "datetime"
+        },
+        "location": {
+            "column": 4,
+            "type": "string"
+        },
+        "country": {
+            "column": 5,
+            "type": "string"
+        }
+    }
+}
