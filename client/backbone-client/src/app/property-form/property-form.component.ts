@@ -1,16 +1,21 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 
 @Component({
-  selector: 'app-property-form',
+  selector: '[app-property-form]',
   templateUrl: './property-form.component.html',
   styleUrls: ['./property-form.component.css']
 })
 export class PropertyFormComponent {
 
   @Input('group')
-
   public pForm: FormGroup;
+  
+  @Input('index')
+  public index: number;
+
+  @Output()
+  public removed: EventEmitter<number> = new EventEmitter<number>();
   
   static initProperty(source, data_name, data_value, data_type) {
     return new FormGroup({

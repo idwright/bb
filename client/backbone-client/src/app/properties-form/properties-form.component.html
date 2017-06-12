@@ -1,12 +1,19 @@
-<div *ngFor="let property of properties.controls; let i=index" class="panel panel-default">
-  <div class="panel-heading">
-    <span>Property {{i + 1}}</span>
-    <span class="glyphicon glyphicon-remove pull-right" *ngIf="properties.controls.length > 1" (click)="removeProperty(i)"></span>
-  </div>
-  <div class="panel-body">
-    <app-property-form [group]="properties.controls[i]"></app-property-form>
-  </div>
-</div>
+<table
+    *ngIf="properties"
+    class="mdl-data-table mdl-js-data-table full-width mdl-data-table-fix-firefox">
+    <thead>
+    <tr>
+      <th>Source</th>
+      <th>Name</th>
+      <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let property of properties.controls; let i=index" app-property-form [group]="property" [index]="i" (removed)="removeProperty($event)">
+      </tr>
+    </tbody>
+</table>
+
 <div class="margin-20">
   <a (click)="addProperty()" style="cursor: default">
             Add another property +
