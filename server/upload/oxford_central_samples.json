@@ -1,84 +1,52 @@
 {
     "refs": {
-        "OXFORD_DATABASE_RECORDS_PARENT_ID": {
-            "column": 1,
-            "type": "integer",
-            "fk_name": "OXFORD_DATABASE_RECORDS_UNIQUE_ID",
-            "source": "oxford_central_donor"
-        },
-        "individual_parent_source_code": {
-            "column": 7,
-            "type": "string",
-            "fk_name": "individual_source_code",
-            "source": "oxford_central_donor"
-        },
         "parent_id1": {
             "column": 8,
             "type": "integer",
             "fk_name": "individual_id",
-            "source": "oxford_central_donor"
+            "source": "oxford_central_donor",
+            "comment": "sample.donor_id"
         },
         "parent_code1": {
             "column": 9,
             "type": "string",
             "fk_name": "individual_code",
-            "source": "oxford_central_donor"
-        },
-        "parent_id2": {
-            "column": 10,
-            "type": "integer",
-            "fk_name": "individual_id",
-            "source": "oxford_central_donor"
-        },
-        "parent_code2": {
-            "column": 11,
-            "type": "string",
-            "fk_name": "individual_code",
-            "source": "oxford_central_donor"
+            "source": "oxford_central_donor",
+            "comment": "sample.donor_id = donor.donor_id, donor.donor_code"
         }
     },
     "values":
     {
-        "OXFORD_DATABASE_RECORDS_UNIQUE_ID": {
-            "column": 0,
-            "type": "integer",
-            "id": true
-        },
-        "OXFORD_DATABASE_RECORDS_PARENT_ID": {
-            "column": 1,
-            "type": "integer"
-        },
-        "database": {
-            "column": 2,
-            "type": "string"
-        },
-        "RECORD_TYPE": {
-            "column": 3,
-            "type": "string"
-        },
         "individual_id": {
             "column": 4,
-            "type": "integer"
+            "type": "integer",
+            "comment": "sample.sample_id"
         },
         "individual_code": {
             "column": 5,
-            "type": "string"
+            "type": "string",
+            "comment": "sample.individual_code"
         },
         "individual_source_code": {
             "column": 6,
-            "type": "string"
+            "type": "string",
+            "id": true,
+            "comment": "sample.source_code"
         },
         "individual_parent_source_code": {
             "column": 7,
-            "type": "string"
+            "type": "string",
+            "comment": "sample.donor_source_code"
         },
         "parent_id1": {
             "column": 8,
-            "type": "integer"
+            "type": "integer",
+            "comment": "sample.donor_id"
         },
         "parent_code1": {
             "column": 9,
-            "type": "string"
+            "type": "string",
+            "comment": "donor.donor_code"
         },
         "parent_id2": {
             "column": 10,
