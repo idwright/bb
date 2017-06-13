@@ -25,12 +25,12 @@
         "individual_code": {
             "column": 5,
             "type": "string",
+            "id": true,
             "comment": "sample.individual_code"
         },
         "individual_source_code": {
             "column": 6,
             "type": "string",
-            "id": true,
             "comment": "sample.source_code"
         },
         "individual_parent_source_code": {
