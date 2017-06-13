@@ -119,14 +119,14 @@ class entity_dao(base_dao):
         old_value = None
 
         #print (fetch_row)
-        #print ((prop['data_name'], prop['source'], entity_id))
+        #print ((prop.data_name, prop.source, entity_id))
         prop_matched_id = None
         for (ent_id, added_id, prop_id, old_v) in self._cursor:
             old_val = self.get_db_prop_value(prop, old_v)
             #print ("comparing: " + str(old_val) + " vs " + str(self.get_prop_value(prop)))
             #print ("comparing types: " + str(type(old_val)) + " vs " + str(type(self.get_prop_value(prop))))
             if old_val == self.get_prop_value(prop):
-        #        print ("match")
+                #print ("match")
                 prop_matched_id = prop_id
                 return prop_id, False, None, False, True
             else:
@@ -180,7 +180,7 @@ class entity_dao(base_dao):
             'double': lambda x: float(x),
             'json': lambda x: x,
             'boolean': lambda x: 1 if x.lower() == 'true' else 0,
-            'datetime': lambda x: x,
+            'datetime': lambda x: None if x is None or x.lower() == "null" or x == '' else x,
             }.get(data_type)(data_value)
 
         return converted_field
@@ -284,11 +284,15 @@ class entity_dao(base_dao):
 
             #print(count_query)
             #print(repr(prop))
-            self._cursor.execute(count_query, ( self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
-
             existing_property_id = None
-            for (prop_id,) in self._cursor:
-                existing_property_id = prop_id
+
+            try:
+                self._cursor.execute(count_query, ( self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
+
+                for (prop_id,) in self._cursor:
+                    existing_property_id = prop_id
+            except ValueError:
+                self._logger.error("Failed search for:" + repr(prop))
 
             if existing_property_id:
                 #print("insert_or_update_property: existing property found")
@@ -331,7 +335,7 @@ class entity_dao(base_dao):
     def find_entity_by_properties(self, properties):
 
         fetch_row = ('''SELECT
-                        HEX(entity_id), added_id
+                        HEX(e.id), e.added_id
                     FROM
                         `properties` p
                         JOIN property_types pt ON pt.id = p.prop_type_id

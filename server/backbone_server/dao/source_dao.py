@@ -26,6 +26,8 @@ class source_dao(entity_dao):
 #https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
     def load_data(self, source, data_def, input_stream):
 
+        retcode = 200
+
         with input_stream as csvfile:
             has_header = csv.Sniffer().has_header(csvfile.read(1024))
             csvfile.seek(0)
@@ -47,9 +49,20 @@ class source_dao(entity_dao):
                         defn['type_id'] = self.find_or_create_prop_defn(source, name, defn['type'], identity)
                     #print(repr(defn))
                     #print(repr(row))
-                    data = BulkLoadProperty(name, defn['type'], row[defn['column']], source, identity)
+                    try:
+                        data = BulkLoadProperty(name, defn['type'], row[defn['column']], source, identity)
+                    except IndexError:
+                        self._logger.critical(repr(defn))
+                        self._logger.critical(repr(row))
+                        retcode = 500
+                        break
+
+
                     data.type_id = defn['type_id']
                     values.append(data)
+
+                if retcode != 200:
+                    break
 
                 refs = []
                 if 'refs' in data_def:
@@ -77,6 +90,8 @@ class source_dao(entity_dao):
                 self._connection.commit()
             self._cursor.close()
             self._connection.close()
+
+            return retcode
 
     def edit_source(self, source_rec):
 
