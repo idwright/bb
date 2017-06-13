@@ -100,6 +100,20 @@ class entity_dao(base_dao):
 
         return property_type_id
 
+    def update_property(self, prop, property_id, old_value, data_field):
+            #Need to check if there are other entities referencing the same property before updating
+            count = self.count_entities_with_property_value(property_id, old_value, data_field)
+            #print("count:" + str(count))
+            if count == 1:
+                #Update property value
+                print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
+                print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
+                update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
+                self._cursor.execute(update_prop, (self.get_prop_value(prop), property_id))
+                return True
+
+            return False
+
     """
         adds a Property to an entity
 
@@ -112,7 +126,11 @@ class entity_dao(base_dao):
 
         data_field = self.get_data_field(prop.data_type)
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + " FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id JOIN `entity_properties` AS ep ON ep.property_id = p.id JOIN `entities` AS e ON ep.entity_id = e.added_id WHERE `pt`.`prop_name` = %s AND `source`=%s AND `added_id` = %s")
+        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + ''' FROM `properties` p
+                     JOIN `property_types` AS pt ON pt.id = p.prop_type_id
+                     JOIN `entity_properties` AS ep ON ep.property_id = p.id
+                     JOIN `entities` AS e ON ep.entity_id = e.added_id
+                     WHERE `pt`.`prop_name` = %s AND `source`=%s AND `added_id` = %s''')
 
         self._cursor.execute(fetch_row, (prop.data_name, prop.source, entity_id))
         property_id = None
@@ -128,14 +146,18 @@ class entity_dao(base_dao):
             if old_val == self.get_prop_value(prop):
                 #print ("match")
                 prop_matched_id = prop_id
-                return prop_id, False, None, False, True
+                return prop_id, None, True
             else:
+                if property_id:
+                    self._logger.warn("Multiple values for:" + entity_id + repr(prop))
                 old_value = old_val
                 property_id = prop_id
+                if self.update_property(prop, property_id, old_value, data_field):
+                    return property_id, None, True
 
 #        cursor.close()
 #        cnx.close()
-        return self.insert_or_update_property(prop, property_type_id, data_field, property_id, old_value)
+        return self.insert_property(prop, property_type_id, data_field), property_id, False
 
 
     """
@@ -148,7 +170,7 @@ class entity_dao(base_dao):
     """
     def add_entity_property(self, entity_id, prop, property_type_id):
         #print("Add entity_property:" + str(entity_id) + " " + repr(prop))
-        property_id, create, delete_old, exists, linked = self.add_or_update_property_entity(entity_id, prop, property_type_id)
+        property_id, delete_old, linked = self.add_or_update_property_entity(entity_id, prop, property_type_id)
 
         #print("add_entity_property:" + str(property_id) + str(create) + str(delete_old) + str(exists) + str(linked))
         if delete_old:
@@ -220,12 +242,66 @@ class entity_dao(base_dao):
             old_val = self.get_db_prop_value(prop, value)
             if old_val == self.get_prop_value(prop):
                 prop_matched_id = prop_id
-                return prop_id, False, None, False, True
+                return prop_id, None, True
             else:
                 old_value = old_val
                 property_id = prop_id
+                if self.update_property(prop, property_id, old_value, data_field):
+                    return property_id, None, True
 
-        return self.insert_or_update_property(prop, property_type_id, data_field, property_id, old_value)
+        return self.insert_property(prop, property_type_id, data_field), property_id, False
+
+
+    """
+        Finds if more than one entity/association references a given property - misleading name
+
+        :param property_id: the id of an existing property which matches prop
+        :type property_id: int
+        :param old_value: the current value in property_id
+        :return: property_id, created, multiple_values, updated, matched
+
+        :rtype: int
+    """
+    def count_entities_with_property_value(self, property_id, old_value, data_field):
+
+        count = 0
+        count_query = "SELECT p.id FROM `properties` p LEFT JOIN `entity_properties` AS ep ON ep.property_id = p.id LEFT JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `" + data_field + "` = %s and p.id = %s LIMIT 5"
+
+        try:
+
+            self._cursor.execute(count_query, ( old_value, property_id))
+
+            #Neither of these work
+            #count = self._cursor.rowcount
+            #results = self._connection.get_rows(count)
+            #count = len(results)
+
+            for (pid,) in self._cursor:
+                count = count + 1
+                pass
+            #print(count_query)
+        except:
+            count_query = count_query.replace('%s','{}')
+            self._logger.warn("count_entities_with_property_value:" + count_query.format(old_value, property_id))
+
+        return count
+
+    def find_property_with_value(self, prop, data_field):
+        count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
+
+        #print(count_query)
+        #print(repr(prop))
+        existing_property_id = None
+
+        try:
+            self._cursor.execute(count_query, ( self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
+
+            for (prop_id,) in self._cursor:
+                existing_property_id = prop_id
+        except ValueError:
+            self._logger.error("Failed search for:" + repr(prop))
+
+        return existing_property_id
 
     """
         adds or updates a Property
@@ -238,67 +314,21 @@ class entity_dao(base_dao):
         :param old_value: the current value in property_id
         :return: property_id, created, multiple_values, updated, matched
 
-        :rtype: None
+        :rtype: int
     """
-    def insert_or_update_property(self, prop, property_type_id, data_field, property_id, old_value):
+    def insert_property(self, prop, property_type_id, data_field):
 
-        #print("insert_or_update_property:" + str(data_field) + " property_id:" + str(property_id))
-        #print("insert_or_update_property old_value:" + str(old_value) + " type:" + str(type(old_value)))
-        self._logger.debug("insert_or_update_property:" + repr(prop))
-        multiple_values = False
+        #print("insert_property:" + str(data_field) + " property_id:" + str(property_id))
+        #print("insert_property old_value:" + str(old_value) + " type:" + str(type(old_value)))
+        self._logger.debug("insert_property:" + repr(prop))
 
-        if property_id and old_value:
-            #Need to check if there are other entities referencing the same property before updating
-            count_query = ("SELECT p.id FROM `properties` p LEFT JOIN `entity_properties` AS ep ON ep.property_id = p.id LEFT JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `" + data_field + "` = %s and p.id = %s LIMIT 5")
+        existing_property_id = self.find_property_with_value(prop, data_field)
 
-            self._cursor.execute(count_query, ( old_value, property_id))
+        if existing_property_id:
+            #print("update_property: existing property found")
+            return existing_property_id
 
-            #Neither of these work
-            #count = self._cursor.rowcount
-            #results = self._connection.get_rows(count)
-            #count = len(results)
-
-            count = 0
-            for (pid,) in self._cursor:
-                count = count + 1
-                pass
-            #print(count_query)
-            #print("count:" + str(count))
-            if count == 1:
-                #print ("insert_or_update_property: results == 1")
-                if self.get_data_value(prop.data_type,old_value) != prop.data_value:
-                    #Update property value
-                    update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
-                    self._cursor.execute(update_prop, (prop.data_value, property_id))
-                return property_id, False, None, True, True
-            elif count > 1:
-                multiple_values = True
-                #print ("insert_or_update_property: results > 1")
-            else:
-                pass
-                #print ("insert_or_update_property: results " + repr(results))
-
-        if not multiple_values:
-            #print ("insert_or_update_property: not multiple_values")
-            count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
-
-            #print(count_query)
-            #print(repr(prop))
-            existing_property_id = None
-
-            try:
-                self._cursor.execute(count_query, ( self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
-
-                for (prop_id,) in self._cursor:
-                    existing_property_id = prop_id
-            except ValueError:
-                self._logger.error("Failed search for:" + repr(prop))
-
-            if existing_property_id:
-                #print("insert_or_update_property: existing property found")
-                return existing_property_id, False, None, False, False
-
-        #print ("insert_or_update_property: inserting")
+        #print ("insert_property: inserting")
         insert_statement = ("INSERT INTO properties (`prop_type_id`, `" + data_field + "`) VALUES (%s, %s);")
 
         #print(insert_statement)
@@ -307,11 +337,11 @@ class entity_dao(base_dao):
         new_property_id = self._cursor.lastrowid
         #print ("Added property id:" + str(new_property_id) + repr(prop))
 
-        return new_property_id, True, property_id, False, False
+        return new_property_id
 
     def add_assoc_property(self, entity_id, fk, assoc_type_id, prop, property_type_id):
 
-        property_id, create, delete_old, exists, linked = self.add_or_update_assoc_property(entity_id, fk, assoc_type_id, prop, property_type_id)
+        property_id, delete_old, linked = self.add_or_update_assoc_property(entity_id, fk, assoc_type_id, prop, property_type_id)
 
         if delete_old:
             old_property_id = delete_old
