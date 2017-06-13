@@ -110,6 +110,8 @@ class source_dao(entity_dao):
 
             if prop.identity:
                 id_properties.append(prop)
+                if self.get_prop_value(prop) is None or (prop.data_type == 'string' and prop.data_value == ''):
+                    this._logger.error("No key value:" + repr(prop))
 #                print (repr(prop))
 
 
@@ -250,13 +252,12 @@ class source_dao(entity_dao):
             property_type_id = pti
             property_type = pt
 
-        query = ('''SELECT count(ep.property_id), pt.`source`, pt.prop_name, pt.prop_type, p.''' + self.get_data_field(property_type) +
-                ''' from entity_properties ep
+        query = ('''SELECT count(ep.property_id), pt.`source`, pt.prop_name, pt.prop_type, p.''' + self.get_data_field(property_type.decode('utf-8')) + ''' from entity_properties ep
             JOIN properties p ON p.id = ep.property_id
             JOIN property_types pt ON pt.id = p.prop_type_id
             WHERE `pt`.`source` = %s AND `pt`.`prop_name` = %s
             GROUP BY (ep.property_id) HAVING COUNT(ep.property_id) > %s order by prop_name, ''' +
-                 self.get_data_field(property_type))
+                 self.get_data_field(property_type.decode('utf-8')))
 
 
         self._cursor.execute(query, (source, prop_name, th))
@@ -289,7 +290,7 @@ class source_dao(entity_dao):
         results = []
         for (count, pname) in self._cursor:
             summ = SummaryItem()
-            summ.source_name = pname
+            summ.source_name = pname.decode('utf-8')
             summ.num_items = count
             results.append(summ)
 
@@ -313,7 +314,7 @@ class source_dao(entity_dao):
         results = []
         for (count, source) in self._cursor:
             summ = SummaryItem()
-            summ.source_name = source
+            summ.source_name = source.decode('utf-8')
             summ.num_items = count
             results.append(summ)
 

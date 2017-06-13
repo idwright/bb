@@ -485,13 +485,14 @@ class entity_dao(base_dao):
         properties = []
         for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
             data = Property()
-            data.data_type = prop_type
-            data.data_name = prop_name
+            data.data_type = prop_type.decode('utf-8')
+            data.data_name = prop_name.decode('utf-8')
             data.identity = bool(identity)
-            data.source = source
+            data.source = source.decode('utf-8')
             if prop_value is None:
                 data.data_value = ''
             else:
+                #Conversion to string is done in the property_values view
                 data.data_value = prop_value
             properties.append(data)
 
@@ -550,7 +551,7 @@ class entity_dao(base_dao):
         for (pti,pt) in self._cursor:
             property_type_id = pti
             property_type = pt
-            props.append({ 'pti': pti, 'pt': pt})
+            props.append({ 'pti': pti, 'pt': pt.decode('utf-8')})
 
         if len(props) == 0:
             raise NoSuchTypeException("No such type:" + prop_name)
