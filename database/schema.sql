@@ -24,7 +24,7 @@ CREATE TABLE `property_types` (
     UNIQUE KEY `psn` (`source`, `prop_name`),
     UNIQUE KEY `psnt` (`source`, `prop_name`, `prop_type`),
     KEY `identity` (`identity`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin;
 
 CREATE TABLE `properties` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
