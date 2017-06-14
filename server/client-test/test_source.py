@@ -14,6 +14,12 @@ class TestSource(unittest.TestCase):
     """
     def setUp(self):
         self._testSource = 'test'
+        self._example_id_prop = swagger_client.ModelProperty()
+        self._example_id_prop.data_name = 'id'
+        self._example_id_prop.data_value = '1'
+        self._example_id_prop.data_type = 'integer'
+        self._example_id_prop.source = self._testSource
+        self._example_id_prop.identity = True
         pass
 
     """
@@ -30,13 +36,7 @@ class TestSource(unittest.TestCase):
         entity = swagger_client.SourceEntity()
 
         props = []
-        prop = swagger_client.ModelProperty()
-        prop.data_name = 'id'
-        prop.data_value = '1'
-        prop.data_type = 'integer'
-        prop.source = self._testSource
-        prop.identity = True
-        props.append(prop)
+        props.append(self._example_id_prop)
 
         entity.values = props
 
@@ -70,25 +70,68 @@ class TestSource(unittest.TestCase):
         api_instance = swagger_client.SourceApi()
         entity = swagger_client.SourceEntity()
 
-        test_id = '1'
+        test_id = self._example_id_prop.data_value
+
         try:
             response = api_instance.download_source_entity('test', test_id)
             self.assertEqual(str(type(response)),"<class 'swagger_client.models.entity.Entity'>")
             found = False
             for prop in response.values:
-                if (prop.source == self._testSource):
-                    if prop.identity:
-                        found = True
-                        self.assertEqual(prop.data_value, test_id)
-                        self.assertEqual(prop.data_name, 'id')
-                        self.assertEqual(prop.data_type, 'integer')
+                if (prop == self._example_id_prop):
+                    found = True
 
-            self.assertTrue(found)
+            self.assertTrue(found, "Did not find example")
 
 
             #Look for a non-existent entity
             response = api_instance.download_source_entity('test', '123456789')
             self.assertIsNone(response)
+        except ApiException as e:
+            print (repr(entity))
+            print("Exception when calling EntityApi->upload_entity: %s\n" % e)
+
+    """
+    """
+    def test_update_simple_entity(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        entity = swagger_client.SourceEntity()
+
+        test_id = self._example_id_prop.data_value
+
+        try:
+            response = api_instance.download_source_entity('test', test_id)
+            self.assertEqual(str(type(response)),"<class 'swagger_client.models.entity.Entity'>")
+            found = False
+            for prop in response.values:
+                if (prop == self._example_id_prop):
+                    found = True
+
+            self.assertTrue(found, "Did not find example")
+
+            entity_id = response.entity_id
+            new_entity = response
+
+            new_prop = swagger_client.ModelProperty(data_name='Added property', \
+                                     data_type='string', \
+                                     data_value='Added property value', \
+                                     source=self._testSource, identity=False)
+
+            new_entity.values.append(new_prop)
+
+            entity_api = swagger_client.EntityApi()
+
+            response = entity_api.update_entity(entity_id, new_entity)
+            print(repr(response))
+            self.assertEqual(entity_id, response.entity_id)
+
+            found = False
+            for prop in response.values:
+                if (prop == new_prop):
+                    found = True
+
+            self.assertTrue(found, "Added property not found")
         except ApiException as e:
             print (repr(entity))
             print("Exception when calling EntityApi->upload_entity: %s\n" % e)
