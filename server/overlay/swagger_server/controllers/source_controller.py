@@ -31,7 +31,7 @@ def download_source_entity(sourceId, sourceEntityId):
 
     result = sd.fetch_entity_by_source(sourceId, sourceEntityId)
 
-    print("result:" + repr(result))
+    #print("result:" + repr(result))
     return result
 
 
