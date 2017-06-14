@@ -106,8 +106,8 @@ class entity_dao(base_dao):
             #print("count:" + str(count))
             if count == 1:
                 #Update property value
-                print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
-                print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
+                #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
+                #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
                 update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
                 self._cursor.execute(update_prop, (self.get_prop_value(prop), property_id))
                 return True
