@@ -45,7 +45,7 @@ paths:
           in: formData
           description: Additional data to pass to server
           required: false
-          type: string
+          type: file
         - name: dataFile
           in: formData
           description: file to upload

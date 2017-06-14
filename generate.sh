@@ -17,3 +17,4 @@ for i in updateOnly
 do
 sed -i -e "s/${i} instanceof Date/${i}/" -e "s/${i}.d.toISOString()/${i}/" typescript-angular2-client/api/SourceApi.ts
 done
+java -jar swagger-codegen-cli.jar generate -i swagger.yaml -l python -o python_client -c client.config.json

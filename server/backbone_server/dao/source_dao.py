@@ -4,7 +4,9 @@ import csv
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
 from swagger_server.models.entity import Entity
+from swagger_server.models.source_entity import SourceEntity
 from swagger_server.models.property import Property
 from swagger_server.models.summary_item import SummaryItem
 import binascii
@@ -85,7 +87,9 @@ class source_dao(entity_dao):
                         }
                         refs.append(data)
 
-                record = { 'values': values, 'refs': refs}
+                record = SourceEntity()
+                record.values = values
+                record.refs = refs
                 self.edit_source(record)
                 self._connection.commit()
             self._cursor.close()
@@ -103,7 +107,7 @@ class source_dao(entity_dao):
         id_prop = None
 
         id_properties = []
-        for prop in source_rec['values']:
+        for prop in source_rec.values:
             if type(prop) == 'BulkLoadProperty':
                 if not prop.type_id:
                     prop.type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
@@ -121,15 +125,20 @@ class source_dao(entity_dao):
         self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
 
         if entity_id:
-            for prop in source_rec['values']:
-                self.add_entity_property(entity_id, prop, prop.type_id)
+            for prop in source_rec.values:
+                prop_type_id = None
+                if type(prop) == 'BulkLoadProperty':
+                    prop_type_id = prop.type_id
+                else:
+                    prop_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+                self.add_entity_property(entity_id, prop, prop_type_id)
         else:
              self._logger.critical("Missing id for %s", repr(source_rec), exc_info=1)
              return None
 
         #print("Identity property:" + repr(id_prop))
-        if 'refs' in source_rec:
-            for assoc in source_rec['refs']:
+        if source_rec.refs:
+            for assoc in source_rec.refs:
                 if 'fk_name' in assoc and assoc['fk_name']:
                     fk_name = assoc['fk_name']
                 else:
@@ -172,10 +181,17 @@ class source_dao(entity_dao):
             connection.close()
             return None
 
+        res = cursor.fetchone()
+        if res:
+            self._logger.error(source + ''' uses a combination key and can't be retrieved by this method ''' + repr(result) + repr(res))
+            cursor.close()
+            connection.close()
+            raise IncompleteCombinationKeyException("Cannot fetch record with only one part of a combination key")
+
         prop_type_id = result[0]
         prop_type = result[1]
 
-        data_field = self.get_data_field(prop_type)
+        data_field = self.get_data_field(prop_type.decode('utf-8'))
 
         entity_query = '''SELECT
             HEX(e.id), ep.entity_id
@@ -207,8 +223,8 @@ class source_dao(entity_dao):
 
         id_found = False
         id_prop = None
-        for prop in entity['values']:
-            if 'identity' in prop and prop['identity']:
+        for prop in entity.values:
+            if prop.identity:
                 id_found = True
                 id_prop = prop
 
@@ -217,10 +233,10 @@ class source_dao(entity_dao):
             #Throw no id specified exception
             return None
         else:
-            existing_entity = self.fetch_entity_by_source(source,id_prop['data_value'])
+            existing_entity = self.fetch_entity_by_source(source,id_prop.data_value)
             if existing_entity:
                 self._logger.error("Duplicate identity value specified:" + source + ":" + repr(entity))
-                #Throw no id specified exception
+                #Throw duplicate id specified exception
                 return None
 
 

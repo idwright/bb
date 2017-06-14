@@ -46,18 +46,12 @@ def upload_entity(sourceId, entity):
 
     :rtype: ApiResponse
     """
-    print("upload_entity1")
-    print(repr(entity))
     if connexion.request.is_json:
-        print("upload_entity is json")
-        print(repr(connexion.request.get_json()))
-#        entity = Entity.from_dict(connexion.request.get_json())
+        ent = Entity.from_dict(connexion.request.get_json())
 
     sd = source_dao()
 
-    print("upload_entity2")
-    print(repr(entity))
-    result = sd.create_source_entity(sourceId, entity)
+    result = sd.create_source_entity(sourceId, ent)
 
     return entity
 
@@ -94,6 +88,4 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
 #    profile.dump_stats('upload_source_stats.cprof')
 #$ pyprof2calltree -k -i upload_source_stats.cprof
 
-
-
-    return result
+    return ApiResponse(code=result)
