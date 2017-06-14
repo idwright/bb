@@ -43,7 +43,7 @@ def download_entities_by_property(propName, propValue, start=None, count=None, o
 
     :rtype: Entities
     """
-    print("download_entities_by_property", file=sys.stderr)
+    print("download_entities_by_property")
 
     result = None
     retcode = 200
@@ -69,7 +69,7 @@ def download_entity(entityId):
 
     :rtype: Entity
     """
-    print("download_entity", file=sys.stderr)
+    print("download_entity")
     ed = entity_dao()
 
     result = ed.fetch_entity_by_id(entityId, None)
@@ -94,7 +94,9 @@ def update_entity(entityId, entity):
     ed = entity_dao()
 
     retval = ed.update_entity(entity)
-
     #print(repr(retval))
-    return retval
+
+    result = ed.fetch_entity_by_id(entityId, None)
+
+    return result
 
