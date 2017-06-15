@@ -3,6 +3,7 @@ import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
+from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
 from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
 from swagger_server.models.property import Property
@@ -34,8 +35,16 @@ class entity_dao(base_dao):
 
         internal_id = self.get_internal_id(entity.entity_id)
 
+        props = {}
         for prop in entity.values:
             property_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+            if property_type_id in props:
+                self._cursor.close()
+                self._connection.close()
+                raise DuplicatePropertyException("Duplicate properties: {} {} {} {}".format(
+                                                                                            prop.source, prop.data_name,
+                                                 prop.data_value, props[property_type_id].data_value))
+            props[property_type_id] = prop
             self.add_entity_property(internal_id, prop, property_type_id)
 
         if entity.refs:
@@ -45,8 +54,16 @@ class entity_dao(base_dao):
                 internal_target_id = self.get_internal_id(assoc.target_id)
                 self.add_assoc(internal_source_id, internal_target_id, assoc_type_id)
                 if assoc.values:
+                    props = {}
                     for prop in assoc.values:
                         property_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+                        if property_type_id in props:
+                            self._cursor.close()
+                            self._connection.close()
+                            raise DuplicatePropertyException("Duplicate properties: {} {} {} {}".format(
+                                                                                                        prop.source, prop.data_name,
+                                                             prop.data_value, props[property_type_id].data_value))
+                        props[property_type_id] = prop
                         self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
 
 
@@ -516,10 +533,10 @@ class entity_dao(base_dao):
             values = []
             for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
                 data = Property()
-                data.data_type = prop_type
-                data.data_name = prop_name
+                data.data_type = prop_type.decode('utf-8')
+                data.data_name = prop_name.decode('utf-8')
                 data.identity = bool(identity)
-                data.source = source
+                data.source = source.decode('utf-8')
                 if prop_value is None:
                     data.data_value = ''
                 else:

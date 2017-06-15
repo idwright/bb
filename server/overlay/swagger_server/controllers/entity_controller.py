@@ -1,6 +1,7 @@
 import connexion
 
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
+from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
 
 from swagger_server.models.entities import Entities
 from swagger_server.models.entity import Entity
@@ -93,10 +94,15 @@ def update_entity(entityId, entity):
       #print(repr(entity))
     ed = entity_dao()
 
-    retval = ed.update_entity(entity)
+    retcode = 200
+    try:
+        retval = ed.update_entity(entity)
+    except DuplicatePropertyException as t:
+        logging.getLogger().error("update_entity: {}".format(repr(t)))
+        retcode = 422
     #print(repr(retval))
 
     result = ed.fetch_entity_by_id(entityId, None)
 
-    return result
+    return result, retcode
 
