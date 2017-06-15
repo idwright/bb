@@ -1,0 +1,3 @@
+oxford_code	study_group	alfresco	name
+PH0042-C	PF	1011-PF-KH-SU	3288_6_nonhuman.bam
+PD0123-C	PF	1010-PF-TH-ANDERSON	5380_2_nonhuman.bam

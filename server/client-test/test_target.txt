@@ -1,0 +1,2 @@
+10000385	10032213	"OXFORD_CENTRAL_DATABASE"	"LEGACY_SAMPLE"	145078	"PH0042-C"	"CP349"	"CP349"	220394	"PH0042-C"	"NULL"		"Plasmodium falciparum"	"DNA"	"plasmodium wild isolate"	"2009-04-16 00:00:00.000"	"KH"	"20 wild isolates of P. falciparum from Xinzhuan Su"		"Xinzhuan Su"	"Susana Campino"						
+10001312	10033078	"OXFORD_CENTRAL_DATABASE"	"LEGACY_SAMPLE"	163680	"PD0123-C"	"M1129"	"M1129"	236725	"PD0123-C"	"NULL"		"Plasmodium falciparum"	"DNA"	"plasmodium lab isolate"	"2010-08-06 00:00:00.000"	"TH"	"15x P.falciparum samples "		"Tim Anderson"	"Eleanor Drury"						
