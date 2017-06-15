@@ -87,6 +87,39 @@ class TestEntity(TestBase):
         except ApiException as e:
             self.fail("Exception when calling EntityApi->update_entity: %s\n" % e)
 
+    def test_update_property(self):
+
+        try:
+            api_instance = swagger_client.SourceApi()
+            test_id = self._example_id_prop.data_value
+
+            original = api_instance.download_source_entity('test', test_id)
+            entity_id = original.entity_id
+            new_entity = original
+            new_prop = self.get_test_prop()
+
+            updated_value = 'Updated value'
+            for prop in new_entity.values:
+                if (prop == new_prop):
+                    prop.data_value = updated_value
+
+            entity_api = swagger_client.EntityApi()
+
+            response = entity_api.update_entity(entity_id, new_entity)
+
+            found = False
+            for prop in response.values:
+                if (prop.source == new_prop.source and prop.data_name == new_prop.data_name):
+                    self.assertEqual(prop.data_value,updated_value)
+                    found = True
+
+            self.assertTrue(found, "did not find updated property")
+
+            response = entity_api.update_entity(entity_id, original)
+
+        except ApiException as e:
+            self.fail("Exception when calling EntityApi->update_entity: %s\n" % e)
+
     """
     """
     def test_add_assoc_property(self):
