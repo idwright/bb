@@ -7,4 +7,4 @@ then
     pip3 install -r ../../python_client/requirements.txt
 fi
 source client-env/bin/activate
-python3 -m unittest discover
+python3 all_tests.py
