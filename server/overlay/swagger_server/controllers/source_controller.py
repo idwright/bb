@@ -12,6 +12,11 @@ import sys
 import io
 import json
 
+from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
+from backbone_server.errors.no_id_exception import NoIdException
+from backbone_server.errors.duplicate_id_exception import DuplicateIdException
+from backbone_server.errors.invalid_id_exception import InvalidIdException
+
 #import cProfile
 
 
@@ -29,10 +34,18 @@ def download_source_entity(sourceId, sourceEntityId):
     print("download_source_entity:" + sourceId + "/" + sourceEntityId)
     sd = source_dao()
 
-    result = sd.fetch_entity_by_source(sourceId, sourceEntityId)
-
+    try:
+        result = sd.fetch_entity_by_source(sourceId, sourceEntityId)
+    except InvalidIdException as e:
+        return repr(e), 404 #Unprocessable entity
+    except NoIdException as e:
+        #No identity key specified for this source
+        return repr(e), 422 #Unprocessable entity
+    except IncompleteCombinationKeyException as e:
+        #Source uses a combination key, which means it can't be retrieved via this method
+        return repr(e), 409 #Unprocessable entity
     #print("result:" + repr(result))
-    return result
+    return result, 200
 
 
 def upload_entity(sourceId, entity):
@@ -51,9 +64,18 @@ def upload_entity(sourceId, entity):
 
     sd = source_dao()
 
-    result = sd.create_source_entity(sourceId, ent)
+    try:
+        result = sd.create_source_entity(sourceId, ent)
+    except InvalidIdException as e:
+        return repr(e), 404 #Unprocessable entity
+    except NoIdException as e:
+        return repr(e), 422 #Unprocessable entity
+    except IncompleteCombinationKeyException as e:
+        return repr(e), 422 #Unprocessable entity
+    except DuplicateIdException as e:
+        return repr(e), 409 #Conflict
 
-    return entity
+    return result, 201
 
 
 def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None):

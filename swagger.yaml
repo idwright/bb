@@ -76,7 +76,7 @@ paths:
       parameters:
         - name: sourceId
           in: path
-          description: ID of source to update
+          description: ID of source to which the entity should belong
           required: true
           type: string
         - name: entity
@@ -86,14 +86,15 @@ paths:
           schema:
             $ref: '#/definitions/SourceEntity'
       responses:
-        '200':
-          description: successful operation
-          schema:
-            $ref: '#/definitions/ApiResponse'
         '201':
           description: successful operation
-          schema:
-            $ref: '#/definitions/Entity'
+          type: string
+        '409':
+          description: 'duplicate key'
+          type: string
+        '422':
+          description: 'invalid key in entity'
+          type: string
   '/source/{sourceId}/{sourceEntityId}':
     get:
       tags:
@@ -119,6 +120,15 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Entity'
+        '404':
+          description: 'entity not found'
+          type: string
+        '409':
+          description: 'source uses a combination key and therefore cannot be retrieved via this method'
+          type: string
+        '422':
+          description: 'invalid key in entity'
+          type: string
   '/source/summary/{sourceId}':
     get:
       tags:

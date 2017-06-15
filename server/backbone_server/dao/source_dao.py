@@ -4,7 +4,11 @@ import csv
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.dao.model.bulk_load_source_relationship import BulkLoadSourceRelationship
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
+from backbone_server.errors.no_id_exception import NoIdException
+from backbone_server.errors.duplicate_id_exception import DuplicateIdException
+from backbone_server.errors.invalid_id_exception import InvalidIdException
 from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
 from swagger_server.models.property import Property
@@ -76,28 +80,27 @@ class source_dao(entity_dao):
                             defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
                         if not 'assoc_type_id' in defn:
                             defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], name)
-                        data = {
-                            'data_value': row[defn['column']],
-                            'data_type': defn['type'],
-                            'type_id': defn['type_id'],
-                            'data_name': name,
-                            'source': defn['source'],
-                            'assoc_type_id': defn['assoc_type_id'],
-                            'fk_name': defn['fk_name'] if 'fk_name' in defn else None
-                        }
+                        data = BulkLoadSourceRelationship()
+                        data.data_value = row[defn['column']]
+                        data.data_type = defn['type']
+                        data.type_id = defn['type_id']
+                        data.data_name = name
+                        data.source = defn['source']
+                        data.assoc_type_id = defn['assoc_type_id']
+                        data.fk_name = defn['fk_name'] if 'fk_name' in defn else None
                         refs.append(data)
 
                 record = SourceEntity()
                 record.values = values
                 record.refs = refs
-                self.edit_source(record)
+                self.edit_source(source, record)
                 self._connection.commit()
             self._cursor.close()
             self._connection.close()
 
             return retcode
 
-    def edit_source(self, source_rec):
+    def edit_source(self, assoc_source, source_rec):
 
         system_fk_type_id = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False)
         system_fk_data = BulkLoadProperty('implied_id', 'boolean', 'false', 'system', False)
@@ -127,7 +130,7 @@ class source_dao(entity_dao):
         if entity_id:
             for prop in source_rec.values:
                 prop_type_id = None
-                if type(prop) == 'BulkLoadProperty':
+                if type(prop) == "<class 'backbone_server.dao.model.bulk_load_source_relationship.BulkLoadProperty'>":
                     prop_type_id = prop.type_id
                 else:
                     prop_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
@@ -139,30 +142,42 @@ class source_dao(entity_dao):
         #print("Identity property:" + repr(id_prop))
         if source_rec.refs:
             for assoc in source_rec.refs:
-                if 'fk_name' in assoc and assoc['fk_name']:
-                    fk_name = assoc['fk_name']
+                if assoc.fk_name:
+                    fk_name = assoc.fk_name
                 else:
-                    fk_name = assoc['data_name']
-                if not 'type_id' in assoc:
-                    assoc['type_id'] = self.find_or_create_prop_defn(assoc['source'], fk_name, assoc['data_type'], True)
-                if not 'assoc_type_id' in assoc:
-                    assoc['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, assoc['source'], assoc['data_name'])
+                    fk_name = assoc.data_name
+                type_id = None
+                assoc_type_id = None
+                if type(assoc) == "<class 'backbone_server.dao.model.bulk_load_source_relationship.BulkLoadSourceRelationship'>":
+                    if not assoc.type_id:
+                        assoc.type_id = self.find_or_create_prop_defn(assoc.source, fk_name, assoc.data_type, True)
+                    type_id = assoc.type_id
+                    if not assoc.assoc_type_id:
+                        assoc.assoc_type_id, assoc_name = self.find_or_create_assoc_defn(assoc_source, assoc.source, assoc.data_name)
+                        assoc_type_id = assoc.assoc_type_id
+                else:
+                        type_id = self.find_or_create_prop_defn(assoc.source, fk_name, assoc.data_type, True)
+                        assoc_type_id, assoc_name = self.find_or_create_assoc_defn(assoc_source, assoc.source, assoc.data_name)
                 fk = None
-                if not assoc['data_value'] or assoc['data_value'].lower() == "null":
+                if not assoc.data_value or assoc.data_value.lower() == "null":
                     continue
-                fk_prop = BulkLoadProperty(fk_name, assoc['data_type'], assoc['data_value'], assoc['source'], False)
+                fk_prop = BulkLoadProperty(fk_name, assoc.data_type, assoc.data_value, assoc.source, False)
                 if not found:
                     fk, found = self.find_entity([ fk_prop ])
                 if not found:
                     system_fk_data.data_value = "true"
                     self.add_entity_property(fk, system_fk_data, system_fk_type_id)
-                    self.add_entity_property(fk, fk_prop, assoc['type_id'])
-                self.add_assoc(fk, entity_id, assoc['assoc_type_id'])
-                if 'values' in source_rec['refs']:
-                    for prop in source_rec['refs']['values']:
-                        if not 'type_id' in prop:
-                            prop['type_id'] = self.find_or_create_prop_defn(assoc_name, prop['data_name'], prop['data_type'], False)
-                        self.add_assoc_property(entity_id, fk, assoc['assoc_type_id'], prop, prop['type_id'])
+                    self.add_entity_property(fk, fk_prop, type_id)
+                self.add_assoc(fk, entity_id, assoc_type_id)
+                values = assoc.values
+                if values:
+                    for prop in values:
+                        prop_type_id = None
+                        if type(prop) == 'BulkLoadProperty':
+                            prop_type_id = prop.type_id
+                        else:
+                            prop_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+                        self.add_assoc_property(entity_id, fk, assoc_type_id, prop, prop_type_id)
 
         return entity_id
 
@@ -179,7 +194,7 @@ class source_dao(entity_dao):
         if not result:
             cursor.close()
             connection.close()
-            return None
+            raise InvalidIdException("No identity properties for :" + source)
 
         res = cursor.fetchone()
         if res:
@@ -209,7 +224,7 @@ class source_dao(entity_dao):
         if not entity:
             cursor.close()
             connection.close()
-            return None
+            raise InvalidIdException("No record found for: {} {}".format(source, source_id)) 
 
         entity_id = entity[0]
         added_id = entity[1]
@@ -222,28 +237,28 @@ class source_dao(entity_dao):
     def create_source_entity(self, source, entity):
 
         id_found = False
-        id_prop = None
+        id_props = []
         for prop in entity.values:
             if prop.identity:
-                id_found = True
-                id_prop = prop
+                if prop.source == source:
+                    id_found = True
+                    id_props.append(prop)
+                else:
+                    raise InvalidIdException("Id for a difference source specified:" + source + ":" + repr(entity))
 
         if not id_found:
-            self._logger.error("No identity value specified:" + source + ":" + repr(entity))
-            #Throw no id specified exception
-            return None
-        else:
-            existing_entity = self.fetch_entity_by_source(source,id_prop.data_value)
-            if existing_entity:
-                self._logger.error("Duplicate identity value specified:" + source + ":" + repr(entity))
-                #Throw duplicate id specified exception
-                return None
-
-
+            raise NoIdException("No identity value specified:" + source + ":" + repr(entity))
 
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
-        entity_id = self.edit_source(entity)
+
+        existing_entity = self.find_entity_by_properties(id_props)
+        if existing_entity:
+            self._cursor.close()
+            self._connection.close()
+            raise DuplicateIdException("Duplicate identity value specified:" + source + ":" + repr(entity))
+
+        entity_id = self.edit_source(source, entity)
         self._connection.commit()
         self._cursor.close()
         self._connection.close()
