@@ -61,7 +61,7 @@ class TestSource(TestBase):
         try:
             response = api_instance.upload_source('bulk_test', 'test_records', additional_metadata='test_metadata.json')
         except ApiException as e:
-            fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+           self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
 
     """
     """
@@ -74,7 +74,7 @@ class TestSource(TestBase):
             response = api_instance.upload_source('combination_keys', 'combination_keys.txt', additional_metadata='combination_keys.json')
         except ApiException as e:
             print (repr(entity))
-            fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
 
     def find_entity(self, api_instance, source, entity_id):
 
@@ -109,7 +109,7 @@ class TestSource(TestBase):
             self.assertEqual(context.exception.status, 404)
         except ApiException as e:
             print (repr(entity))
-            fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
 
     def check_implied_target(self, api_instance, source_source, source_id, target_entity, implied):
 
@@ -154,7 +154,7 @@ class TestSource(TestBase):
             self.check_implied_target(api_instance, 'test_target', 'PD0123-C', rec2, True)
 
         except ApiException as e:
-            fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
+            self.fail("Exception when calling EntityApi->load_source_entities\n")
 
     """
     """
@@ -175,5 +175,5 @@ class TestSource(TestBase):
             self.check_implied_target(api_instance, 'alfresco', '1010-PF-TH-ANDERSON', rec2, True)
 
         except ApiException as e:
-            fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
+            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
 
