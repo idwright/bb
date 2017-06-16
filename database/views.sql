@@ -4,6 +4,7 @@ CREATE OR REPLACE VIEW `property_values` AS
     e.added_id,
     ep.entity_id,
     p.id AS property_id,
+    pt.id AS prop_type_id,
     pt.`source`,
     pt.`prop_name`,
     `pt`.`prop_type`,
@@ -75,3 +76,51 @@ CREATE OR REPLACE VIEW `association_property_values` AS
         `assoc_types` AS a ON ap.assoc_type_id = a.id
             JOIN `properties` p ON ap.property_id = p.id
             JOIN `property_types` AS pt ON pt.id = p.prop_type_id;
+
+CREATE OR REPLACE VIEW `implied_assocs` AS
+    SELECT 
+        spv.added_id AS source_id,
+        tpv.added_id AS target_id,
+        am.assoc_type_id,
+        spv.value as key_value
+    FROM
+        assoc_mappings am
+            JOIN
+        properties sp ON sp.prop_type_id = am.source_prop_type_id
+            JOIN
+        properties tp ON tp.prop_type_id = am.target_prop_type_id
+            JOIN
+        property_values spv ON spv.property_id = sp.id
+            JOIN
+        property_values tpv ON tpv.property_id = tp.id
+            JOIN
+        assoc_types ast ON ast.id = am.assoc_type_id
+    WHERE
+        spv.value = tpv.value;
+        
+   CREATE OR REPLACE VIEW `implied_sources` AS
+    SELECT 
+        am.source_prop_type_id,
+        am.target_prop_type_id,
+        spt.`source`,
+        spt.`prop_name`,
+        tpv.prop_type,
+        tpv.value AS key_value
+    FROM
+        assoc_mappings am
+            LEFT JOIN
+        properties sp ON sp.prop_type_id = am.source_prop_type_id
+            JOIN
+        property_types spt ON am.source_prop_type_id = spt.id
+            JOIN
+        properties tp ON tp.prop_type_id = am.target_prop_type_id
+            LEFT JOIN
+        property_values spv ON spv.property_id = sp.id
+            JOIN
+        property_values tpv ON tpv.property_id = tp.id
+            JOIN
+        assoc_types ast ON ast.id = am.assoc_type_id
+    WHERE
+        sp.id IS NULL OR tpv.value <> spv.value
+    GROUP BY source_prop_type_id , target_prop_type_id , key_value , spv.`source` , prop_type;
+     

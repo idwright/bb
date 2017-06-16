@@ -3,8 +3,8 @@ import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
 from backbone_server.dao.entity_dao import entity_dao
+from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
-from backbone_server.dao.model.bulk_load_source_relationship import BulkLoadSourceRelationship
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
 from backbone_server.errors.no_id_exception import NoIdException
 from backbone_server.errors.duplicate_id_exception import DuplicateIdException
@@ -19,9 +19,6 @@ import mysql.connector
 from mysql.connector import errorcode
 
 class source_dao(entity_dao):
-
-    _connection = None
-    _cursor = None
 
     def load_data_file(self, source, data_def, filename):
 
@@ -46,15 +43,20 @@ class source_dao(entity_dao):
             for row in data_reader:
                 entity_id = None
                 values = []
+                prop_by_column = {}
                 for name, defn in data_def['values'].items():
                     identity = False
                     if 'id' in defn and defn['id']:
                         identity = True
                     #Done here for efficiency
                     if not 'type_id' in defn:
-                        defn['type_id'] = self.find_or_create_prop_defn(source, name, defn['type'], identity)
+                        prop_type = self.find_or_create_prop_defn(source, name, defn['type'],
+                                                                  identity, defn['column'], True)
+                        defn['type_id'] = prop_type.ident
+                        defn['ptype'] = prop_type
                     #print(repr(defn))
                     #print(repr(row))
+                    prop_by_column[defn['column']] = defn['ptype']
                     try:
                         data = BulkLoadProperty(name, defn['type'], row[defn['column']], source, identity)
                     except IndexError:
@@ -70,50 +72,46 @@ class source_dao(entity_dao):
                 if retcode != 200:
                     break
 
-                refs = []
+                assoc_dao = AssociationDAO(self._cursor)
+
+                #All we are doing here is to create mappings for implied foreign keys
                 if 'refs' in data_def:
                     for name, defn in data_def['refs'].items():
                         fk_name = name
                         if 'fk_name' in defn:
                             fk_name = defn['fk_name']
                         if not 'type_id' in defn:
-                            defn['type_id'] = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True)
+                            prop_type = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True, 0, False)
+                            defn['type_id'] = prop_type.ident
                         if not 'assoc_type_id' in defn:
                             defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], name)
-                        data = BulkLoadSourceRelationship()
-                        data.data_value = row[defn['column']]
-                        data.data_type = defn['type']
-                        data.type_id = defn['type_id']
-                        data.data_name = name
-                        data.source = defn['source']
-                        data.assoc_type_id = defn['assoc_type_id']
-                        data.fk_name = defn['fk_name'] if 'fk_name' in defn else None
-                        refs.append(data)
+                            assoc_dao.create_mapping(defn['type_id'], prop_by_column[defn['column']].ident, defn['assoc_type_id'])
 
                 record = SourceEntity()
                 record.values = values
-                record.refs = refs
-                self.edit_source(source, record)
+                entity_id = self.edit_source(record)
                 self._connection.commit()
+
+            self.update_associations()
+            self._connection.commit()
             self._cursor.close()
             self._connection.close()
 
             return retcode
 
-    def edit_source(self, assoc_source, source_rec):
-
-        system_fk_type_id = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False)
-        system_fk_data = BulkLoadProperty('implied_id', 'boolean', 'false', 'system', False)
-        system_fk_data.type_id = system_fk_type_id
+    def edit_source(self, source_rec):
 
         entity_id = None
         id_prop = None
 
         id_properties = []
         for prop in source_rec.values:
-            if type(prop) == 'BulkLoadProperty':
+            if isinstance(prop, BulkLoadProperty):
                 if not prop.type_id:
-                    prop.type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+                    prop_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
+                                                              prop.data_type, prop.identity, 0,
+                                                              True)
+                    prop.type_id = prop_type.ident
 
             if prop.identity:
                 id_properties.append(prop)
@@ -123,61 +121,8 @@ class source_dao(entity_dao):
 
 
         entity_id, found = self.find_entity(id_properties)
-        system_fk_data.data_value = 'false'
-        id_prop = prop
-        self.add_entity_property(entity_id, system_fk_data, system_fk_type_id)
 
-        if entity_id:
-            for prop in source_rec.values:
-                prop_type_id = None
-                if type(prop) == "<class 'backbone_server.dao.model.bulk_load_source_relationship.BulkLoadProperty'>":
-                    prop_type_id = prop.type_id
-                else:
-                    prop_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
-                self.add_entity_property(entity_id, prop, prop_type_id)
-        else:
-             self._logger.critical("Missing id for %s", repr(source_rec), exc_info=1)
-             return None
-
-        #print("Identity property:" + repr(id_prop))
-        if source_rec.refs:
-            for assoc in source_rec.refs:
-                if assoc.fk_name:
-                    fk_name = assoc.fk_name
-                else:
-                    fk_name = assoc.data_name
-                type_id = None
-                assoc_type_id = None
-                if type(assoc) == "<class 'backbone_server.dao.model.bulk_load_source_relationship.BulkLoadSourceRelationship'>":
-                    if not assoc.type_id:
-                        assoc.type_id = self.find_or_create_prop_defn(assoc.source, fk_name, assoc.data_type, True)
-                    type_id = assoc.type_id
-                    if not assoc.assoc_type_id:
-                        assoc.assoc_type_id, assoc_name = self.find_or_create_assoc_defn(assoc_source, assoc.source, assoc.data_name)
-                        assoc_type_id = assoc.assoc_type_id
-                else:
-                        type_id = self.find_or_create_prop_defn(assoc.source, fk_name, assoc.data_type, True)
-                        assoc_type_id, assoc_name = self.find_or_create_assoc_defn(assoc_source, assoc.source, assoc.data_name)
-                fk = None
-                if not assoc.data_value or assoc.data_value.lower() == "null":
-                    continue
-                fk_prop = BulkLoadProperty(fk_name, assoc.data_type, assoc.data_value, assoc.source, False)
-                if not found:
-                    fk, found = self.find_entity([ fk_prop ])
-                if not found:
-                    system_fk_data.data_value = "true"
-                    self.add_entity_property(fk, system_fk_data, system_fk_type_id)
-                    self.add_entity_property(fk, fk_prop, type_id)
-                self.add_assoc(fk, entity_id, assoc_type_id)
-                values = assoc.values
-                if values:
-                    for prop in values:
-                        prop_type_id = None
-                        if type(prop) == 'BulkLoadProperty':
-                            prop_type_id = prop.type_id
-                        else:
-                            prop_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
-                        self.add_assoc_property(entity_id, fk, assoc_type_id, prop, prop_type_id)
+        self.save_entity(entity_id, source_rec, False)
 
         return entity_id
 
@@ -258,7 +203,7 @@ class source_dao(entity_dao):
             self._connection.close()
             raise DuplicateIdException("Duplicate identity value specified:" + source + ":" + repr(entity))
 
-        entity_id = self.edit_source(source, entity)
+        entity_id = self.edit_source(entity)
         self._connection.commit()
         self._cursor.close()
         self._connection.close()

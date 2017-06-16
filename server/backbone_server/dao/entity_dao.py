@@ -2,6 +2,10 @@ import json
 import csv
 #from base_dao import base_dao
 from backbone_server.dao.base_dao import base_dao
+from backbone_server.dao.association_dao import AssociationDAO
+from backbone_server.dao.model.property_type import PropertyType
+from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.errors.invalid_id_exception import InvalidIdException
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
 from swagger_server.models.entity import Entity
@@ -16,9 +20,6 @@ from mysql.connector import errorcode
 import datetime
 
 class entity_dao(base_dao):
-
-    _connection = None
-    _cursor = None
 
     """
         updates an entity
@@ -35,9 +36,64 @@ class entity_dao(base_dao):
 
         internal_id = self.get_internal_id(entity.entity_id)
 
+        self.save_entity(internal_id, entity, True)
+
+        self._connection.commit()
+        retval = self.get_entity_by_id(entity.entity_id, internal_id)
+        self._cursor.close()
+        self._connection.close()
+
+
+        return retval
+
+    def update_associations(self):
+
+        assoc_dao = AssociationDAO(self._cursor)
+
+        missing_sources = assoc_dao.find_missing_association_sources()
+
+        i = 0
+        for missing in missing_sources:
+            fk, found = self.find_entity([ missing ])
+            if not found:
+                #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
+                self._system_fk_data.data_value = "true"
+                self.add_entity_property(fk, self._system_fk_data, self._system_fk_type_id)
+                self.add_entity_property(fk, missing, missing.type_id)
+                i = i + 1
+            #else:
+            #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
+
+        assoc_dao.create_implied_associations()
+        missing_sources = assoc_dao.delete_implied_associations()
+
+        return i
+
+    def save_entity(self, internal_id, entity, update_associations):
+
+        if not internal_id:
+            self._cursor.close()
+            self._connection.close()
+            raise InvalidIdException("Invalid id:" + entity.entity_id)
+
+        #Initialization of this is not ideal but not a good idea to do in __init__
+        self._system_fk_type = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False, 0, False)
+        self._system_fk_type_id = self._system_fk_type.ident
+        self._system_fk_data = BulkLoadProperty('implied_id', 'boolean', 'false', 'system', False)
+        self._system_fk_data.type_id = self._system_fk_type_id
+
+        self._system_fk_data.data_value = 'false'
+        self.add_entity_property(internal_id, self._system_fk_data, self._system_fk_type_id)
+
         props = {}
         for prop in entity.values:
-            property_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+            property_type_id = None
+            if isinstance(prop, BulkLoadProperty):
+                property_type_id = prop.type_id
+            else:
+                property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
+                                                              prop.data_type, prop.identity, 0, True)
+                property_type_id = property_type.ident
             if property_type_id in props:
                 self._cursor.close()
                 self._connection.close()
@@ -46,6 +102,9 @@ class entity_dao(base_dao):
                                                  prop.data_value, props[property_type_id].data_value))
             props[property_type_id] = prop
             self.add_entity_property(internal_id, prop, property_type_id)
+
+        if update_associations:
+            self.update_associations()
 
         if entity.refs:
             for assoc in entity.refs:
@@ -56,7 +115,10 @@ class entity_dao(base_dao):
                 if assoc.values:
                     props = {}
                     for prop in assoc.values:
-                        property_type_id = self.find_or_create_prop_defn(prop.source, prop.data_name, prop.data_type, prop.identity)
+                        property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
+                                                                      prop.data_type,
+                                                                      prop.identity, 0, True)
+                        property_type_id = property_type.ident
                         if property_type_id in props:
                             self._cursor.close()
                             self._connection.close()
@@ -67,13 +129,6 @@ class entity_dao(base_dao):
                         self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
 
 
-        retval = self.get_entity_by_id(entity.entity_id, internal_id)
-        self._connection.commit()
-        self._cursor.close()
-        self._connection.close()
-
-
-        return retval
 
     def find_or_create_assoc_defn(self, source, target, key):
         assoc_name = key + "_" + source + "_" + target
@@ -98,7 +153,7 @@ class entity_dao(base_dao):
 
         return assoc_type_id, assoc_name
 
-    def find_or_create_prop_defn(self, source, name, data_type, identity):
+    def find_or_create_prop_defn(self, source, name, data_type, identity, order, versionable):
 #        cnx = self.get_connection()
 #        cursor = cnx.cursor()
 
@@ -114,8 +169,10 @@ class entity_dao(base_dao):
             #cnx.commit()
 #        cursor.close()
 #        cnx.close()
+        pt = PropertyType(ident=property_type_id, prop_name=name, prop_type=data_type, prop_order=order,
+                         source=source, identity=identity, versionable=versionable)
 
-        return property_type_id
+        return pt
 
     def update_property(self, prop, property_id, old_value, data_field):
             #Need to check if there are other entities referencing the same property before updating
@@ -147,9 +204,9 @@ class entity_dao(base_dao):
                      JOIN `property_types` AS pt ON pt.id = p.prop_type_id
                      JOIN `entity_properties` AS ep ON ep.property_id = p.id
                      JOIN `entities` AS e ON ep.entity_id = e.added_id
-                     WHERE `pt`.`prop_name` = %s AND `source`=%s AND `added_id` = %s''')
+                     WHERE `p`.`prop_type_id` = %s AND `added_id` = %s''')
 
-        self._cursor.execute(fetch_row, (prop.data_name, prop.source, entity_id))
+        self._cursor.execute(fetch_row, (property_type_id, entity_id))
         property_id = None
         old_value = None
 

@@ -12,6 +12,9 @@ class base_dao(object):
       'raise_on_warnings': True,
     }
 
+    _connection = None
+    _cursor = None
+
     def __init__ (self):
         self._logger =  logging.getLogger()
 

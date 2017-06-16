@@ -1,5 +1,6 @@
 DROP TABLE IF EXISTS `assoc_properties`;
 DROP TABLE IF EXISTS `entity_assoc`;
+DROP TABLE IF EXISTS `assoc_mappings`;
 DROP TABLE IF EXISTS `assoc_types`;
 DROP TABLE IF EXISTS `entity_properties`;
 DROP TABLE IF EXISTS `properties`;
@@ -58,6 +59,7 @@ CREATE TABLE `entity_properties` (
 CREATE TABLE `assoc_types` (
     `id` bigint(20) NOT NULL AUTO_INCREMENT,
     `assoc_name` varchar(128) NOT NULL,
+    `assoc_type` varchar(32) NOT NULL DEFAULT 'parent-child',
     PRIMARY KEY (`id`),
     UNIQUE KEY `an` (`assoc_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -85,3 +87,11 @@ CREATE TABLE `assoc_properties` (
     CONSTRAINT `fk_assoc_prop_prop` FOREIGN KEY (`property_id`) REFERENCES `properties` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
+CREATE TABLE `assoc_mappings` (
+	`source_prop_type_id` bigint(20) NOT NULL,
+    `target_prop_type_id` bigint(20) NOT NULL,
+    `assoc_type_id` bigint(20) NOT NULL,
+    CONSTRAINT `fk_mapping_source` FOREIGN KEY (`source_prop_type_id`) REFERENCES `property_types` (`id`),
+    CONSTRAINT `fk_mapping_target` FOREIGN KEY (`target_prop_type_id`) REFERENCES `property_types` (`id`),
+    CONSTRAINT `fk_mapping_assoc` FOREIGN KEY (`assoc_type_id`) REFERENCES `assoc_types` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
