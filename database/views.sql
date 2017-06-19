@@ -79,24 +79,32 @@ CREATE OR REPLACE VIEW `association_property_values` AS
 
 CREATE OR REPLACE VIEW `implied_assocs` AS
     SELECT 
-        spv.added_id AS source_id,
-        tpv.added_id AS target_id,
+        sep.entity_id AS source_id,
+        tep.entity_id AS target_id,
         am.assoc_type_id,
-        spv.value as key_value
+        tp.string_value,
+        tp.long_value
     FROM
         assoc_mappings am
             JOIN
-        properties sp ON sp.prop_type_id = am.source_prop_type_id
-            JOIN
         properties tp ON tp.prop_type_id = am.target_prop_type_id
             JOIN
-        property_values spv ON spv.property_id = sp.id
+        property_types tpt ON am.target_prop_type_id = tpt.id
             JOIN
-        property_values tpv ON tpv.property_id = tp.id
+        properties sp ON sp.prop_type_id = am.source_prop_type_id
             JOIN
         assoc_types ast ON ast.id = am.assoc_type_id
+            JOIN
+        entity_properties sep ON sep.property_id = sp.id
+            JOIN
+        entity_properties tep ON tep.property_id = tp.id
     WHERE
-        spv.value = tpv.value;
+        ((tpt.prop_type = 'string'
+            AND tp.string_value IS NOT NULL
+            AND sp.string_value = tp.string_value)
+            OR (tpt.prop_type = 'integer'
+            AND tp.long_value IS NOT NULL
+            AND sp.long_value = tp.long_value));
         
    CREATE OR REPLACE VIEW `implied_sources` AS
     SELECT 
@@ -104,23 +112,24 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         am.target_prop_type_id,
         spt.`source`,
         spt.`prop_name`,
-        tpv.prop_type,
-        tpv.value AS key_value
+        tpt.prop_type,
+        tp.string_value,
+        tp.long_value
     FROM
         assoc_mappings am
-            LEFT JOIN
-        properties sp ON sp.prop_type_id = am.source_prop_type_id
             JOIN
         property_types spt ON am.source_prop_type_id = spt.id
             JOIN
+        property_types tpt ON am.target_prop_type_id = tpt.id
+            JOIN
         properties tp ON tp.prop_type_id = am.target_prop_type_id
             LEFT JOIN
-        property_values spv ON spv.property_id = sp.id
-            JOIN
-        property_values tpv ON tpv.property_id = tp.id
+        properties sp ON sp.prop_type_id = am.source_prop_type_id
+            AND ((tpt.prop_type = 'string'
+            AND sp.string_value = tp.string_value)
+            OR (tpt.prop_type = 'integer'
+            AND sp.long_value = tp.long_value))
             JOIN
         assoc_types ast ON ast.id = am.assoc_type_id
     WHERE
-        sp.id IS NULL OR tpv.value <> spv.value
-    GROUP BY source_prop_type_id , target_prop_type_id , key_value , spv.`source` , prop_type;
-     
+        sp.id IS NULL AND NOT (tp.string_value IS NULL AND tp.long_value IS NULL);

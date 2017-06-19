@@ -91,6 +91,7 @@ CREATE TABLE `assoc_mappings` (
 	`source_prop_type_id` bigint(20) NOT NULL,
     `target_prop_type_id` bigint(20) NOT NULL,
     `assoc_type_id` bigint(20) NOT NULL,
+    PRIMARY KEY `ampk` (`source_prop_type_id`, `target_prop_type_id`, `assoc_type_id`),
     CONSTRAINT `fk_mapping_source` FOREIGN KEY (`source_prop_type_id`) REFERENCES `property_types` (`id`),
     CONSTRAINT `fk_mapping_target` FOREIGN KEY (`target_prop_type_id`) REFERENCES `property_types` (`id`),
     CONSTRAINT `fk_mapping_assoc` FOREIGN KEY (`assoc_type_id`) REFERENCES `assoc_types` (`id`)

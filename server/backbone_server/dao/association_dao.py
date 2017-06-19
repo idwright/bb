@@ -25,10 +25,16 @@ class AssociationDAO(base_dao):
 
     def create_mapping(self, source_prop_id, target_prop_id, assoc_id):
 
-        query = '''INSERT IGNORE INTO `assoc_mappings` (source_prop_type_id, target_prop_type_id,
-        assoc_type_id) VALUES (%s, %s, %s)'''
+        query = '''SELECT * FROM `assoc_mappings` WHERE source_prop_type_id = %s AND
+        target_prop_type_id = %s AND assoc_type_id = %s'''
 
         self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_id))
+
+        if not self._cursor.fetchone():
+            query = '''INSERT INTO `assoc_mappings` (source_prop_type_id, target_prop_type_id,
+            assoc_type_id) VALUES (%s, %s, %s)'''
+
+            self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_id))
 
 
     def create_implied_associations(self):
@@ -44,25 +50,26 @@ class AssociationDAO(base_dao):
 
     def find_missing_association_sources(self):
 
-        query = '''SELECT source_prop_type_id, ims.`source`, ims.prop_name, ims.prop_type, ims.key_value
-                    FROM implied_sources ims
-                    LEFT JOIN property_values pv ON pv.prop_type_id = ims.source_prop_type_id
-                                                        AND pv.`value` = ims.key_value
-                    WHERE pv.added_id IS NULL;'''
+        query = '''SELECT source_prop_type_id, ims.`source`, ims.prop_name, ims.prop_type,
+        ims.string_value, ims.long_value
+                    FROM implied_sources ims;'''
 
         missing_properties = []
 
         self._cursor.execute(query)
 
-        for (spti, source, prop_name, pt, val) in self._cursor:
+        for (spti, source, prop_name, pt, string_val, long_val) in self._cursor:
             #print("{} {} {} {}".format(spti, source, pt, val))
             p = BulkLoadProperty()
-            p.data_value = val
             p.type_id = spti
             p.source = source.decode('utf-8')
             p.data_type = pt.decode('utf-8')
             p.data_name = prop_name.decode('utf-8')
             p.identity = True
+            if p.data_type == 'string':
+                p.data_value = string_val.decode('utf-8')
+            elif p.data_type == 'integer':
+                p.data_value = str(long_val)
             missing_properties.append(p)
 
         return missing_properties
