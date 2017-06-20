@@ -1,5 +1,14 @@
 
-<input [(ngModel)]="sourceName" />
+<md-input-container>
+    <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceName"/>
+</md-input-container>
+<md-autocomplete #auto="mdAutocomplete">
+    <md-option *ngFor="let source of sources" [value]="source.source_name">
+        {{ source.source_name }}
+    </md-option>
+    <md-option value='system'>system</md-option>
+</md-autocomplete>
+
 <input [(ngModel)]="propertyName" />
 <input [(ngModel)]="propertyValue" />
 
