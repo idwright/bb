@@ -46,11 +46,11 @@ class entity_dao(base_dao):
 
         return retval
 
-    def update_associations(self):
+    def update_associations(self, internal_id):
 
         assoc_dao = AssociationDAO(self._cursor)
 
-        missing_sources = assoc_dao.find_missing_association_sources()
+        missing_sources = assoc_dao.find_missing_association_sources(internal_id)
 
         i = 0
         for missing in missing_sources:
@@ -64,8 +64,8 @@ class entity_dao(base_dao):
             #else:
             #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
 
-        assoc_dao.create_implied_associations()
-        missing_sources = assoc_dao.delete_implied_associations()
+        assoc_dao.create_implied_associations(internal_id)
+        missing_sources = assoc_dao.delete_implied_associations(internal_id)
 
         return i
 
@@ -104,7 +104,7 @@ class entity_dao(base_dao):
             self.add_entity_property(internal_id, prop, property_type_id)
 
         if update_associations:
-            self.update_associations()
+            self.update_associations(internal_id)
 
         if entity.refs:
             for assoc in entity.refs:

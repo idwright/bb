@@ -37,26 +37,32 @@ class AssociationDAO(base_dao):
             self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_id))
 
 
-    def create_implied_associations(self):
+    def create_implied_associations(self, internal_id):
 
         query = '''INSERT INTO entity_assoc (source_entity_id, target_entity_id, assoc_type_id)
         select ia.source_id, ia.target_id, ia.assoc_type_id FROM implied_assocs ia
             LEFT JOIN entity_assoc ea ON ia.target_id = ea.target_entity_id AND ia.source_id =
             ea.source_entity_id AND ia.assoc_type_id = ea.assoc_type_id
-                WHERE ea.source_entity_id IS NULL;'''
+                WHERE ea.source_entity_id IS NULL AND target_prop_id IN (SELECT 
+            property_id
+        FROM
+            entity_properties
+        WHERE
+            entity_id = %s);'''
 
-        self._cursor.execute(query)
+        self._cursor.execute(query, (internal_id,))
 
 
-    def find_missing_association_sources(self):
+    def find_missing_association_sources(self, internal_id):
 
         query = '''SELECT source_prop_type_id, ims.`source`, ims.prop_name, ims.prop_type,
         ims.string_value, ims.long_value
-                    FROM implied_sources ims;'''
+                    FROM implied_sources ims WHERE target_prop_id IN (SELECT property_id from
+                    entity_properties where entity_id = %s);'''
 
         missing_properties = []
 
-        self._cursor.execute(query)
+        self._cursor.execute(query, (internal_id,))
 
         for (spti, source, prop_name, pt, string_val, long_val) in self._cursor:
             #print("{} {} {} {}".format(spti, source, pt, val))
@@ -74,7 +80,7 @@ class AssociationDAO(base_dao):
 
         return missing_properties
 
-    def delete_implied_associations(self):
+    def delete_implied_associations(self, internal_id):
 
         query = '''SELECT ea.source_entity_id, ea.target_entity_id, ea.assoc_type_id, asst.assoc_type
                     FROM

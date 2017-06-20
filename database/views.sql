@@ -82,6 +82,7 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         sep.entity_id AS source_id,
         tep.entity_id AS target_id,
         am.assoc_type_id,
+        tp.id as target_prop_id,
         tp.string_value,
         tp.long_value
     FROM
@@ -112,6 +113,7 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         am.target_prop_type_id,
         spt.`source`,
         spt.`prop_name`,
+        tp.id as target_prop_id,
         tpt.prop_type,
         tp.string_value,
         tp.long_value

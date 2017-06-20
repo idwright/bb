@@ -90,10 +90,9 @@ class source_dao(entity_dao):
                 record = SourceEntity()
                 record.values = values
                 entity_id = self.edit_source(record)
+                self.update_associations(entity_id)
                 self._connection.commit()
 
-            self.update_associations()
-            self._connection.commit()
             self._cursor.close()
             self._connection.close()
 
