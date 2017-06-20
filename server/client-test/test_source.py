@@ -1,10 +1,6 @@
 from __future__ import print_function
-import unittest
-import time
-import json
 import swagger_client
 from swagger_client.rest import ApiException
-from pprint import pprint
 from test_base import TestBase
 
 
@@ -26,11 +22,11 @@ class TestSource(TestBase):
         entity.values = props
 
         try:
-            response = api_instance.upload_entity(self._testSource, entity)
-        except ApiException as e:
-            print (repr(e))
-            print("Exception when calling EntityApi->upload_entity: %s\n" % e)
-            self.fail("Failed {} {} {}\n".format(e.status, e.reason, e.body))
+            api_instance.upload_entity(self._test_source, entity)
+        except ApiException as error:
+            print (repr(error))
+            print("Exception when calling EntityApi->upload_entity: %s\n" % error)
+            self.fail("Failed {} {} {}\n".format(error.status, error.reason, error.body))
 
     """
     """
@@ -46,7 +42,7 @@ class TestSource(TestBase):
         entity.values = props
 
         with self.assertRaises(Exception) as context:
-            api_instance.upload_entity(self._testSource + 'fail', entity)
+            api_instance.upload_entity(self._test_source + 'fail', entity)
 
         self.assertEqual(context.exception.status, 404)
 
@@ -57,11 +53,10 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
         try:
-            response = api_instance.upload_source('bulk_test', 'test_records', additional_metadata='test_metadata.json')
-        except ApiException as e:
-           self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+            api_instance.upload_source('bulk_test', 'test_records', additional_metadata='test_metadata.json')
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
 
     """
     """
@@ -69,12 +64,10 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
         try:
-            response = api_instance.upload_source('combination_keys', 'combination_keys.txt', additional_metadata='combination_keys.json')
-        except ApiException as e:
-            print (repr(entity))
-            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+            api_instance.upload_source('combination_keys', 'combination_keys.txt', additional_metadata='combination_keys.json')
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
 
     """
     """
@@ -82,7 +75,6 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
 
         test_id = self._example_id_prop.data_value
 
@@ -92,12 +84,11 @@ class TestSource(TestBase):
 
             #Look for a non-existent entity
             with self.assertRaises(Exception) as context:
-                response = api_instance.download_source_entity('test', '123456789')
+                api_instance.download_source_entity('test', '123456789')
 
             self.assertEqual(context.exception.status, 404)
-        except ApiException as e:
-            print (repr(entity))
-            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % e)
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
 
     """
     """
@@ -105,9 +96,8 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
         try:
-            response = api_instance.upload_source('test_source', 'test_source.txt', additional_metadata='test_source.json')
+            api_instance.upload_source('test_source', 'test_source.txt', additional_metadata='test_source.json')
 
             rec1 = self.find_entity(api_instance, 'test_source', '3288_6_nonhuman.bam')
             self.check_implied_target(api_instance, 'test_target', 'PH0042-C', rec1, True)
@@ -117,7 +107,7 @@ class TestSource(TestBase):
             self.check_implied_target(api_instance, 'alfresco', '1010-PF-TH-ANDERSON', rec2, True)
             self.check_implied_target(api_instance, 'test_target', 'PD0123-C', rec2, True)
 
-        except ApiException as e:
+        except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities\n")
 
     """
@@ -126,9 +116,8 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
         try:
-            response = api_instance.upload_source('test_target', 'test_target.txt', additional_metadata='test_target.json')
+            api_instance.upload_source('test_target', 'test_target.txt', additional_metadata='test_target.json')
 
             rec1 = self.find_entity(api_instance, 'test_source', '3288_6_nonhuman.bam')
             self.check_implied_target(api_instance, 'test_target', 'PH0042-C', rec1, False)
@@ -138,6 +127,6 @@ class TestSource(TestBase):
             self.check_implied_target(api_instance, 'test_target', 'PD0123-C', rec2, False)
             self.check_implied_target(api_instance, 'alfresco', '1010-PF-TH-ANDERSON', rec2, True)
 
-        except ApiException as e:
-            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % error)
 
