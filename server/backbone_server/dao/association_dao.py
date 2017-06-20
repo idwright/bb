@@ -47,6 +47,7 @@ class AssociationDAO(BaseDAO):
 
         missing_properties = []
 
+        print(internal_id)
         self._cursor.execute(query, (internal_id,))
 
         for (spti, source, prop_name, prop_type, string_val, long_val) in self._cursor:

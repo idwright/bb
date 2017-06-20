@@ -39,26 +39,30 @@ class EntityDAO(BaseDAO):
 
         return retval
 
-    def update_associations(self, internal_id):
+    def update_associations(self, internal_id, fk_keys):
 
         assoc_dao = AssociationDAO(self._cursor)
 
-        missing_sources = assoc_dao.find_missing_association_sources(internal_id)
+        fk_keys.append(internal_id)
 
         i = 0
-        for missing in missing_sources:
-            fk, found = self.find_entity([missing])
-            if not found:
-                #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
-                self._system_fk_data.data_value = "true"
-                self.add_entity_property(fk, self._system_fk_data, self._system_fk_type_id)
-                self.add_entity_property(fk, missing, missing.type_id)
-                i = i + 1
-            #else:
-            #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
 
-        assoc_dao.create_implied_associations(internal_id)
-        missing_sources = assoc_dao.delete_implied_associations(internal_id)
+        for int_id in fk_keys:
+            missing_sources = assoc_dao.find_missing_association_sources(int_id)
+
+            for missing in missing_sources:
+                fk, found = self.find_entity([missing])
+                if not found:
+                    #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
+                    self._system_fk_data.data_value = "true"
+                    self.add_entity_property(fk, self._system_fk_data, self._system_fk_type_id)
+                    self.add_entity_property(fk, missing, missing.type_id)
+                    i = i + 1
+                #else:
+                #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
+
+            assoc_dao.create_implied_associations(int_id)
+            missing_sources = assoc_dao.delete_implied_associations(int_id)
 
         return i
 
@@ -96,11 +100,16 @@ class EntityDAO(BaseDAO):
             props[property_type_id] = prop
             self.add_entity_property(internal_id, prop, property_type_id)
 
+        fk_keys = []
         if entity.refs:
             for assoc in entity.refs:
                 assoc_type_id, assoc_name = self.find_or_create_assoc_type(assoc.assoc_name)
                 internal_source_id = self.get_internal_id(assoc.source_id)
                 internal_target_id = self.get_internal_id(assoc.target_id)
+                if internal_source_id == internal_id:
+                    fk_keys.append(internal_target_id)
+                else:
+                    fk_keys.append(internal_source_id)
                 self.add_assoc(internal_source_id, internal_target_id, assoc_type_id)
                 if assoc.values:
                     props = {}
@@ -119,7 +128,7 @@ class EntityDAO(BaseDAO):
                         self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
 
         if update_associations:
-            self.update_associations(internal_id)
+            self.update_associations(internal_id, fk_keys)
 
 
 
