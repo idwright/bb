@@ -92,19 +92,21 @@ class AssociationDAO(base_dao):
                          JOIN
                             assoc_types asst ON asst.id = ea.assoc_type_id
                     WHERE
-                        ia.source_id IS NULL;'''
+                    ia.source_id IS NULL AND (ea.target_entity_id = %s)'''
 
-        self._cursor.execute(query)
+        self._cursor.execute(query, (internal_id, ))
 
         invalid_relationships = []
         for (seid, teid, atid, asst) in self._cursor:
-            rel = ServerRelationship(source_id = seid, target_id = teid, assoc_type_id = atid)
+            #print((seid, teid, atid, asst))
+            rel = ServerRelationship(source_id = seid, target_id = teid)
+            rel.assoc_type_id = atid
             invalid_relationships.append(rel)
 
         for (assoc) in invalid_relationships:
             query = '''DELETE FROM assoc_properties
                             WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
-            self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.type_id))
+            self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.assoc_type_id))
             query = '''DELETE FROM entity_assoc
                             WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
-            self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.type_id))
+            self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.assoc_type_id))

@@ -103,9 +103,6 @@ class entity_dao(base_dao):
             props[property_type_id] = prop
             self.add_entity_property(internal_id, prop, property_type_id)
 
-        if update_associations:
-            self.update_associations(internal_id)
-
         if entity.refs:
             for assoc in entity.refs:
                 assoc_type_id, assoc_name = self.find_or_create_assoc_type(assoc.assoc_name)
@@ -127,6 +124,9 @@ class entity_dao(base_dao):
                                                              prop.data_value, props[property_type_id].data_value))
                         props[property_type_id] = prop
                         self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
+
+        if update_associations:
+            self.update_associations(internal_id)
 
 
 
