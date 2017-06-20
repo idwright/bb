@@ -1,6 +1,7 @@
 *.swp
 __pycache__/
 *.csv
+python_client/
 python-flask-server/
 server/git_push.sh
 swagger-codegen-cli.jar
