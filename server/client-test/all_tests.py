@@ -2,6 +2,7 @@ import unittest
 
 from test_source import TestSource
 from test_entity import TestEntity
+from test_association import TestAssociation
 
 
 def my_suite():
@@ -9,6 +10,7 @@ def my_suite():
     result = unittest.TestResult()
     suite.addTest(unittest.makeSuite(TestSource))
     suite.addTest(unittest.makeSuite(TestEntity))
+    suite.addTest(unittest.makeSuite(TestAssociation))
     runner = unittest.TextTestRunner()
     print(runner.run(suite))
 

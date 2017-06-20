@@ -1,0 +1,40 @@
+from __future__ import print_function
+import swagger_client
+from swagger_client.rest import ApiException
+from test_base import TestBase
+from copy import deepcopy
+
+
+class TestAssociation(TestBase):
+
+
+    """
+    """
+    def test_remove_association(self):
+
+        try:
+
+            entity_api = swagger_client.EntityApi()
+            source_api = swagger_client.SourceApi()
+            original = source_api.download_source_entity('test_source', '3288_6_nonhuman.bam')
+
+            entity_id = original.entity_id
+            new_entity = deepcopy(original)
+
+            updated_value = 'Updated fk value'
+            for prop in new_entity.values:
+                if prop.data_value == 'PH0042-C':
+                    prop.data_value = updated_value
+
+
+            response = entity_api.update_entity(entity_id, new_entity)
+
+            self.check_implied_target(source_api, 'test_target', updated_value, response, True)
+
+            with self.assertRaises(Exception) as context:
+                self.check_implied_target(source_api, 'test_target', 'PH0042-C', response, False)
+
+            print(repr(context.exception.msg))
+        except ApiException as e:
+            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
+
