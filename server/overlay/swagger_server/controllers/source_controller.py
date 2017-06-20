@@ -7,7 +7,7 @@ from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 
-from backbone_server.dao.source_dao import source_dao
+from backbone_server.dao.source_dao import SourceDAO
 import sys
 import io
 import json
@@ -32,7 +32,7 @@ def download_source_entity(sourceId, sourceEntityId):
     :rtype: Entity
     """
     print("download_source_entity:" + sourceId + "/" + sourceEntityId)
-    sd = source_dao()
+    sd = SourceDAO()
 
     try:
         result = sd.fetch_entity_by_source(sourceId, sourceEntityId)
@@ -62,7 +62,7 @@ def upload_entity(sourceId, entity):
     if connexion.request.is_json:
         ent = Entity.from_dict(connexion.request.get_json())
 
-    sd = source_dao()
+    sd = SourceDAO()
 
     try:
         result = sd.create_source_entity(sourceId, ent)
@@ -98,7 +98,7 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
     if additionalMetadata:
         data_def = json.load(io.TextIOWrapper(additionalMetadata.stream, encoding='utf-8'))
 
-    sd = source_dao()
+    sd = SourceDAO()
 
     input_stream = io.TextIOWrapper(dataFile.stream, encoding='utf-8')
 

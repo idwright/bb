@@ -1,30 +1,22 @@
 import json
 import csv
-#from base_dao import base_dao
-from backbone_server.dao.base_dao import base_dao
-from backbone_server.dao.entity_dao import entity_dao
+from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
 from backbone_server.errors.no_id_exception import NoIdException
 from backbone_server.errors.duplicate_id_exception import DuplicateIdException
 from backbone_server.errors.invalid_id_exception import InvalidIdException
-from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
-from swagger_server.models.property import Property
 from swagger_server.models.summary_item import SummaryItem
-import binascii
-import uuid
-import mysql.connector
-from mysql.connector import errorcode
 
-class source_dao(entity_dao):
+class SourceDAO(EntityDAO):
 
     def load_data_file(self, source, data_def, filename):
 
         input_stream = open('example.csv')
 
-        return self.load_data(source,data_def, input_stream)
+        return self.load_data(source, data_def, input_stream)
 
 #https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
     def load_data(self, source, data_def, input_stream):
@@ -34,7 +26,7 @@ class source_dao(entity_dao):
         with input_stream as csvfile:
             has_header = csv.Sniffer().has_header(csvfile.read(1024))
             csvfile.seek(0)
-            data_reader = csv.reader(csvfile, delimiter = '\t')
+            data_reader = csv.reader(csvfile, delimiter='\t')
             if has_header:
                 next(data_reader)
 
@@ -49,7 +41,7 @@ class source_dao(entity_dao):
                     if 'id' in defn and defn['id']:
                         identity = True
                     #Done here for efficiency
-                    if not 'type_id' in defn:
+                    if 'type_id' not in defn:
                         prop_type = self.find_or_create_prop_defn(source, name, defn['type'],
                                                                   identity, defn['column'], True)
                         defn['type_id'] = prop_type.ident
@@ -80,10 +72,10 @@ class source_dao(entity_dao):
                         fk_name = name
                         if 'fk_name' in defn:
                             fk_name = defn['fk_name']
-                        if not 'type_id' in defn:
+                        if 'type_id' not in defn:
                             prop_type = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True, 0, False)
                             defn['type_id'] = prop_type.ident
-                        if not 'assoc_type_id' in defn:
+                        if 'assoc_type_id' not in defn:
                             defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], name)
                             assoc_dao.create_mapping(defn['type_id'], prop_by_column[defn['column']].ident, defn['assoc_type_id'])
 
@@ -115,7 +107,7 @@ class source_dao(entity_dao):
             if prop.identity:
                 id_properties.append(prop)
                 if self.get_prop_value(prop) is None or (prop.data_type == 'string' and prop.data_value == ''):
-                    this._logger.error("No key value:" + repr(prop))
+                    self._logger.error("No key value:" + repr(prop))
 #                print (repr(prop))
 
 
@@ -162,13 +154,13 @@ class source_dao(entity_dao):
             JOIN entities e ON e.added_id = ep.entity_id
             WHERE `''' + data_field + "` = %s AND p.prop_type_id = %s"
 
-        cursor.execute(entity_query, (source_id,prop_type_id))
+        cursor.execute(entity_query, (source_id, prop_type_id))
         entity = cursor.fetchone()
 
         if not entity:
             cursor.close()
             connection.close()
-            raise InvalidIdException("No record found for: {} {}".format(source, source_id)) 
+            raise InvalidIdException("No record found for: {} {}".format(source, source_id))
 
         entity_id = entity[0]
         added_id = entity[1]
@@ -218,12 +210,12 @@ class source_dao(entity_dao):
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
 
-        q= ("SELECT id, prop_type FROM `property_types` WHERE `source` = %s AND `prop_name` = %s")
+        q = ("SELECT id, prop_type FROM `property_types` WHERE `source` = %s AND `prop_name` = %s")
         self._cursor.execute(q, (source, prop_name,))
 
         property_type_id = None
         property_type = None
-        for (pti,pt) in self._cursor:
+        for (pti, pt) in self._cursor:
             property_type_id = pti
             property_type = pt
 
@@ -301,7 +293,7 @@ class source_dao(entity_dao):
         return results
 
 if __name__ == '__main__':
-    sd = source_dao()
+    sd = SourceDAO()
     data_def = json.loads('{ "refs": { "oxf_code": { "column": 1, "type": "string", "source": "lims" }}, "values":{ "id": { "column": 24, "type": "integer", "id": true }, "sample_type": { "column": 6, "type": "string" } } }')
     sd.load_data_file('test', data_def, "example.csv")
 

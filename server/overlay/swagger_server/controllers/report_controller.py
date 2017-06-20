@@ -5,7 +5,7 @@ from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 
-from backbone_server.dao.source_dao import source_dao
+from backbone_server.dao.source_dao import SourceDAO
 import sys
 import io
 import json
@@ -21,7 +21,7 @@ def get_properties_summary(sourceId):
     """
 
     print("report_controller.get_properties_summary")
-    sd = source_dao()
+    sd = SourceDAO()
 
     result = sd.get_source_properties(sourceId)
 
@@ -43,7 +43,7 @@ def get_property_values_summary(sourceId, propName, threshold=None):
     :rtype: Summary
     """
     print("report_controller.get_property_values_summary")
-    sd = source_dao()
+    sd = SourceDAO()
 
     result = sd.get_summary_by_property(sourceId, propName, threshold)
 
@@ -58,7 +58,7 @@ def get_summary():
     :rtype: Summary
     """
     print("report_controller.get_summary")
-    sd = source_dao()
+    sd = SourceDAO()
 
     result = sd.get_report_count_by_source()
 

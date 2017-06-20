@@ -1,23 +1,8 @@
-import json
-import csv
-#from base_dao import base_dao
-from backbone_server.dao.base_dao import base_dao
+from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
 from backbone_server.dao.model.server_relationship import ServerRelationship
-from backbone_server.errors.no_such_type_exception import NoSuchTypeException
-from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
-from swagger_server.models.entity import Entity
-from swagger_server.models.entities import Entities
-from swagger_server.models.property import Property
-from swagger_server.models.relationship import Relationship
-from typing import List, Dict
-import binascii
-import uuid
-import mysql.connector
-from mysql.connector import errorcode
-import datetime
 
-class AssociationDAO(base_dao):
+class AssociationDAO(BaseDAO):
 
     def __init__(self, cursor):
         self._cursor = cursor
@@ -64,25 +49,25 @@ class AssociationDAO(base_dao):
 
         self._cursor.execute(query, (internal_id,))
 
-        for (spti, source, prop_name, pt, string_val, long_val) in self._cursor:
+        for (spti, source, prop_name, prop_type, string_val, long_val) in self._cursor:
             #print("{} {} {} {}".format(spti, source, pt, val))
-            p = BulkLoadProperty()
-            p.type_id = spti
-            p.source = source.decode('utf-8')
-            p.data_type = pt.decode('utf-8')
-            p.data_name = prop_name.decode('utf-8')
-            p.identity = True
-            if p.data_type == 'string':
-                p.data_value = string_val.decode('utf-8')
-            elif p.data_type == 'integer':
-                p.data_value = str(long_val)
-            missing_properties.append(p)
+            prop = BulkLoadProperty()
+            prop.type_id = spti
+            prop.source = source.decode('utf-8')
+            prop.data_type = prop_type.decode('utf-8')
+            prop.data_name = prop_name.decode('utf-8')
+            prop.identity = True
+            if prop.data_type == 'string':
+                prop.data_value = string_val.decode('utf-8')
+            elif prop.data_type == 'integer':
+                prop.data_value = str(long_val)
+            missing_properties.append(prop)
 
         return missing_properties
 
     def delete_implied_associations(self, internal_id):
 
-        query = '''SELECT ea.source_entity_id, ea.target_entity_id, ea.assoc_type_id, asst.assoc_type
+        query = '''SELECT ea.source_entity_id, ea.target_entity_id, ea.assoc_type_id
                     FROM
                         entity_assoc ea
                             LEFT JOIN
@@ -97,16 +82,16 @@ class AssociationDAO(base_dao):
         self._cursor.execute(query, (internal_id, ))
 
         invalid_relationships = []
-        for (seid, teid, atid, asst) in self._cursor:
+        for (seid, teid, atid) in self._cursor:
             #print((seid, teid, atid, asst))
-            rel = ServerRelationship(source_id = seid, target_id = teid)
+            rel = ServerRelationship(source_id=seid, target_id=teid)
             rel.assoc_type_id = atid
             invalid_relationships.append(rel)
 
-        for (assoc) in invalid_relationships:
+        for assoc in invalid_relationships:
             query = '''DELETE FROM assoc_properties
-                            WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
+                    WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
             self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.assoc_type_id))
             query = '''DELETE FROM entity_assoc
-                            WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
+                    WHERE source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s'''
             self._cursor.execute(query, (assoc.source_id, assoc.target_id, assoc.assoc_type_id))

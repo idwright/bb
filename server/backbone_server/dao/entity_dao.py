@@ -1,7 +1,4 @@
-import json
-import csv
-#from base_dao import base_dao
-from backbone_server.dao.base_dao import base_dao
+from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.property_type import PropertyType
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
@@ -12,14 +9,10 @@ from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
 from swagger_server.models.property import Property
 from swagger_server.models.relationship import Relationship
-from typing import List, Dict
-import binascii
-import uuid
 import mysql.connector
 from mysql.connector import errorcode
-import datetime
 
-class entity_dao(base_dao):
+class EntityDAO(BaseDAO):
 
     """
         updates an entity
@@ -54,7 +47,7 @@ class entity_dao(base_dao):
 
         i = 0
         for missing in missing_sources:
-            fk, found = self.find_entity([ missing ])
+            fk, found = self.find_entity([missing])
             if not found:
                 #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
                 self._system_fk_data.data_value = "true"
@@ -98,8 +91,8 @@ class entity_dao(base_dao):
                 self._cursor.close()
                 self._connection.close()
                 raise DuplicatePropertyException("Duplicate properties: {} {} {} {}".format(
-                                                                                            prop.source, prop.data_name,
-                                                 prop.data_value, props[property_type_id].data_value))
+                    prop.source, prop.data_name,
+                    prop.data_value, props[property_type_id].data_value))
             props[property_type_id] = prop
             self.add_entity_property(internal_id, prop, property_type_id)
 
@@ -120,8 +113,8 @@ class entity_dao(base_dao):
                             self._cursor.close()
                             self._connection.close()
                             raise DuplicatePropertyException("Duplicate properties: {} {} {} {}".format(
-                                                                                                        prop.source, prop.data_name,
-                                                             prop.data_value, props[property_type_id].data_value))
+                                prop.source, prop.data_name,
+                                prop.data_value, props[property_type_id].data_value))
                         props[property_type_id] = prop
                         self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
 
@@ -141,7 +134,7 @@ class entity_dao(base_dao):
         self._cursor.execute("SELECT id FROM `assoc_types` WHERE `assoc_name` = %s", (assoc_name,))
 
         assoc_type_id = None
-        for (pti) in self._cursor:
+        for pti in self._cursor:
             assoc_type_id = pti[0]
 
         if not assoc_type_id:
@@ -170,23 +163,23 @@ class entity_dao(base_dao):
 #        cursor.close()
 #        cnx.close()
         pt = PropertyType(ident=property_type_id, prop_name=name, prop_type=data_type, prop_order=order,
-                         source=source, identity=identity, versionable=versionable)
+                          source=source, identity=identity, versionable=versionable)
 
         return pt
 
     def update_property(self, prop, property_id, old_value, data_field):
-            #Need to check if there are other entities referencing the same property before updating
-            count = self.count_entities_with_property_value(property_id, old_value, data_field)
-            #print("count:" + str(count))
-            if count == 1:
-                #Update property value
-                #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
-                #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
-                update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
-                self._cursor.execute(update_prop, (self.get_prop_value(prop), property_id))
-                return True
+        #Need to check if there are other entities referencing the same property before updating
+        count = self.count_entities_with_property_value(property_id, old_value, data_field)
+        #print("count:" + str(count))
+        if count == 1:
+            #Update property value
+            #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
+            #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
+            update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
+            self._cursor.execute(update_prop, (self.get_prop_value(prop), property_id))
+            return True
 
-            return False
+        return False
 
     """
         adds a Property to an entity
@@ -343,7 +336,7 @@ class entity_dao(base_dao):
 
         try:
 
-            self._cursor.execute(count_query, ( old_value, property_id))
+            self._cursor.execute(count_query, (old_value, property_id))
 
             #Neither of these work
             #count = self._cursor.rowcount
@@ -355,7 +348,7 @@ class entity_dao(base_dao):
                 pass
             #print(count_query)
         except:
-            count_query = count_query.replace('%s','{}')
+            count_query = count_query.replace('%s', '{}')
             self._logger.warn("count_entities_with_property_value:" + count_query.format(old_value, property_id))
 
         return count
@@ -368,7 +361,7 @@ class entity_dao(base_dao):
         existing_property_id = None
 
         try:
-            self._cursor.execute(count_query, ( self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
+            self._cursor.execute(count_query, (self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
 
             for (prop_id,) in self._cursor:
                 existing_property_id = prop_id
@@ -465,7 +458,7 @@ class entity_dao(base_dao):
 
         property_details = []
         for (entity_id, added_id) in self._cursor:
-            property_details.append({ 'entity_id': entity_id, 'added_id': added_id})
+            property_details.append({'entity_id': entity_id, 'added_id': added_id})
 #        print(fetch_row)
 #        print((prop_name, source, prop_value))
 #        print (property_details)
@@ -490,7 +483,7 @@ class entity_dao(base_dao):
 #            cnx = self.get_connection()
 #            cursor = cnx.cursor()
             query = ("INSERT INTO `entities` (`id`) VALUES (ordered_uuid(uuid()))")
-            args = ( )
+            args = ()
             self._cursor.execute(query, args)
 #            cnx.commit()
             parent_entity_id = self._cursor.lastrowid
@@ -622,15 +615,15 @@ class entity_dao(base_dao):
         property_type = None
         entities = []
         props = []
-        for (pti,pt) in self._cursor:
+        for (pti, pt) in self._cursor:
             property_type_id = pti
             property_type = pt
-            props.append({ 'pti': pti, 'pt': pt.decode('utf-8')})
+            props.append({'pti': pti, 'pt': pt.decode('utf-8')})
 
         if len(props) == 0:
             raise NoSuchTypeException("No such type:" + prop_name)
 
-        for (prop) in props:
+        for prop in props:
             props_query = '''SELECT
                 HEX(e.id), e.added_id
                 FROM
@@ -651,8 +644,8 @@ class entity_dao(base_dao):
                     self._cursor.execute(props_query, (prop['pti'], query_value,))
 
                     ents = []
-                    for (ent_id,added_id,) in self._cursor:
-                        ents.append({ 'ent_id': ent_id, 'added_id': added_id})
+                    for (ent_id, added_id,) in self._cursor:
+                        ents.append({'ent_id': ent_id, 'added_id': added_id})
 
                     for ent in ents:
                         entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
@@ -668,14 +661,14 @@ class entity_dao(base_dao):
                     WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
 
             try:
-                    query_value = self.get_data_value(prop['pt'], prop_value)
-                    #print(props_query)
-                    #print("{} {}".format(repr(prop), repr(query_value)))
-                    self._cursor.execute(count_query, (prop['pti'], query_value,))
+                query_value = self.get_data_value(prop['pt'], prop_value)
+                #print(props_query)
+                #print("{} {}".format(repr(prop), repr(query_value)))
+                self._cursor.execute(count_query, (prop['pti'], query_value,))
 
-                    result.count = result.count + self._cursor.fetchone()[0]
+                result.count = result.count + self._cursor.fetchone()[0]
             except ValueError:
-                    self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
 
         self._cursor.close()
         self._connection.close()

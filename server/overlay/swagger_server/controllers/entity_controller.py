@@ -12,7 +12,7 @@ from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 import logging
 
-from backbone_server.dao.entity_dao import entity_dao
+from backbone_server.dao.entity_dao import EntityDAO
 import sys
 
 def delete_entity(entityId):
@@ -49,7 +49,7 @@ def download_entities_by_property(propName, propValue, start=None, count=None, o
     result = None
     retcode = 200
 
-    ed = entity_dao()
+    ed = EntityDAO()
 
     try:
         result = ed.fetch_entities_by_property(propName, propValue, start, count, orderby)
@@ -71,7 +71,7 @@ def download_entity(entityId):
     :rtype: Entity
     """
     print("download_entity")
-    ed = entity_dao()
+    ed = EntityDAO()
 
     result = ed.fetch_entity_by_id(entityId, None)
 
@@ -92,7 +92,7 @@ def update_entity(entityId, entity):
     if connexion.request.is_json:
       entity = Entity.from_dict(connexion.request.get_json())
       #print(repr(entity))
-    ed = entity_dao()
+    ed = EntityDAO()
 
     retcode = 200
     try:
