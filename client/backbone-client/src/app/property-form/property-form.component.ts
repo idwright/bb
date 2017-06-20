@@ -14,7 +14,7 @@ export class PropertyFormComponent implements OnInit {
   @Input('index')
   public index: number;
 
-  private userEditable: boolean = false;
+  public userEditable: boolean = false;
 
   @Output()
   public removed: EventEmitter<number> = new EventEmitter<number>();
