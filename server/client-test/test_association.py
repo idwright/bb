@@ -1,9 +1,9 @@
 from __future__ import print_function
-import swagger_client
-from swagger_client.rest import ApiException
-from test_base import TestBase
 from copy import deepcopy
 
+from test_base import TestBase
+import swagger_client
+from swagger_client.rest import ApiException
 
 class TestAssociation(TestBase):
 
@@ -34,7 +34,8 @@ class TestAssociation(TestBase):
             with self.assertRaises(Exception) as context:
                 self.check_implied_target(source_api, 'test_target', 'PH0042-C', response, False)
 
-            print(repr(context.exception.msg))
-        except ApiException as e:
-            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % e)
+            self.assertEqual(repr(context.exception),
+                             "AssertionError('False is not true : Association not found',)")
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % error)
 
