@@ -8,8 +8,7 @@ import { ReportApi } from '../typescript-angular2-client/api/ReportApi';
 @Component({
 	selector: 'my-entities',
 	providers: [ReportApi],
-	templateUrl: './entities.component.html',
-	styleUrls: [ './entities-component-theme.scss' ]
+	templateUrl: './entities.component.html'
 })
 export class EntitiesComponent implements OnInit {
 

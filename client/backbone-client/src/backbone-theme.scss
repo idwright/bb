@@ -1,0 +1,18 @@
+@import '~@angular/material/_theming';
+
+@import 'app/entities/entities-theme';
+
+@include mat-core();
+
+$backbone-theme-primary: mat-palette($mat-light-blue);
+$backbone-theme-accent: mat-palette($mat-orange, A200, A100, A400);
+$backbone-theme-warn: mat-palette($mat-red);
+
+$backbone-theme: mat-light-theme($backbone-theme-primary, $backbone-theme-accent, $backbone-theme-warn);
+
+@mixin backbone-theme($theme) {
+    @include entities-theme(theme);
+}
+
+@include angular-material-theme($backbone-theme);
+@include backbone-theme($backbone-theme);
