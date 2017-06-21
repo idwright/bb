@@ -1,16 +1,39 @@
+<div>
+    <span>
+        <md-input-container class="md-button-ripple">
+            <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceName" />
+        </md-input-container>
+        <md-autocomplete #auto="mdAutocomplete">
+            <md-option *ngFor="let source of sources" [value]="source.source_name">
+                {{ source.source_name }}
+            </md-option>
+            <md-option value='system'>system</md-option>
+        </md-autocomplete>
+    </span>
 
-<md-input-container>
-    <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceName"/>
-</md-input-container>
-<md-autocomplete #auto="mdAutocomplete">
-    <md-option *ngFor="let source of sources" [value]="source.source_name">
-        {{ source.source_name }}
-    </md-option>
-    <md-option value='system'>system</md-option>
-</md-autocomplete>
+    <span class="col-xs-3">
+        <md-input-container>
+            <input mdInput mdTextareaAutosize [mdAutocomplete]="properties" [(ngModel)]="propertyName" />
+        </md-input-container>
+        <md-autocomplete #properties="mdAutocomplete" panel="sourceprops-panel">
+            <md-option *ngFor="let prop of sourceProperties" [value]="prop.source_name">
+                {{ prop.source_name }}
+            </md-option>
+        </md-autocomplete>
+    </span>
 
-<input [(ngModel)]="propertyName" />
-<input [(ngModel)]="propertyValue" />
+    <span>
+        <md-input-container>
+            <input mdInput [mdAutocomplete]="property_value" [(ngModel)]="propertyValue" />
+        </md-input-container>
+        <md-autocomplete #property_value="mdAutocomplete">
+            <md-option *ngFor="let prop of propertyValues" [value]="prop.source_name">
+                {{ prop.source_name }}
+            </md-option>
+        </md-autocomplete>
+    </span>
+</div>
 
-<entities-display [sourceName]="sourceName" [propertyName]="propertyName" [propertyValue]="propertyValue">
+<entities-display [sourceName]="sourceName" [propertyName]="propertyName" [propertyValue]="propertyValue" (sourceChange)="sourceChanged($event)"
+    (propertyChange)="propertyChanged($event)">
 </entities-display>

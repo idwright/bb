@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, OnChanges, SimpleChange, ViewChild, TemplateRef } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, TemplateRef, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
 
@@ -16,7 +16,7 @@ import { Page } from "../model/page";
     styleUrls: ['./entities-display.component.css']
 })
 
-export class EntitiesDisplayComponent implements OnInit, OnChanges {
+export class EntitiesDisplayComponent implements OnInit {
 
     page: Page = new Page();
     entities: Entities;
@@ -34,9 +34,15 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
     @ViewChild('identityTmpl') identityTmpl: TemplateRef<any>;
     @ViewChild('propertyValueTmpl') propertyValueTmpl: TemplateRef<any>;
 
+    @Output()
+    sourceChange: EventEmitter<any> = new EventEmitter();
+    @Output()
+    propertyChange: EventEmitter<any> = new EventEmitter();
+
     @Input()
     set sourceName(sourceName: string) {
         this._sourceName = sourceName;
+        this.sourceChange.emit(this._sourceName);
     }
 
     get sourceName(): string {
@@ -46,6 +52,7 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
     @Input()
     set propertyName(propertyName: string) {
         this._propertyName = propertyName;
+        this.propertyChange.emit(this._propertyName);
     }
 
     get propertyName(): string {
@@ -55,6 +62,9 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
     @Input()
     set propertyValue(propertyValue: string) {
         this._propertyValue = propertyValue;
+        if (this._sourceName && this._propertyName && this._propertyValue) {
+            this.setPage({ offset: 0, size: 10 });
+        }
     }
 
     get propertyValue(): string {
@@ -73,16 +83,6 @@ export class EntitiesDisplayComponent implements OnInit, OnChanges {
         console.log("entities display:" + this._sourceName + "/" + this._propertyName);
 
         console.log("entities-display ngOnInit");
-        this.setPage({ offset: 0, size: 10 });
-    }
-
-    ngOnChanges(changes: { [propKey: string]: SimpleChange }) {
-        let log: string[] = [];
-        for (let propName in changes) {
-            let changedProp = changes[propName];
-            console.log("Changed:" + JSON.stringify(changedProp));
-        }
-        console.log("entities-display ngOnChanges");
         this.setPage({ offset: 0, size: 10 });
     }
 

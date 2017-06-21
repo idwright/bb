@@ -1,0 +1,11 @@
+// Import all the tools needed to customize the theme and extract parts of it
+@import '~@angular/material/theming';
+
+.cdk-overlay-pane {
+    width: none !important;
+}
+@mixin entities-component-theme($theme) {
+    .sourceProperties {
+        width: 500px !important;
+    }
+}
