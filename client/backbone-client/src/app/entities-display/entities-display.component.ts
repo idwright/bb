@@ -37,12 +37,16 @@ export class EntitiesDisplayComponent implements OnInit {
     @Output()
     sourceChange: EventEmitter<any> = new EventEmitter();
     @Output()
-    propertyChange: EventEmitter<any> = new EventEmitter();
+    propertyNameChange: EventEmitter<any> = new EventEmitter();
+    @Output()
+    propertyValueChange: EventEmitter<any> = new EventEmitter();
 
     @Input()
     set sourceName(sourceName: string) {
         this._sourceName = sourceName;
         this.sourceChange.emit(this._sourceName);
+        this.propertyName = undefined;
+        this.page.totalElements = 0;
     }
 
     get sourceName(): string {
@@ -52,7 +56,10 @@ export class EntitiesDisplayComponent implements OnInit {
     @Input()
     set propertyName(propertyName: string) {
         this._propertyName = propertyName;
-        this.propertyChange.emit(this._propertyName);
+        this.propertyNameChange.emit(this._propertyName);
+        this.propertyValue = undefined;
+        this.page.totalElements = 0;
+
     }
 
     get propertyName(): string {
@@ -61,7 +68,9 @@ export class EntitiesDisplayComponent implements OnInit {
 
     @Input()
     set propertyValue(propertyValue: string) {
+        //console.log('entities-display set propertyValue:' + propertyValue);
         this._propertyValue = propertyValue;
+        this.propertyValueChange.emit(this._propertyValue);
         if (this._sourceName && this._propertyName && this._propertyValue) {
             this.setPage({ offset: 0, size: 10 });
         }
@@ -80,18 +89,18 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     ngOnInit(): void {
-        console.log("entities display:" + this._sourceName + "/" + this._propertyName);
+        //console.log("entities display:" + this._sourceName + "/" + this._propertyName);
 
-        console.log("entities-display ngOnInit");
+        //console.log("entities-display ngOnInit");
         this.setPage({ offset: 0, size: 10 });
     }
 
     loadEntities(): void {
         if (this._sourceName && this._propertyName && this._propertyValue) {
-            console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
+            //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
             this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => {
-                    console.log(entities);
+                    //console.log(entities);
 
                     this.page.totalElements = entities.count;
                     this.page.totalPages = this.page.totalElements / this.page.size;

@@ -35,5 +35,5 @@
 </div>
 
 <entities-display [sourceName]="sourceName" [propertyName]="propertyName" [propertyValue]="propertyValue" (sourceChange)="sourceChanged($event)"
-    (propertyChange)="propertyChanged($event)">
+    (propertyNameChange)="propertyNameChanged($event)" (propertyValueChange)="propertyValueChanged($event)">
 </entities-display>

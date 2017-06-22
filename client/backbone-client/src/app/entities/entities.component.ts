@@ -19,6 +19,9 @@ export class EntitiesComponent implements OnInit {
 
 	propertyValues: Summary;
 
+	propertyName: string;
+	propertyValue: string;
+
 	constructor(private reportApi: ReportApi) { }
 
 
@@ -27,7 +30,7 @@ export class EntitiesComponent implements OnInit {
 		this.reportApi.getSummary()
 			.subscribe(
 			(summary) => {
-				console.log(summary);
+				//console.log(summary);
 				this.sources = summary;
 			},
 			(err) => console.log(err),
@@ -38,22 +41,26 @@ export class EntitiesComponent implements OnInit {
 	}
 
 	sourceChanged(event) {
-		console.log("Source changed:" + event);
+		//console.log("Source changed:" + event);
 		if (event) {
 			this._source = event
 			this.reportApi.getPropertiesSummary(event).subscribe(
 				(props) => {
-					console.log(props);
+					//console.log(props);
 					this.sourceProperties = props;
 				},
 				(err) => console.log(err),
 				() => { console.log("Downloaded props summary") }
 			);
+		} else {
+			this.sourceProperties = undefined;
 		}
+		this.propertyValues = undefined;
 	}
 
-	propertyChanged(event) {
-		console.log("property changed:" + event);
+	propertyNameChanged(event) {
+		//console.log("property name changed:" + event);
+		this.propertyName = event;
 		if (event && this._source) {
 			this.reportApi.getPropertyValuesSummary(this._source, event).subscribe(
 				(props) => {
@@ -63,6 +70,13 @@ export class EntitiesComponent implements OnInit {
 				(err) => console.log(err),
 				() => { console.log("Downloaded prop values") }
 			);
+		} else {
+			this.propertyValues = undefined;
 		}
+	}
+
+	propertyValueChanged(event) {
+		//console.log("property value changed:" + event);
+		this.propertyValue = event;
 	}
 }
