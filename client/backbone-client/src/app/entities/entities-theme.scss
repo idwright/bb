@@ -3,5 +3,8 @@
 
 @mixin entities-theme($theme) {
 
+    .mat-autocomplete-panel {
+        width : 400px;
+    }
 
 }
