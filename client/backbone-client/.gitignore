@@ -20,4 +20,4 @@ src/app/*.component.ngfactory.ts
 src/app/*.component.ngsummary.json
 src/app/*.component.scss.ngstyle.ts
 src/app/*.component.css.shim.ngstyle.ts
-
+dist/
