@@ -1,7 +1,7 @@
 <div>
     <span>
         <md-input-container class="md-button-ripple">
-            <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceName" />
+            <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceNameSelector" />
         </md-input-container>
         <md-autocomplete #auto="mdAutocomplete">
             <md-option *ngFor="let source of sources" [value]="source.source_name">
@@ -13,7 +13,8 @@
 
     <span>
         <md-input-container>
-            <input mdInput mdTextareaAutosize [mdAutocomplete]="properties" [(ngModel)]="propertyName" />
+            <input mdInput mdTextareaAutosize [mdAutocomplete]="properties"
+            [(ngModel)]="propertyNameSelector" />
         </md-input-container>
         <md-autocomplete #properties="mdAutocomplete" panel="sourceprops-panel">
             <md-option *ngFor="let prop of sourceProperties" [value]="prop.source_name">
@@ -24,7 +25,7 @@
 
     <span>
         <md-input-container>
-            <input mdInput [mdAutocomplete]="property_value" [(ngModel)]="propertyValue" />
+            <input mdInput [mdAutocomplete]="property_value" [(ngModel)]="propertyValueSelector" />
         </md-input-container>
         <md-autocomplete #property_value="mdAutocomplete">
             <md-option *ngFor="let prop of propertyValues" [value]="prop.source_name">
@@ -34,6 +35,7 @@
     </span>
 </div>
 
-<entities-display [sourceName]="sourceName" [propertyName]="propertyName" [propertyValue]="propertyValue" (sourceChange)="sourceChanged($event)"
+<entities-display [sourceName]="sourceNameSelector" [propertyName]="propertyNameSelector"
+                                                      [propertyValue]="propertyValueSelector" (sourceChange)="sourceChanged($event)"
     (propertyNameChange)="propertyNameChanged($event)" (propertyValueChange)="propertyValueChanged($event)">
 </entities-display>

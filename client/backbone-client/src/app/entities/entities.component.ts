@@ -19,8 +19,9 @@ export class EntitiesComponent implements OnInit {
 
 	propertyValues: Summary;
 
-	propertyName: string;
-	propertyValue: string;
+    sourceNameSelector: string
+	propertyNameSelector: string;
+	propertyValueSelector: string;
 
 	constructor(private reportApi: ReportApi) { }
 
@@ -60,7 +61,7 @@ export class EntitiesComponent implements OnInit {
 
 	propertyNameChanged(event) {
 		//console.log("property name changed:" + event);
-		this.propertyName = event;
+		this.propertyNameSelector = event;
 		if (event && this._source) {
 			this.reportApi.getPropertyValuesSummary(this._source, event).subscribe(
 				(props) => {
@@ -77,6 +78,6 @@ export class EntitiesComponent implements OnInit {
 
 	propertyValueChanged(event) {
 		//console.log("property value changed:" + event);
-		this.propertyValue = event;
+		this.propertyValueSelector = event;
 	}
 }
