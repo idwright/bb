@@ -1,0 +1,41 @@
+        ProxyRequests On
+        ProxyPreserveHost On
+        WSGIDaemonProcess backbone processes=2 threads=25 python-path=/var/www/html/backbone-server python-home=/var/www/html/backbone-server/server-env home=/var/www/html/backbone-server/bb-server
+        WSGIProcessGroup backbone
+        WSGIScriptAlias /v1 /var/www/html/backbone-server/bb-server/bb-server.wsgi
+
+        <Directory "/var/www/html/backbone-server/bb-server">
+            <Files bb-server.wsgi>
+                Require all granted
+            </Files>
+            Options FollowSymLinks
+            AllowOverride None
+            Authtype CAS
+            CASAuthNHeader On
+
+            require valid-user
+            require cas-attribute memberOf:cn=wg,ou=sims,ou=projects,ou=groups,dc=malariagen,dc=net
+
+        </Directory>
+
+        <Directory />
+            RewriteEngine On
+            RewriteCond %{REQUEST_URI} !^/v1
+            RewriteBase /
+            RewriteRule . /backbone/index.html [L]
+
+        </Directory>
+
+        <Directory /var/www/html/backbone>
+
+            AllowOverride All
+
+            RewriteEngine On
+            RewriteBase /backbone
+            RewriteRule ^index\.html$ - [L]
+            RewriteCond %{REQUEST_FILENAME} !-d
+            RewriteCond %{REQUEST_FILENAME} !-f
+            RewriteRule . /backbone/index.html [L]
+
+        </Directory>
+
