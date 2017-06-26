@@ -19,6 +19,13 @@ import { Page } from "../model/page";
 export class EntitiesDisplayComponent implements OnInit {
 
     page: Page = new Page();
+
+    @Input()
+    pageSize: number = 1000;
+
+    @Input()
+    showRefCount: boolean = false;
+
     entities: Entities;
 
     private _sourceName: string;
@@ -72,7 +79,7 @@ export class EntitiesDisplayComponent implements OnInit {
         this._propertyValue = propertyValue;
         this.propertyValueChange.emit(this._propertyValue);
         if (this._sourceName && this._propertyName && this._propertyValue) {
-            this.setPage({ offset: 0, size: 10 });
+            this.setPage({ offset: 0, size: this.pageSize });
         }
     }
 
@@ -85,14 +92,14 @@ export class EntitiesDisplayComponent implements OnInit {
         private location: Location,
     ) {
         this.page.pageNumber = 0;
-        this.page.size = 10;
+        this.page.size = this.pageSize;
     }
 
     ngOnInit(): void {
         //console.log("entities display:" + this._sourceName + "/" + this._propertyName);
 
-        //console.log("entities-display ngOnInit");
-        this.setPage({ offset: 0, size: 10 });
+        console.log("entities-display ngOnInit pageSize:" + this.pageSize);
+        //this.setPage({ offset: 0, size: this.pageSize });
     }
 
     loadEntities(): void {
@@ -117,13 +124,17 @@ export class EntitiesDisplayComponent implements OnInit {
                     };
                     allCols.push(entityColumn);
                     identityCols.push(entityColumn);
+
                     let refsColumn = {
                         'prop': 'refs',
                         'name': 'Associations',
                         headerTemplate: this.hdrTpl
                     };
+
+                    if (this.showRefCount) {
+                        identityCols.push(refsColumn);
+                    }
                     allCols.push(refsColumn);
-                    identityCols.push(refsColumn);
                     entities.entities.forEach(entity => {
                         let entityRow: any = {
                             'entityId': entity.entity_id,

@@ -25,6 +25,7 @@ import { SourceApi }          from './typescript-angular2-client/api/SourceApi';
 import { PropertyFormComponent } from './property-form/property-form.component';
 import { AssocFormComponent } from './assoc-form/assoc-form.component';
 import { PropertiesFormComponent } from './properties-form/properties-form.component';
+import { EntitiesFullListComponent } from './entities-full-list/entities-full-list.component';
 
 
 @NgModule({
@@ -40,7 +41,8 @@ import { PropertiesFormComponent } from './properties-form/properties-form.compo
     SourcePropertySummaryComponent,
     PropertyFormComponent,
     AssocFormComponent,
-    PropertiesFormComponent
+    PropertiesFormComponent,
+    EntitiesFullListComponent
   ],
   imports: [
     BrowserModule,

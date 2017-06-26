@@ -1,13 +1,13 @@
 <div>
   <ngx-datatable class="material" [rows]="rows" [columns]="columns"  [columnMode]="'force'"
-        [limit]="page.size"
+        [limit]="pageSize"
+        [rowHeight]="50"
         [headerHeight]="50"
         [footerHeight]="50"
         [rowHeight]="'auto'"
         [externalPaging]="true"
         [count]="page.totalElements"
         [offset]="page.pageNumber"
-        [limit]="page.size"
         (page)='setPage($event)'>
   </ngx-datatable>
 </div>
