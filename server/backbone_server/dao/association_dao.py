@@ -8,18 +8,18 @@ class AssociationDAO(BaseDAO):
         self._cursor = cursor
 
 
-    def create_mapping(self, source_prop_id, target_prop_id, assoc_id):
+    def create_mapping(self, source_prop_id, target_prop_id, assoc_type):
 
         query = '''SELECT * FROM `assoc_mappings` WHERE source_prop_type_id = %s AND
         target_prop_type_id = %s AND assoc_type_id = %s'''
 
-        self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_id))
+        self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_type.ident))
 
         if not self._cursor.fetchone():
             query = '''INSERT INTO `assoc_mappings` (source_prop_type_id, target_prop_type_id,
             assoc_type_id) VALUES (%s, %s, %s)'''
 
-            self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_id))
+            self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_type.ident))
 
 
     def create_implied_associations(self, internal_id):

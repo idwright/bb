@@ -1,6 +1,7 @@
 from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.property_type import PropertyType
+from backbone_server.dao.model.association_type import AssociationType
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
 from backbone_server.errors.invalid_id_exception import InvalidIdException
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
@@ -103,14 +104,16 @@ class EntityDAO(BaseDAO):
         fk_keys = []
         if entity.refs:
             for assoc in entity.refs:
-                assoc_type_id, assoc_name = self.find_or_create_assoc_type(assoc.assoc_name)
+                assoc_type = AssociationType()
+                assoc_type.assoc_name = assoc.assoc_name
+                assoc_type = self.find_or_create_assoc_type(assoc_type)
                 internal_source_id = self.get_internal_id(assoc.source_id)
                 internal_target_id = self.get_internal_id(assoc.target_id)
                 if internal_source_id == internal_id:
                     fk_keys.append(internal_target_id)
                 else:
                     fk_keys.append(internal_source_id)
-                self.add_assoc(internal_source_id, internal_target_id, assoc_type_id)
+                self.add_assoc(internal_source_id, internal_target_id, assoc_type.ident)
                 if assoc.values:
                     props = {}
                     for prop in assoc.values:
@@ -125,35 +128,31 @@ class EntityDAO(BaseDAO):
                                 prop.source, prop.data_name,
                                 prop.data_value, props[property_type_id].data_value))
                         props[property_type_id] = prop
-                        self.add_assoc_property(internal_source_id, internal_target_id, assoc_type_id, prop, property_type_id)
+                        self.add_assoc_property(internal_source_id, internal_target_id, assoc_type, prop, property_type_id)
 
         if update_associations:
             self.update_associations(internal_id, fk_keys)
 
 
 
-    def find_or_create_assoc_defn(self, source, target, key):
-        assoc_name = key + "_" + source + "_" + target
-#        cnx = self.get_connection()
-#        cursor = cnx.cursor()
-        return self.find_or_create_assoc_type(assoc_name)
+    def find_or_create_assoc_type(self, assoc_type):
 
-    def find_or_create_assoc_type(self, assoc_name):
+        self._cursor.execute("SELECT id, assoc_type FROM `assoc_types` WHERE `assoc_name` = %s",
+                             (assoc_type.assoc_name,))
 
-        self._cursor.execute("SELECT id FROM `assoc_types` WHERE `assoc_name` = %s", (assoc_name,))
+        for (ati, att) in self._cursor:
+            assoc_type.ident = ati
+            assoc_type.assoc_type = att
 
-        assoc_type_id = None
-        for pti in self._cursor:
-            assoc_type_id = pti[0]
-
-        if not assoc_type_id:
-            self._cursor.execute("INSERT INTO `assoc_types` (`assoc_name`) VALUES (%s)", (assoc_name,))
-            assoc_type_id = self._cursor.lastrowid
+        if not assoc_type.ident:
+            self._cursor.execute("INSERT INTO `assoc_types` (`assoc_name`, `assoc_type`) VALUES (%s, %s)", 
+                                 (assoc_type.assoc_name, assoc_type.assoc_type))
+            assoc_type.ident = self._cursor.lastrowid
 #            cnx.commit()
 #        cursor.close()
 #        cnx.close()
 
-        return assoc_type_id, assoc_name
+        return assoc_type
 
     def find_or_create_prop_defn(self, source, name, data_type, identity, order, versionable):
 #        cnx = self.get_connection()
@@ -301,13 +300,13 @@ class EntityDAO(BaseDAO):
 
         return converted_field
 
-    def add_or_update_assoc_property(self, entity_id, fk, assoc_type_id, prop, property_type_id):
+    def add_or_update_assoc_property(self, entity_id, fk, assoc_type, prop, property_type_id):
 
         data_field = self.get_data_field(prop.data_type)
 
         fetch_row = ("SELECT p.id as property_id, " + data_field + " FROM `properties` p JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `p`.`prop_type_id` = %s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
 
-        values = (property_type_id, entity_id, fk, assoc_type_id)
+        values = (property_type_id, entity_id, fk, assoc_type.ident)
         #print(fetch_row)
         #print(repr(values))
         self._cursor.execute(fetch_row, values)
@@ -415,23 +414,25 @@ class EntityDAO(BaseDAO):
 
         return new_property_id
 
-    def add_assoc_property(self, entity_id, fk, assoc_type_id, prop, property_type_id):
+    def add_assoc_property(self, entity_id, fk, assoc_type, prop, property_type_id):
 
-        property_id, delete_old, linked = self.add_or_update_assoc_property(entity_id, fk, assoc_type_id, prop, property_type_id)
+        property_id, delete_old, linked = self.add_or_update_assoc_property(entity_id, fk, assoc_type, prop, property_type_id)
 
         if delete_old:
             old_property_id = delete_old
             #Note - do not delete the old property, intended to be used for history
             #            print ("Delete reference to old property value:" +
             #            str(entity_id) + ":" + str(old_property_id))
-            self._cursor.execute("DELETE FROM `entity_properties` WHERE `source_entity_id` = %s AND target_entity_id = %s AND assoc_type_id = %s AND `property_id` = %s", (entity_id, fk, assoc_type_id, old_property_id))
+            self._cursor.execute('''DELETE FROM `entity_properties` WHERE `source_entity_id` = %s AND
+                                 target_entity_id = %s AND assoc_type_id = %s AND `property_id` = %s''',
+                                 (entity_id, fk, assoc_type.ident, old_property_id))
 
         if not linked:
 #            cnx = self.get_connection()
 #            cursor = cnx.cursor()
             query = ("INSERT INTO `assoc_properties` (`source_entity_id`, `target_entity_id`, `assoc_type_id`, `property_id`) VALUES (%s, %s, %s, %s)")
 
-            self._cursor.execute(query, (entity_id, fk, assoc_type_id, property_id))
+            self._cursor.execute(query, (entity_id, fk, assoc_type.ident, property_id))
 
 #            cnx.commit()
 #            cursor.close()

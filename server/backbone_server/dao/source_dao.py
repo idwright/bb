@@ -3,6 +3,7 @@ import csv
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.dao.model.association_type import AssociationType
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
 from backbone_server.errors.no_id_exception import NoIdException
 from backbone_server.errors.duplicate_id_exception import DuplicateIdException
@@ -75,9 +76,13 @@ class SourceDAO(EntityDAO):
                         if 'type_id' not in defn:
                             prop_type = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True, 0, False)
                             defn['type_id'] = prop_type.ident
-                        if 'assoc_type_id' not in defn:
-                            defn['assoc_type_id'], assoc_name = self.find_or_create_assoc_defn(source, defn['source'], name)
-                            assoc_dao.create_mapping(defn['type_id'], prop_by_column[defn['column']].ident, defn['assoc_type_id'])
+                        if 'assoc_type' not in defn:
+                            assoc_type = AssociationType()
+                            assoc_type.source = source
+                            assoc_type.target = defn['source']
+                            assoc_type.key = name
+                            defn['assoc_type'] = self.find_or_create_assoc_type(assoc_type)
+                            assoc_dao.create_mapping(defn['type_id'], prop_by_column[defn['column']].ident, defn['assoc_type'])
 
                 record = SourceEntity()
                 record.values = values
