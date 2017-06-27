@@ -22,20 +22,70 @@ class AssociationDAO(BaseDAO):
             self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_type.ident))
 
 
-    def create_implied_associations(self, internal_id):
+    def merge_implied_associations(self, internal_id):
 
-        query = '''INSERT INTO entity_assoc (source_entity_id, target_entity_id, assoc_type_id)
-        select ia.source_id, ia.target_id, ia.assoc_type_id FROM implied_assocs ia
+        query = '''SELECT ia.source_id, ia.target_id, ia.assoc_type_id FROM implied_assocs ia
             LEFT JOIN entity_assoc ea ON ia.target_id = ea.target_entity_id AND ia.source_id =
             ea.source_entity_id AND ia.assoc_type_id = ea.assoc_type_id
-                WHERE ea.source_entity_id IS NULL AND target_prop_id IN (SELECT 
+                WHERE ia.assoc_type = %s AND ea.source_entity_id IS NULL AND target_prop_id IN (SELECT 
             property_id
         FROM
             entity_properties
         WHERE
             entity_id = %s);'''
 
-        self._cursor.execute(query, (internal_id,))
+        self._cursor.execute(query, ('sibling', internal_id,))
+
+        merges = []
+        for (sid, tid, ati) in self._cursor:
+            sr = ServerRelationship()
+            sr.source_id = sid
+            sr.target_id = tid
+            merges.append(sr)
+
+        merge_query = '''UPDATE `entity_properties` SET entity_id = %s WHERE entity_id = %s'''
+        merge_assoc_props_query = '''UPDATE `assoc_properties` SET target_entity_id = %s WHERE target_entity_id = %s'''
+        merge_assoc_query = '''UPDATE `entity_assoc` SET target_entity_id = %s WHERE target_entity_id = %s'''
+
+        delete_system_query = '''DELETE FROM entity_properties
+                                        WHERE
+                                            entity_id = %s
+                                            AND property_id IN (SELECT
+                                                p.id
+                                            FROM
+                                                properties p
+                                                    JOIN
+                                                property_types pt ON p.prop_type_id = pt.id
+                                            WHERE
+                                                pt.`source` = 'system');'''
+        delete_query = '''DELETE FROM `entities` WHERE added_id = %s'''
+        for sr in merges:
+            #Delete any that might cause duplicate entries (e.g. system implied_id true)
+            self._cursor.execute(delete_system_query, (sr.target_id,))
+
+            self._cursor.execute(merge_query, (sr.source_id, sr.target_id))
+
+            self._cursor.execute(merge_assoc_query, (sr.target_id, sr.source_id))
+
+            self._cursor.execute(merge_assoc_props_query, (sr.target_id, sr.source_id))
+
+            self._cursor.execute(delete_query, (sr.target_id,))
+
+
+    def create_implied_associations(self, internal_id):
+
+        query = '''INSERT INTO entity_assoc (source_entity_id, target_entity_id, assoc_type_id)
+        select ia.source_id, ia.target_id, ia.assoc_type_id FROM implied_assocs ia
+            LEFT JOIN entity_assoc ea ON ia.target_id = ea.target_entity_id AND ia.source_id =
+            ea.source_entity_id AND ia.assoc_type_id = ea.assoc_type_id
+                WHERE ia.assoc_type = %s AND ea.source_entity_id IS NULL AND target_prop_id IN (SELECT 
+            property_id
+        FROM
+            entity_properties
+        WHERE
+            entity_id = %s);'''
+
+        self._cursor.execute(query, ('parent-child', internal_id,))
 
 
     def find_missing_association_sources(self, internal_id):

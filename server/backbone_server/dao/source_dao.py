@@ -77,7 +77,10 @@ class SourceDAO(EntityDAO):
                             prop_type = self.find_or_create_prop_defn(defn['source'], fk_name, defn['type'], True, 0, False)
                             defn['type_id'] = prop_type.ident
                         if 'assoc_type' not in defn:
-                            assoc_type = AssociationType()
+                            ref_type = None
+                            if 'ref_type' in defn:
+                                ref_type = defn['ref_type']
+                            assoc_type = AssociationType(assoc_type=ref_type)
                             assoc_type.source = source
                             assoc_type.target = defn['source']
                             assoc_type.key = name

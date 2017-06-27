@@ -62,6 +62,7 @@ class EntityDAO(BaseDAO):
                 #else:
                 #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
 
+            assoc_dao.merge_implied_associations(int_id)
             assoc_dao.create_implied_associations(int_id)
             missing_sources = assoc_dao.delete_implied_associations(int_id)
 

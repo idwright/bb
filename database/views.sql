@@ -82,6 +82,7 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         sep.entity_id AS source_id,
         tep.entity_id AS target_id,
         am.assoc_type_id,
+        ast.assoc_type,
         tp.id as target_prop_id,
         tp.string_value,
         tp.long_value

@@ -1,0 +1,42 @@
+{
+    "refs": {
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "fk_name": "individual_code",
+            "source": "test_target",
+            "ref_type": "sibling"
+        },
+        "alfresco_code": {
+            "column": 2,
+            "type": "string",
+            "source": "alfresco"
+        },
+        "ega_file_name": {
+            "column": 3,
+            "type": "string",
+            "fk_name": "file_name",
+            "source": "sanger_ega_dataset"
+        }
+    },
+    "values":
+    {
+        "oxford_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "study_group": {
+            "column": 1,
+            "type": "string"
+        },
+        "alfresco_code": {
+            "column": 2,
+            "type": "string"
+        },
+        "name": {
+            "column": 3,
+            "type": "string",
+            "id": true
+        }
+    }
+}

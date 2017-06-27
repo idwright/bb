@@ -75,3 +75,23 @@ class TestAssociation(TestBase):
         except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % error)
 
+    """
+    """
+    def test_merge_source_entities(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('test_merge', 'test_source.txt',
+                                       additional_metadata='test_merge.json')
+
+            rec1 = self.find_entity(api_instance, 'test_merge', '3288_6_nonhuman.bam')
+            rec2 = self.find_entity(api_instance, 'test_target', 'PH0042-C')
+            self.assertEqual(rec1.entity_id,rec2.entity_id)
+
+            self.check_implied_target(api_instance, 'alfresco', '1011-PF-KH-SU', rec1, True)
+
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities\n")
+

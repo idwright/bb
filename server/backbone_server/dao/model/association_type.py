@@ -44,6 +44,8 @@ class AssociationType(object):
 
         self._ident = ident
         self._assoc_name = assoc_name
+        if assoc_type is None:
+            assoc_type = 'parent-child'
         self._assoc_type = assoc_type
 
     @property
