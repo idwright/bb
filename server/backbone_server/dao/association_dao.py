@@ -38,14 +38,23 @@ class AssociationDAO(BaseDAO):
 
         merges = []
         for (sid, tid, ati) in self._cursor:
-            sr = ServerRelationship()
-            sr.source_id = sid
-            sr.target_id = tid
-            merges.append(sr)
+            if sid != tid:
+                srel = ServerRelationship()
+                srel.source_id = sid
+                srel.target_id = tid
+                merges.append(srel)
 
         merge_query = '''UPDATE `entity_properties` SET entity_id = %s WHERE entity_id = %s'''
-        merge_assoc_props_query = '''UPDATE `assoc_properties` SET target_entity_id = %s WHERE target_entity_id = %s'''
-        merge_assoc_query = '''UPDATE `entity_assoc` SET target_entity_id = %s WHERE target_entity_id = %s'''
+        merge_assoc_query = '''UPDATE `entity_assoc` ea
+        INNER JOIN
+    `assoc_properties` ap ON (ea.source_entity_id = ap.source_entity_id
+        AND ea.target_entity_id = ap.target_entity_id
+        AND ea.assoc_type_id = ap.assoc_type_id)
+SET
+    ea.target_entity_id = %s,
+    ap.target_entity_id = %s
+WHERE
+    ap.target_entity_id = %s;'''
 
         delete_system_query = '''DELETE FROM entity_properties
                                         WHERE
@@ -59,17 +68,22 @@ class AssociationDAO(BaseDAO):
                                             WHERE
                                                 pt.`source` = 'system');'''
         delete_query = '''DELETE FROM `entities` WHERE added_id = %s'''
-        for sr in merges:
+        for srel in merges:
             #Delete any that might cause duplicate entries (e.g. system implied_id true)
-            self._cursor.execute(delete_system_query, (sr.target_id,))
+#            print("Merge {} {}".format(srel.source_id, srel.target_id))
+            self._cursor.execute(delete_system_query, (srel.target_id,))
 
-            self._cursor.execute(merge_query, (sr.source_id, sr.target_id))
+            self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
 
-            self._cursor.execute(merge_assoc_query, (sr.target_id, sr.source_id))
+#            print("Merge assoc:" + merge_assoc_query %
+#                                 (srel.target_id, srel.target_id, srel.source_id))
+            self._cursor.execute('SET foreign_key_checks = 0')
+            self._cursor.execute(merge_assoc_query,
+                                 (srel.target_id, srel.target_id, srel.source_id))
+            self._cursor.execute('SET foreign_key_checks = 1')
 
-            self._cursor.execute(merge_assoc_props_query, (sr.target_id, sr.source_id))
-
-            self._cursor.execute(delete_query, (sr.target_id,))
+#            print(delete_query % srel.target_id)
+#            self._cursor.execute(delete_query, (srel.target_id,))
 
 
     def create_implied_associations(self, internal_id):
