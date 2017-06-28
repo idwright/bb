@@ -1,13 +1,4 @@
 {
-    "refs": {
-        "parent_code1": {
-            "column": 9,
-            "type": "string",
-            "fk_name": "individual_code",
-            "source": "oxford_central_donor",
-            "comment": "sample.donor_id = donor.donor_id, donor.donor_code"
-        }
-    },
     "values":
     {
         "individual_id": {
