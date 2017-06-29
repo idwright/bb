@@ -2,7 +2,7 @@ import json
 import csv
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
-from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.dao.model.server_property import ServerProperty
 from backbone_server.dao.model.association_type import AssociationType
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
 from backbone_server.errors.no_id_exception import NoIdException
@@ -51,7 +51,7 @@ class SourceDAO(EntityDAO):
                     #print(repr(row))
                     prop_by_column[defn['column']] = defn['ptype']
                     try:
-                        data = BulkLoadProperty(name, defn['type'], row[defn['column']], source, identity)
+                        data = ServerProperty(name, defn['type'], row[defn['column']], source, identity)
                     except IndexError:
                         self._logger.critical(repr(defn))
                         self._logger.critical(repr(row))
@@ -105,7 +105,7 @@ class SourceDAO(EntityDAO):
 
         id_properties = []
         for prop in source_rec.values:
-            if isinstance(prop, BulkLoadProperty):
+            if isinstance(prop, ServerProperty):
                 if not prop.type_id:
                     prop_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
                                                               prop.data_type, prop.identity, 0,

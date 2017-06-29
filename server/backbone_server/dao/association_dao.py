@@ -1,5 +1,5 @@
 from backbone_server.dao.base_dao import BaseDAO
-from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.dao.model.server_property import ServerProperty
 from backbone_server.dao.model.server_relationship import ServerRelationship
 
 class AssociationDAO(BaseDAO):
@@ -115,7 +115,7 @@ WHERE
 
         for (spti, source, prop_name, prop_type, string_val, long_val) in self._cursor:
             #print("{} {} {} {}".format(spti, source, pt, val))
-            prop = BulkLoadProperty()
+            prop = ServerProperty()
             prop.type_id = spti
             prop.source = source.decode('utf-8')
             prop.data_type = prop_type.decode('utf-8')
@@ -123,6 +123,8 @@ WHERE
             prop.identity = True
             if prop.data_type == 'string':
                 prop.data_value = string_val.decode('utf-8')
+                if prop.data_value == '':
+                    continue
             elif prop.data_type == 'integer':
                 prop.data_value = str(long_val)
             missing_properties.append(prop)

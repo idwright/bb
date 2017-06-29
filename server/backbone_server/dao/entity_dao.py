@@ -2,7 +2,7 @@ from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.property_type import PropertyType
 from backbone_server.dao.model.association_type import AssociationType
-from backbone_server.dao.model.bulk_load_property import BulkLoadProperty
+from backbone_server.dao.model.server_property import ServerProperty
 from backbone_server.errors.invalid_id_exception import InvalidIdException
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
@@ -78,7 +78,7 @@ class EntityDAO(BaseDAO):
         #Initialization of this is not ideal but not a good idea to do in __init__
         self._system_fk_type = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False, 0, False)
         self._system_fk_type_id = self._system_fk_type.ident
-        self._system_fk_data = BulkLoadProperty('implied_id', 'boolean', 'false', 'system', False)
+        self._system_fk_data = ServerProperty('implied_id', 'boolean', 'false', 'system', False)
         self._system_fk_data.type_id = self._system_fk_type_id
 
         self._system_fk_data.data_value = 'false'
@@ -87,7 +87,7 @@ class EntityDAO(BaseDAO):
         props = {}
         for prop in entity.values:
             property_type_id = None
-            if isinstance(prop, BulkLoadProperty):
+            if isinstance(prop, ServerProperty):
                 property_type_id = prop.type_id
             else:
                 property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
@@ -627,13 +627,17 @@ class EntityDAO(BaseDAO):
         entities = []
         props = []
         for (pti, pt) in self._cursor:
-            property_type_id = pti
-            property_type = pt
-            props.append({'pti': pti, 'pt': pt.decode('utf-8')})
+            prop = ServerProperty()
+            prop.type_id = pti
+            prop.data_type = pt.decode('utf-8')
+            prop.data_value = prop_value
+            prop.data_name = prop_name
+            props.append(prop)
 
         if len(props) == 0:
             raise NoSuchTypeException("No such type:" + prop_name)
 
+        cols = []
         for prop in props:
             props_query = '''SELECT
                 HEX(e.id), e.added_id
@@ -641,7 +645,7 @@ class EntityDAO(BaseDAO):
                     properties p
                 JOIN entity_properties ep ON ep.property_id = p.id
                 JOIN entities e ON e.added_id = ep.entity_id
-                WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
+                WHERE prop_type_id = %s AND ''' + prop.data_field + ' = %s'
 
             #print(str(start) + str(count))
             if not (start is None and count is None):
@@ -649,10 +653,7 @@ class EntityDAO(BaseDAO):
             #print(props_query)
             if count is None or int(count) == 0 or len(entities) < int(count):
                 try:
-                    query_value = self.get_data_value(prop['pt'], prop_value)
-                    #print(props_query)
-                    #print("{} {}".format(repr(prop), repr(query_value)))
-                    self._cursor.execute(props_query, (prop['pti'], query_value,))
+                    self._cursor.execute(props_query, (prop.type_id, prop.typed_data_value,))
 
                     ents = []
                     for (ent_id, added_id,) in self._cursor:
@@ -661,7 +662,8 @@ class EntityDAO(BaseDAO):
                     for ent in ents:
                         entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
                 except ValueError:
-                    self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+                    self._logger.warn("Mismatch type when searching: {} {} {}"
+                                      .format(prop_name, prop_value, repr(prop)))
 
             count_query = '''SELECT
                     COUNT(e.added_id)
@@ -669,23 +671,68 @@ class EntityDAO(BaseDAO):
                         properties p
                     JOIN entity_properties ep ON ep.property_id = p.id
                     JOIN entities e ON e.added_id = ep.entity_id
-                    WHERE prop_type_id = %s AND ''' + self.get_data_field(prop['pt']) + ' = %s'
+                    WHERE prop_type_id = %s AND ''' + prop.data_field + ' = %s'
 
             try:
-                query_value = self.get_data_value(prop['pt'], prop_value)
                 #print(props_query)
                 #print("{} {}".format(repr(prop), repr(query_value)))
-                self._cursor.execute(count_query, (prop['pti'], query_value,))
+                self._cursor.execute(count_query, (prop.type_id, prop.typed_data_value,))
 
                 result.count = result.count + self._cursor.fetchone()[0]
             except ValueError:
-                self._logger.warn("Mismatch type when searching: {} {} {}".format(prop_name, prop_value, repr(prop)))
+                self._logger.warn("Mismatch type when searching: {}"
+                                  .format(repr(prop)))
+
+            new_columns = self.find_columns(prop)
+            old_set = set(cols)
+            cols = cols + [x for x in new_columns if x not in old_set]
 
         self._cursor.close()
         self._connection.close()
 
+        result.fields = cols
         result.entities = entities
         return result
+
+    def find_columns(self, prop):
+
+        columns_query = '''SELECT
+                    pt.source, pt.prop_name, pt.prop_type, pt.identity
+                FROM
+                    entity_properties ep
+                        JOIN
+                    properties p ON p.id = ep.property_id
+                        JOIN
+                    property_types pt ON p.prop_type_id = pt.id
+                WHERE
+                    ep.entity_id IN (SELECT
+                            e.added_id
+                        FROM
+                            properties p
+                                JOIN
+                            entity_properties ep ON ep.property_id = p.id
+                                JOIN
+                            entities e ON e.added_id = ep.entity_id
+                        WHERE
+                            prop_type_id = %s
+                                AND ''' + prop.data_field + ''' = %s)
+                GROUP BY pt.source , pt.prop_name
+                ORDER BY pt.source , pt.prop_name'''
+
+        #print(columns_query % (prop.type_id, prop.typed_data_value))
+        self._cursor.execute(columns_query, (prop.type_id, prop.typed_data_value))
+        columns = []
+        for (source, prop_name, prop_type, identity) in self._cursor:
+            sprop = ServerProperty()
+            sprop.data_name = prop_name.decode('utf-8')
+            sprop.source = source.decode('utf-8')
+            sprop.prop_type = prop_type.decode('utf-8')
+            sprop.identity = sprop.from_db_value('boolean', identity)
+            columns.append(sprop)
+
+        return columns
+
+
 #if __name__ == '__main__':
 #    sd = source_dao()
 #    data_def = json.loads('{ "refs": { "oxf_code": { "column": 1, "type": "string", "source": "lims" }}, "values":{ "id": { "column": 24, "type": "integer", "id": true }, "sample_type": { "column": 6, "type": "string" } } }')
