@@ -88,13 +88,16 @@ paths:
       responses:
         '201':
           description: successful operation
-          type: string
+          schema:
+              type: string
         '409':
           description: 'duplicate key'
-          type: string
+          schema:
+              type: string
         '422':
           description: 'invalid key in entity'
-          type: string
+          schema:
+              type: string
   '/source/{sourceId}/{sourceEntityId}':
     get:
       tags:
@@ -122,13 +125,16 @@ paths:
             $ref: '#/definitions/Entity'
         '404':
           description: 'entity not found'
-          type: string
+          schema:
+              type: string
         '409':
           description: 'source uses a combination key and therefore cannot be retrieved via this method'
-          type: string
+          schema:
+              type: string
         '422':
           description: 'invalid key in entity'
-          type: string
+          schema:
+              type: string
   '/source/summary/{sourceId}':
     get:
       tags:
@@ -151,6 +157,8 @@ paths:
             $ref: '#/definitions/Summary'
         '404':
           description: source not found
+          schema:
+              type: string
   '/source/summary/{sourceId}/{propName}':
     get:
       tags:
@@ -184,6 +192,8 @@ paths:
             $ref: '#/definitions/Summary'
         '404':
           description: Not found
+          schema:
+              type: string
   /sources/summary:
     get:
       tags:
@@ -246,6 +256,8 @@ paths:
             $ref: '#/definitions/Entity'
         '404':
           description: Entity not found
+          schema:
+              type: string
     delete:
       tags:
         - entity
@@ -313,6 +325,10 @@ definitions:
   Entities:
     type: object
     properties:
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
       entities:
         type: array
         items:
@@ -432,7 +448,6 @@ definitions:
         type: integer
       implied_items:
         type: integer
-        required: false
   ApiResponse:
     type: object
     properties:
