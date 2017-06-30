@@ -52,7 +52,7 @@ def download_entities_by_property(propName, propValue, start=None, count=None, o
     ed = EntityDAO()
 
     try:
-        result = ed.fetch_entities_by_property(propName, propValue, start, count, orderby)
+        result = ed.fetch_entities_by_property(None, propName, propValue, start, count, orderby)
     except NoSuchTypeException as t:
         logging.getLogger().error("download_entities_by_property: {}".format(t))
         retcode = 404
@@ -86,7 +86,7 @@ def update_entity(entityId, entity):
     :param entity:
     :type entity: dict | bytes
 
-    :rtype: SourceEntity
+    :rtype: Entity
     """
     #print("update_entity", file=sys.stderr)
     if connexion.request.is_json:

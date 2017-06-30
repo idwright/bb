@@ -10,6 +10,7 @@ from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
 from swagger_server.models.property import Property
 from swagger_server.models.relationship import Relationship
+from swagger_server.models.summary_item import SummaryItem
 import mysql.connector
 from mysql.connector import errorcode
 
@@ -612,33 +613,41 @@ class EntityDAO(BaseDAO):
         #print ("Fetched entity:" + str(added_id))
         return entity
 
+    def get_properties_by_name(self, source, prop_name):
 
-    def fetch_entities_by_property(self, prop_name, prop_value, start, count, orderby):
+        self._cursor.execute("SELECT id, prop_type, source FROM `property_types` WHERE `prop_name` = %s", (prop_name,))
+        props = []
+        for (pti, pt, src) in self._cursor:
+            prop = ServerProperty()
+            prop.type_id = pti
+            prop.data_type = pt.decode('utf-8')
+            prop.data_name = prop_name
+            prop.source = src.decode('utf-8')
+            if source is None or prop.source == source:
+                props.append(prop)
+
+        if len(props) == 0:
+            raise NoSuchTypeException("No such type:" + prop_name)
+
+        return props
+
+    def fetch_entities_by_property(self, source, prop_name, prop_value, start, count, orderby):
 
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
 
-        self._cursor.execute("SELECT id, prop_type FROM `property_types` WHERE `prop_name` = %s", (prop_name,))
 
         result = Entities()
         result.count = 0
         property_type_id = None
         property_type = None
         entities = []
-        props = []
-        for (pti, pt) in self._cursor:
-            prop = ServerProperty()
-            prop.type_id = pti
-            prop.data_type = pt.decode('utf-8')
-            prop.data_value = prop_value
-            prop.data_name = prop_name
-            props.append(prop)
 
-        if len(props) == 0:
-            raise NoSuchTypeException("No such type:" + prop_name)
+        props = self.get_properties_by_name(source, prop_name)
 
         cols = []
         for prop in props:
+            prop.data_value = prop_value
             props_query = '''SELECT
                 HEX(e.id), e.added_id
                 FROM
@@ -732,6 +741,79 @@ class EntityDAO(BaseDAO):
 
         return columns
 
+    def get_properties(self, source):
+
+        pfilter = ''
+        params = ()
+        if source:
+            pfilter = ' WHERE `pt`.source = %s '
+            params = (source,)
+        query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
+            JOIN properties p ON p.prop_type_id = pt.id''' + pfilter + '''
+                    GROUP BY (pt.prop_name);'''
+
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+        self._cursor.execute(query, params)
+
+        results = []
+        for (count, pname) in self._cursor:
+            summ = SummaryItem()
+            summ.source_name = pname.decode('utf-8')
+            summ.num_items = count
+            results.append(summ)
+
+        self._connection.commit()
+        self._cursor.close()
+        self._connection.close()
+
+        return results
+
+    def get_summary_by_property(self, source, prop_name, threshold):
+
+        th = 0
+        if threshold:
+            th = threshold
+
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+        props = self.get_properties_by_name(source, prop_name)
+
+        prop = props[0]
+
+        if source:
+            pfilter = ' `pt`.`source` = %s AND '
+            qargs = (source, prop_name, th)
+        else:
+            pfilter = ''
+            qargs = (prop_name, th)
+
+        query = ('''SELECT count(ep.property_id), pt.prop_name, p.''' +
+                 prop.data_field + ''' from entity_properties ep
+            JOIN properties p ON p.id = ep.property_id
+            JOIN property_types pt ON pt.id = p.prop_type_id
+            WHERE ''' + pfilter + ''' `pt`.`prop_name` = %s
+            GROUP BY (''' + prop.data_field + ''') HAVING COUNT(''' + prop.data_field + ''') > %s order by prop_name, ''' +
+                 prop.data_field)
+
+
+        #print(query % qargs)
+        self._cursor.execute(query, qargs)
+
+        results = []
+        for (count, pname, pvalue) in self._cursor:
+            summ = SummaryItem()
+            summ.source_name = pvalue.decode("utf-8")
+            summ.num_items = count
+            results.append(summ)
+
+        self._connection.commit()
+        self._cursor.close()
+        self._connection.close()
+
+        return results
 
 #if __name__ == '__main__':
 #    sd = source_dao()

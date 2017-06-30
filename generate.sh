@@ -13,7 +13,7 @@ for i in start count orderby
 do
 sed -i -e "s/${i} instanceof Date/${i}/" -e "s/${i}.d.toISOString()/${i}/" typescript-angular2-client/api/EntityApi.ts
 done
-for i in updateOnly
+for i in updateOnly start count orderby
 do
 sed -i -e "s/${i} instanceof Date/${i}/" -e "s/${i}.d.toISOString()/${i}/" typescript-angular2-client/api/SourceApi.ts
 done

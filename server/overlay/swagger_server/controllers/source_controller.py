@@ -2,14 +2,13 @@ import connexion
 from swagger_server.models.api_response import ApiResponse
 from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
-from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
 
 from backbone_server.dao.source_dao import SourceDAO
+from backbone_server.dao.entity_dao import EntityDAO
 import sys
-import io
 import json
 
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
@@ -18,6 +17,41 @@ from backbone_server.errors.duplicate_id_exception import DuplicateIdException
 from backbone_server.errors.invalid_id_exception import InvalidIdException
 
 #import cProfile
+
+def download_source_entities_by_property(sourceId, propName, propValue, start=None, count=None,
+                                           orderby=None):
+    """
+    fetches entities by property value for a given source
+    
+    :param sourceId: ID of source to query
+    :type sourceId: str
+    :param propName: name of property to search
+    :type propName: str
+    :param propValue: matching value of property to search
+    :type propValue: str
+    :param start: for pagination start the result set at a record x
+    :type start: int
+    :param count: for pagination the number of entries to return
+    :type count: int
+    :param orderby: how to order the result set
+    :type orderby: str
+
+    :rtype: Entities
+    """
+    print("download_source_entities_by_property")
+
+    result = None
+    retcode = 200
+
+    ed = EntityDAO()
+
+    try:
+        result = ed.fetch_entities_by_property(sourceId, propName, propValue, start, count, orderby)
+    except NoSuchTypeException as t:
+        logging.getLogger().error("download_entities_by_property: {}".format(t))
+        retcode = 404
+
+    return result, retcode
 
 
 def download_source_entity(sourceId, sourceEntityId):
@@ -51,16 +85,17 @@ def download_source_entity(sourceId, sourceEntityId):
 def upload_entity(sourceId, entity):
     """
     uploads an entity
-
-    :param sourceId: ID of source to update
+    
+    :param sourceId: ID of source to which the entity should belong
     :type sourceId: str
     :param entity: desc
     :type entity: dict | bytes
 
-    :rtype: ApiResponse
+    :rtype: str
     """
     if connexion.request.is_json:
-        ent = Entity.from_dict(connexion.request.get_json())
+        entity = SourceEntity.from_dict(connexion.request.get_json())
+    return 'do some magic!'
 
     sd = SourceDAO()
 
@@ -87,9 +122,9 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
     :param dataFile: file to upload
     :type dataFile: werkzeug.datastructures.FileStorage
     :param additionalMetadata: Additional data to pass to server
-    :type additionalMetadata: str
-    :param update_only: Only update existing records e.g. for filling in implied values
-    :type update_only: bool
+    :type additionalMetadata: werkzeug.datastructures.FileStorage
+    :param updateOnly: Only update existing records e.g. for filling in implied values
+    :type updateOnly: bool
 
     :rtype: ApiResponse
     """

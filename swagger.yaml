@@ -141,7 +141,7 @@ paths:
         - report
       summary: fetches a summary of the properties in the source
       description: ''
-      operationId: getPropertiesSummary
+      operationId: getSourcePropertiesSummary
       parameters:
         - name: sourceId
           in: path
@@ -165,7 +165,7 @@ paths:
         - report
       summary: fetches a summary of the property values in the source
       description: ''
-      operationId: getPropertyValuesSummary
+      operationId: getSourcePropertyValuesSummary
       parameters:
         - name: sourceId
           in: path
@@ -208,6 +208,55 @@ paths:
           description: success
           schema:
             $ref: '#/definitions/Summary'
+  '/sources/{sourceId}/property/{propName}/{propValue}':
+    get:
+      tags:
+        - source
+      summary: fetches entities by property value for a given source
+      description: ''
+      operationId: downloadSourceEntitiesByProperty
+      produces:
+        - application/json
+      parameters:
+        - name: sourceId
+          in: path
+          description: ID of source to query
+          required: true
+          type: string
+        - name: propName
+          in: path
+          description: name of property to search
+          required: true
+          type: string
+        - name: propValue
+          in: path
+          description: matching value of property to search
+          required: true
+          type: string
+        - name: start
+          in: query
+          description: for pagination start the result set at a record x
+          required: false
+          type: integer
+        - name: count
+          in: query
+          description: for pagination the number of entries to return
+          required: false
+          type: integer
+        - name: orderby
+          in: query
+          description: how to order the result set
+          required: false
+          type: string
+          default: value
+          enum:
+            - value
+            - source
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Entities'
   '/entity/{entityId}':
     get:
       tags:
@@ -321,6 +370,50 @@ paths:
           description: successful operation
           schema:
             $ref: '#/definitions/Entities'
+  '/entities/summary':
+    get:
+      tags:
+        - report
+      summary: fetches a summary of all the properties
+      description: ''
+      operationId: getPropertiesSummary
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/Summary'
+  '/entities/summary/{propName}':
+    get:
+      tags:
+        - report
+      summary: fetches a summary of the property values in the source
+      description: ''
+      operationId: getPropertyValuesSummary
+      parameters:
+        - name: propName
+          in: path
+          description: name of property to search
+          required: true
+          type: string
+        - name: threshold
+          in: query
+          description: the lower bound to return
+          required: false
+          default: 5
+          type: integer
+      produces:
+        - application/json
+      responses:
+        '200':
+          description: success
+          schema:
+            $ref: '#/definitions/Summary'
+        '404':
+          description: Not found
+          schema:
+              type: string
 definitions:
   Entities:
     type: object
