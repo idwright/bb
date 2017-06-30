@@ -79,7 +79,7 @@ export class EntitiesDisplayComponent implements OnInit {
         //console.log('entities-display set propertyValue:' + propertyValue);
         this._propertyValue = propertyValue;
         this.propertyValueChange.emit(this._propertyValue);
-        if (this._sourceName && this._propertyName && this._propertyValue) {
+        if (this._propertyName && this._propertyValue) {
             this.setPage({ offset: 0, size: this.pageSize });
         }
     }
@@ -166,15 +166,15 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     loadEntities(): void {
+        //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
         if (this._sourceName && this._propertyName && this._propertyValue) {
-            //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
+            
             this.sourceApi.downloadSourceEntitiesByProperty(this._sourceName, this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => this.processEntityResponse(entities),
                 (err) => console.log(err),
                 () => { console.log("Downloaded entities") }
             );
         } else if (this._propertyName && this._propertyValue) {
-            //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
             this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => this.processEntityResponse(entities),
                 (err) => console.log(err),
