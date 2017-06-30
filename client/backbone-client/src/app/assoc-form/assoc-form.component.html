@@ -8,14 +8,14 @@
             </small>
     </div>
     <div class="form-group col-xs-4">
-      <label>Source</label>
+      <a [routerLink]="['/detail', aForm.controls.source_id.value]"><label>Source</label></a>
       <input type="text" class="form-control" formControlName="source_id">
       <small [hidden]="aForm.controls.source_id.valid" class="text-danger">
                     Source id is required
                 </small>
     </div>
     <div class="form-group col-xs-4">
-      <label>Target</label>
+      <a [routerLink]="['/detail', aForm.controls.target_id.value]"><label>Target</label></a>
       <input type="text" class="form-control" formControlName="target_id">
       <small [hidden]="aForm.controls.target_id.valid" class="text-danger">
                     Target Id id is required
