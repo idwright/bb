@@ -37,15 +37,13 @@ export class EntitiesComponent implements OnInit {
 			(err) => console.log(err),
 			() => { console.log("Downloaded summary") }
 			);
-
-
 	}
 
 	sourceChanged(event) {
 		//console.log("Source changed:" + event);
 		if (event) {
 			this._source = event
-			this.reportApi.getPropertiesSummary(event).subscribe(
+			this.reportApi.getSourcePropertiesSummary(event).subscribe(
 				(props) => {
 					//console.log(props);
 					this.sourceProperties = props;
@@ -55,6 +53,14 @@ export class EntitiesComponent implements OnInit {
 			);
 		} else {
 			this.sourceProperties = undefined;
+			this.reportApi.getPropertiesSummary().subscribe(
+				(props) => {
+					//console.log(props);
+					this.sourceProperties = props;
+				},
+				(err) => console.log(err),
+				() => { console.log("Downloaded props summary") }
+			);
 		}
 		this.propertyValues = undefined;
 	}
@@ -63,7 +69,16 @@ export class EntitiesComponent implements OnInit {
 		//console.log("property name changed:" + event);
 		this.propertyNameSelector = event;
 		if (event && this._source) {
-			this.reportApi.getPropertyValuesSummary(this._source, event).subscribe(
+			this.reportApi.getSourcePropertyValuesSummary(this._source, event).subscribe(
+				(props) => {
+					console.log(props);
+					this.propertyValues = props;
+				},
+				(err) => console.log(err),
+				() => { console.log("Downloaded prop values") }
+			);
+		} if (event) {
+			this.reportApi.getPropertyValuesSummary(event).subscribe(
 				(props) => {
 					console.log(props);
 					this.propertyValues = props;

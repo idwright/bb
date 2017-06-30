@@ -7,6 +7,7 @@ import { Entity } from '../typescript-angular2-client/model/Entity';
 import { Property } from '../typescript-angular2-client/model/Property';
 
 import { EntityApi } from '../typescript-angular2-client/api/EntityApi';
+import { SourceApi } from '../typescript-angular2-client/api/SourceApi';
 
 import { Page } from "../model/page";
 
@@ -88,6 +89,7 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     constructor(private entityApi: EntityApi,
+        private sourceApi: SourceApi,
         private route: ActivatedRoute,
         private location: Location,
     ) {
@@ -102,75 +104,79 @@ export class EntitiesDisplayComponent implements OnInit {
         //this.setPage({ offset: 0, size: this.pageSize });
     }
 
+    propertyKey(prop: Property) {
+        return (prop.source + " " + prop.data_name);
+    }
+
+    processEntityResponse(entities) {
+
+        //console.log(entities);
+
+        this.page.totalElements = entities.count;
+        this.page.totalPages = this.page.totalElements / this.page.size;
+        let start = this.page.pageNumber * this.page.size;
+        let end = Math.min((start + this.page.size), this.page.totalElements);
+
+        let entityRows: string[] = [];
+        let identityCols: any[] = [];
+        let allCols: any[] = [];
+        let entityColumn = {
+            'prop': 'entityId',
+            cellTemplate: this.identityTmpl,
+            headerTemplate: this.hdrTpl
+        };
+        allCols.push(entityColumn);
+        identityCols.push(entityColumn);
+
+        let refsColumn = {
+            'prop': 'refs',
+            'name': 'Associations',
+            headerTemplate: this.hdrTpl
+        };
+
+        if (this.showRefCount) {
+            identityCols.push(refsColumn);
+        }
+        allCols.push(refsColumn);
+
+        entities.fields.forEach(field => {
+            let propColumn = {
+                'prop': this.propertyKey(field),
+                propSource: field.source,
+                propName: field.data_name,
+                cellTemplate: this.propertyValueTmpl,
+                headerTemplate: this.hdrTpl
+            };
+            allCols.push(propColumn);
+        });
+
+        entities.entities.forEach(entity => {
+            let entityRow: any = {
+                'entityId': entity.entity_id,
+                'refs': entity.refs.length
+            };
+
+            entity.values.forEach(prop => {
+                entityRow[this.propertyKey(prop)] = prop.data_value;
+            });
+            entityRows.push(entityRow);
+        });
+        this.rows = entityRows;
+        this.columns = allCols;
+    }
+
     loadEntities(): void {
         if (this._sourceName && this._propertyName && this._propertyValue) {
             //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
+            this.sourceApi.downloadSourceEntitiesByProperty(this._sourceName, this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
+                (entities) => this.processEntityResponse(entities),
+                (err) => console.log(err),
+                () => { console.log("Downloaded entities") }
+            );
+        } else if (this._propertyName && this._propertyValue) {
+            //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
             this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
-                (entities) => {
-                    //console.log(entities);
-
-                    this.page.totalElements = entities.count;
-                    this.page.totalPages = this.page.totalElements / this.page.size;
-                    let start = this.page.pageNumber * this.page.size;
-                    let end = Math.min((start + this.page.size), this.page.totalElements);
-
-                    let entityRows: string[] = [];
-                    let identityCols: any[] = [];
-                    let allCols: any[] = [];
-                    let entityColumn = {
-                        'prop': 'entityId',
-                        cellTemplate: this.identityTmpl,
-                        headerTemplate: this.hdrTpl
-                    };
-                    allCols.push(entityColumn);
-                    identityCols.push(entityColumn);
-
-                    let refsColumn = {
-                        'prop': 'refs',
-                        'name': 'Associations',
-                        headerTemplate: this.hdrTpl
-                    };
-
-                    if (this.showRefCount) {
-                        identityCols.push(refsColumn);
-                    }
-                    allCols.push(refsColumn);
-                    entities.entities.forEach(entity => {
-                        let entityRow: any = {
-                            'entityId': entity.entity_id,
-                            'refs': entity.refs.length
-                        };
-
-                        entity.values.forEach(prop => {
-                            let propKey = prop.source + "." + prop.data_name;
-                            let colIdx: number = -1;
-                            for (let i = 0; i < allCols.length; i++) {
-                                if (allCols[i].prop == propKey) {
-                                    colIdx = i;
-                                    break;
-                                }
-                            }
-                            if (colIdx < 0) {
-                                let valueColumn = {
-                                    'prop': propKey,
-                                    propSource: prop.source,
-                                    propName: prop.data_name,
-                                    cellTemplate: this.propertyValueTmpl,
-                                    headerTemplate: this.hdrTpl
-                                };
-                                allCols.push(valueColumn);
-                                if (prop.identity) {
-                                    identityCols.push(valueColumn);
-                                }
-                            }
-                            entityRow[propKey] = prop.data_value;
-
-                        });
-                        entityRows.push(entityRow);
-                    });
-                    this.rows = entityRows;
-                    this.columns = identityCols;
-                },
+                (entities) => this.processEntityResponse(entities),
                 (err) => console.log(err),
                 () => { console.log("Downloaded entities") }
             );
