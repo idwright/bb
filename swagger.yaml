@@ -537,6 +537,8 @@ definitions:
     properties:
       source_name:
         type: string
+      prop_name:
+        type: string
       num_items:
         type: integer
       implied_items:

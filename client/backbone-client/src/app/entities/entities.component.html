@@ -17,8 +17,8 @@
             [(ngModel)]="propertyNameSelector" />
         </md-input-container>
         <md-autocomplete #properties="mdAutocomplete" panel="sourceprops-panel">
-            <md-option *ngFor="let prop of sourceProperties" [value]="prop.source_name">
-                {{ prop.source_name }}
+            <md-option *ngFor="let prop of sourceProperties" [value]="prop.prop_name">
+                {{ prop.prop_name }}
             </md-option>
         </md-autocomplete>
     </span>

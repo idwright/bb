@@ -743,26 +743,44 @@ class EntityDAO(BaseDAO):
 
     def get_properties(self, source):
 
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
         pfilter = ''
         params = ()
         if source:
             pfilter = ' WHERE `pt`.source = %s '
             params = (source,)
-        query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
+            query = '''SELECT COUNT(pt.prop_name), pt.prop_name, pt.source from property_types pt
             JOIN properties p ON p.prop_type_id = pt.id''' + pfilter + '''
-                    GROUP BY (pt.prop_name);'''
+                    GROUP BY pt.source, pt.prop_name;'''
 
-        self._connection = self.get_connection()
-        self._cursor = self._connection.cursor()
 
-        self._cursor.execute(query, params)
+            print(query % params)
+            self._cursor.execute(query, params)
 
-        results = []
-        for (count, pname) in self._cursor:
-            summ = SummaryItem()
-            summ.source_name = pname.decode('utf-8')
-            summ.num_items = count
-            results.append(summ)
+            results = []
+            for (count, pname, psource) in self._cursor:
+                summ = SummaryItem()
+                summ.source_name = psource.decode('utf-8')
+                summ.prop_name = pname.decode('utf-8')
+                summ.num_items = count
+                results.append(summ)
+        else:
+            query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
+            JOIN properties p ON p.prop_type_id = pt.id
+                    GROUP BY pt.prop_name;'''
+
+
+            print(query)
+            self._cursor.execute(query)
+
+            results = []
+            for (count, pname) in self._cursor:
+                summ = SummaryItem()
+                summ.prop_name = pname.decode('utf-8')
+                summ.num_items = count
+                results.append(summ)
 
         self._connection.commit()
         self._cursor.close()
