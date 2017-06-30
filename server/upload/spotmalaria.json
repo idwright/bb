@@ -4,7 +4,16 @@
             "column": 0,
             "type": "string",
             "source": "alfresco"
+        },
+        "Oxford code": {
+            "column": 26,
+            "type": "string",
+            "source": "oxford_central_samples",
+            "fk_name": "individual_code",
+            "ref_type": "sibling"
         }
+    },
+    "values": {
     },
     "values": {
         "alfresco_code": {
