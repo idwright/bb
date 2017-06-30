@@ -26,6 +26,9 @@ import { PropertyFormComponent } from './property-form/property-form.component';
 import { AssocFormComponent } from './assoc-form/assoc-form.component';
 import { PropertiesFormComponent } from './properties-form/properties-form.component';
 import { EntitiesFullListComponent } from './entities-full-list/entities-full-list.component';
+import { PropertiesSummaryComponent } from './properties-summary/properties-summary.component';
+import { PropertySummaryComponent } from './property-summary/property-summary.component';
+import { EntitiesByPropertyValueComponent } from './entities-by-property-value/entities-by-property-value.component';
 
 
 @NgModule({
@@ -42,7 +45,10 @@ import { EntitiesFullListComponent } from './entities-full-list/entities-full-li
     PropertyFormComponent,
     AssocFormComponent,
     PropertiesFormComponent,
-    EntitiesFullListComponent
+    EntitiesFullListComponent,
+    PropertiesSummaryComponent,
+    PropertySummaryComponent,
+    EntitiesByPropertyValueComponent
   ],
   imports: [
     BrowserModule,

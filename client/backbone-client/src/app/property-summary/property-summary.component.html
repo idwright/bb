@@ -1,0 +1,7 @@
+<div class="grid grid-pad">
+  <a *ngFor="let summaryItem of propertyValues"  [routerLink]="['/entitiesByPropValue', propertyName, summaryItem.source_name]"  class="col-1-4">
+    <div class="module">
+        <h4>{{summaryItem.source_name}} {{summaryItem.num_items}}</h4>
+    </div>
+  </a>
+</div>
