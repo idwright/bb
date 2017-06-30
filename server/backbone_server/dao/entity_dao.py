@@ -769,7 +769,7 @@ class EntityDAO(BaseDAO):
         else:
             query = '''SELECT COUNT(pt.prop_name), pt.prop_name from property_types pt
             JOIN properties p ON p.prop_type_id = pt.id
-                    GROUP BY pt.prop_name;'''
+                    GROUP BY pt.prop_name ORDER BY CONVERT (pt.prop_name USING utf8);'''
 
 
             print(query)
@@ -813,11 +813,12 @@ class EntityDAO(BaseDAO):
             JOIN properties p ON p.id = ep.property_id
             JOIN property_types pt ON pt.id = p.prop_type_id
             WHERE ''' + pfilter + ''' `pt`.`prop_name` = %s
-            GROUP BY (''' + prop.data_field + ''') HAVING COUNT(''' + prop.data_field + ''') > %s order by prop_name, ''' +
+            GROUP BY (''' + prop.data_field + ''') HAVING COUNT(''' + prop.data_field + ''') > %s
+                 order by CONVERT (prop_name USING utf8), ''' +
                  prop.data_field)
 
 
-        #print(query % qargs)
+        print(query % qargs)
         self._cursor.execute(query, qargs)
 
         results = []
