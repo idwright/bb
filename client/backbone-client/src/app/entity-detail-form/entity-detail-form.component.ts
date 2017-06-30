@@ -42,9 +42,9 @@ export class EntityDetailFormComponent implements OnInit {
           values: entityValues,
           refs: this._fb.array([]),
         });
-        
-        
-    
+
+
+
         this.entity.refs.forEach(ref => {
           let refValues = PropertiesFormComponent.initValues(ref.values);
           let propControl = this.initAssoc(ref.assoc_name, ref.source_id, ref.target_id, '', refValues);
@@ -87,6 +87,12 @@ export class EntityDetailFormComponent implements OnInit {
       );
   }
 
+  addAssociation() {
+    let aValues = PropertiesFormComponent.initValues([]);
+
+    let propControl = this.initAssoc('', '', '', '', aValues);
+    this.pushAssoc(propControl);
+  }
   private onFormChange() {
     console.log("Changing:" + this.entity.entity_id);
   }

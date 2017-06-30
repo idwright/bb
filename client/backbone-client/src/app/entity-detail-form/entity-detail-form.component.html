@@ -12,6 +12,13 @@
     <app-properties-form [properties]="entityForm.controls.values"></app-properties-form>
 
     <!-- refs -->
+
+    <div class="margin-20">
+      <a (click)="addAssociation()" style="cursor: default">
+            Add another association +
+          </a>
+    </div>
+
     <div formArrayName="refs">
       <div *ngFor="let property of entityForm.controls.refs.controls; let i=index" class="panel panel-default">
         <div class="panel-heading">
@@ -34,6 +41,7 @@
       <pre>Is myForm valid?: <br>{{entityForm.valid | json}}</pre>
       <pre>form value: <br>{{entityForm.value | json}}</pre>
     </div>
+    
   </form>
 
   <button (click)="goBack()">Back</button>
