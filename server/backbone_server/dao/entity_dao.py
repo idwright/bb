@@ -756,7 +756,7 @@ class EntityDAO(BaseDAO):
                     GROUP BY pt.source, pt.prop_name;'''
 
 
-            print(query % params)
+            #print(query % params)
             self._cursor.execute(query, params)
 
             results = []
@@ -772,7 +772,7 @@ class EntityDAO(BaseDAO):
                     GROUP BY pt.prop_name ORDER BY CONVERT (pt.prop_name USING utf8);'''
 
 
-            print(query)
+            #print(query)
             self._cursor.execute(query)
 
             results = []
@@ -818,7 +818,7 @@ class EntityDAO(BaseDAO):
                  prop.data_field)
 
 
-        print(query % qargs)
+        #print(query % qargs)
         self._cursor.execute(query, qargs)
 
         results = []
