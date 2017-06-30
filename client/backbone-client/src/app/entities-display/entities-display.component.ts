@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, ViewChild, TemplateRef, Output, EventEmitter } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location } from '@angular/common';
+import { QueryEncoder } from '@angular/http';
 
 import { Entities } from '../typescript-angular2-client/model/Entities';
 import { Entity } from '../typescript-angular2-client/model/Entity';
@@ -166,16 +167,17 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     loadEntities(): void {
-        //console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
+        console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
+        let coder = new QueryEncoder();
         if (this._sourceName && this._propertyName && this._propertyValue) {
-            
-            this.sourceApi.downloadSourceEntitiesByProperty(this._sourceName, this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
+
+            this.sourceApi.downloadSourceEntitiesByProperty(coder.encodeValue(this._sourceName), coder.encodeValue(this._propertyName), coder.encodeValue(this._propertyValue), this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => this.processEntityResponse(entities),
                 (err) => console.log(err),
                 () => { console.log("Downloaded entities") }
             );
         } else if (this._propertyName && this._propertyValue) {
-            this.entityApi.downloadEntitiesByProperty(this._propertyName, this._propertyValue, this.page.pageNumber * this.page.size, this.page.size).subscribe(
+            this.entityApi.downloadEntitiesByProperty(coder.encodeValue(this._propertyName), coder.encodeValue(this._propertyValue), this.page.pageNumber * this.page.size, this.page.size).subscribe(
                 (entities) => this.processEntityResponse(entities),
                 (err) => console.log(err),
                 () => { console.log("Downloaded entities") }

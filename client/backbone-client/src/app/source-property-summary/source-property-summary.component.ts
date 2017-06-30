@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Params } from '@angular/router';
 import { Location }               from '@angular/common';
+import { QueryEncoder } from '@angular/http';
 
 import { Summary } from '../typescript-angular2-client/model/Summary';
 
@@ -28,9 +29,9 @@ export class SourcePropertySummaryComponent implements OnInit {
         console.log("source property summary");
         this.sourceName = this.route.snapshot.params['sourceId'];
         this.propertyName = this.route.snapshot.params['propertyName'];
-
+        let coder = new QueryEncoder();
       this.route.params.switchMap((params: Params) =>
-        this.reportApi.getPropertyValuesSummary(params['sourceId'], params['propertyName'], 0)).subscribe(
+        this.reportApi.getSourcePropertyValuesSummary(coder.encodeValue(params['sourceId']), coder.encodeValue(params['propertyName']), 0)).subscribe(
             (summary) => {
                             console.log(summary);
                             this.summary = summary;
