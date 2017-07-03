@@ -77,7 +77,7 @@ export class EntitiesComponent implements OnInit {
 				(err) => console.log(err),
 				() => { console.log("Downloaded prop values") }
 			);
-		} if (event) {
+		} else if (event) {
 			this.reportApi.getPropertyValuesSummary(event).subscribe(
 				(props) => {
 					console.log(props);
