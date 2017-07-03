@@ -23,7 +23,7 @@ export class EntitiesDisplayComponent implements OnInit {
     page: Page = new Page();
 
     @Input()
-    pageSize: number = 1000;
+    pageSize: number = 100;
 
     @Input()
     showRefCount: boolean = false;
