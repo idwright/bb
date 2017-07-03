@@ -46,7 +46,12 @@ def download_source_entities_by_property(sourceId, propName, propValue, start=No
     ed = EntityDAO()
 
     try:
+#        profile = cProfile.Profile()
+#        profile.enable()
         result = ed.fetch_entities_by_property(sourceId, propName, propValue, start, count, orderby)
+#        profile.disable()
+#        profile.print_stats()
+
     except NoSuchTypeException as t:
         logging.getLogger().error("download_entities_by_property: {}".format(t))
         retcode = 404
@@ -93,22 +98,22 @@ def upload_entity(sourceId, entity):
 
     :rtype: str
     """
-    if connexion.request.is_json:
-        entity = SourceEntity.from_dict(connexion.request.get_json())
-    return 'do some magic!'
 
-    sd = SourceDAO()
+    if connexion.request.is_json:
+        ent = SourceEntity.from_dict(connexion.request.get_json())
+
+    sdao = SourceDAO()
 
     try:
-        result = sd.create_source_entity(sourceId, ent)
-    except InvalidIdException as e:
-        return repr(e), 404 #Unprocessable entity
-    except NoIdException as e:
-        return repr(e), 422 #Unprocessable entity
-    except IncompleteCombinationKeyException as e:
-        return repr(e), 422 #Unprocessable entity
-    except DuplicateIdException as e:
-        return repr(e), 409 #Conflict
+        result = sdao.create_source_entity(sourceId, ent)
+    except InvalidIdException as iie:
+        return repr(iie), 404 #Unprocessable entity
+    except NoIdException as nie:
+        return repr(nie), 422 #Unprocessable entity
+    except IncompleteCombinationKeyException as icke:
+        return repr(icke), 422 #Unprocessable entity
+    except DuplicateIdException as die:
+        return repr(die), 409 #Conflict
 
     return result, 201
 
