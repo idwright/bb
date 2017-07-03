@@ -823,8 +823,9 @@ class EntityDAO(BaseDAO):
 
         results = []
         for (count, pname, pvalue) in self._cursor:
+            #print(repr(prop), pvalue)
             summ = SummaryItem()
-            summ.source_name = pvalue.decode("utf-8")
+            summ.source_name = str(prop.from_db_value(prop.data_type, pvalue))
             summ.num_items = count
             results.append(summ)
 
