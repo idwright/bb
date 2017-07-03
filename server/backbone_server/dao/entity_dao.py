@@ -659,7 +659,7 @@ class EntityDAO(BaseDAO):
             #print(str(start) + str(count))
             if not (start is None and count is None):
                 props_query = props_query + ' LIMIT ' + str(start) + "," + str(count)
-            #print(props_query)
+            #print(props_query % (prop.type_id, prop.typed_data_value,))
             if count is None or int(count) == 0 or len(entities) < int(count):
                 try:
                     self._cursor.execute(props_query, (prop.type_id, prop.typed_data_value,))
@@ -705,28 +705,31 @@ class EntityDAO(BaseDAO):
 
     def find_columns(self, prop):
 
-        columns_query = '''SELECT
-                    pt.source, pt.prop_name, pt.prop_type, pt.identity
+        columns_query = '''SELECT 
+    pt.`source`, pt.prop_name, pt.prop_type, pt.identity
+FROM
+    properties p
+        JOIN
+    property_types pt ON p.prop_type_id = pt.id
+WHERE
+    p.id IN (SELECT DISTINCT
+            ep.property_id
+        FROM
+            entity_properties ep
+        WHERE
+            ep.entity_id IN (SELECT
+                    e.added_id
                 FROM
-                    entity_properties ep
+                    properties p
                         JOIN
-                    properties p ON p.id = ep.property_id
+                    entity_properties ep ON ep.property_id = p.id
                         JOIN
-                    property_types pt ON p.prop_type_id = pt.id
+                    entities e ON e.added_id = ep.entity_id
                 WHERE
-                    ep.entity_id IN (SELECT
-                            e.added_id
-                        FROM
-                            properties p
-                                JOIN
-                            entity_properties ep ON ep.property_id = p.id
-                                JOIN
-                            entities e ON e.added_id = ep.entity_id
-                        WHERE
-                            prop_type_id = %s
-                                AND ''' + prop.data_field + ''' = %s)
-                GROUP BY pt.source , pt.prop_name
-                ORDER BY pt.source , pt.prop_name'''
+    prop_type_id = %s AND ''' + prop.data_field + ''' = %s
+))
+GROUP BY pt.id
+ORDER BY pt.`source` , pt.prop_name;'''
 
         #print(columns_query % (prop.type_id, prop.typed_data_value))
         self._cursor.execute(columns_query, (prop.type_id, prop.typed_data_value))
