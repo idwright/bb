@@ -102,7 +102,8 @@ class EntityDAO(BaseDAO):
                     prop.source, prop.data_name,
                     prop.data_value, props[property_type_id].data_value))
             props[property_type_id] = prop
-            self.add_entity_property(internal_id, prop, property_type_id)
+            if prop.data_value != '':
+                self.add_entity_property(internal_id, prop, property_type_id)
 
         fk_keys = []
         if entity.refs:
@@ -692,8 +693,7 @@ class EntityDAO(BaseDAO):
                     JOIN entities e ON e.added_id = ep.entity_id ''' + where_clause
 
             try:
-                #print(props_query)
-                #print("{} {}".format(repr(prop), repr(query_value)))
+                #print(count_query % query_args)
                 self._cursor.execute(count_query, query_args)
 
                 result.count = result.count + self._cursor.fetchone()[0]
