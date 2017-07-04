@@ -745,22 +745,22 @@ WHERE
         FROM
             entity_properties ep
         WHERE
-            ep.entity_id IN (SELECT
-                    e.added_id
+            ep.entity_id IN (SELECT DISTINCT 
+                    ep.entity_id
                 FROM
                     properties p
                         JOIN
                     entity_properties ep ON ep.property_id = p.id
                         JOIN
-                    entities e ON e.added_id = ep.entity_id
+                    property_types pt ON p.prop_type_id = pt.id
                 WHERE
-    prop_type_id = %s AND ''' + prop.data_field + ''' = %s
+    prop_type_id = %s AND ''' + prop.data_field + ''' = %s AND source = %s
 ))
 GROUP BY pt.id
 ORDER BY pt.`source` , pt.prop_name;'''
 
-        #print(columns_query % (prop.type_id, prop.typed_data_value))
-        self._cursor.execute(columns_query, (prop.type_id, prop.typed_data_value))
+        #print(columns_query % (prop.type_id, prop.typed_data_value, prop.source))
+        self._cursor.execute(columns_query, (prop.type_id, prop.typed_data_value, prop.source))
         columns = []
         for (source, prop_name, prop_type, identity) in self._cursor:
             sprop = ServerProperty()

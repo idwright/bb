@@ -113,7 +113,7 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     setColumns() {
-        this.reportApi.fieldsUsedByEntities(this._propertyName, this._propertyValue, null, 'used').subscribe(
+        this.reportApi.fieldsUsedByEntities(this._propertyName, this._propertyValue, this._sourceName, 'used').subscribe(
             (result) => {
                 let allCols: any[] = [];
 
