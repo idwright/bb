@@ -8,6 +8,7 @@ import { Entity } from '../typescript-angular2-client/model/Entity';
 import { Property } from '../typescript-angular2-client/model/Property';
 
 import { EntityApi } from '../typescript-angular2-client/api/EntityApi';
+import { ReportApi } from '../typescript-angular2-client/api/ReportApi';
 import { SourceApi } from '../typescript-angular2-client/api/SourceApi';
 
 import { Page } from "../model/page";
@@ -81,6 +82,7 @@ export class EntitiesDisplayComponent implements OnInit {
         this._propertyValue = propertyValue;
         this.propertyValueChange.emit(this._propertyValue);
         if (this._propertyName && this._propertyValue) {
+            this.setColumns();
             this.setPage({ offset: 0, size: this.pageSize });
         }
     }
@@ -90,6 +92,7 @@ export class EntitiesDisplayComponent implements OnInit {
     }
 
     constructor(private entityApi: EntityApi,
+        private reportApi: ReportApi,
         private sourceApi: SourceApi,
         private route: ActivatedRoute,
         private location: Location,
@@ -109,6 +112,44 @@ export class EntitiesDisplayComponent implements OnInit {
         return (prop.source + " " + prop.data_name);
     }
 
+    setColumns() {
+        this.reportApi.fieldsUsedByEntities(this._propertyName, this._propertyValue, null, 'used').subscribe(
+            (result) => {
+                let allCols: any[] = [];
+
+                let entityColumn = {
+                    'prop': 'entityId',
+                    cellTemplate: this.identityTmpl,
+                    headerTemplate: this.hdrTpl
+                };
+                allCols.push(entityColumn);
+
+                let refsColumn = {
+                    'prop': 'refs',
+                    'name': 'Associations',
+                    headerTemplate: this.hdrTpl
+                };
+
+                if (this.showRefCount) {
+                    allCols.push(refsColumn);
+                }
+
+                result.fields.forEach(field => {
+                    let propColumn = {
+                        'prop': this.propertyKey(field),
+                        propSource: field.source,
+                        propName: field.data_name,
+                        cellTemplate: this.propertyValueTmpl,
+                        headerTemplate: this.hdrTpl
+                    };
+                    allCols.push(propColumn);
+                });
+                this.columns = allCols;
+            },
+            (err) => console.log(err),
+            () => { console.log("Downloaded fields") }
+        );
+    }
     processEntityResponse(entities) {
 
         //console.log(entities);
@@ -119,37 +160,6 @@ export class EntitiesDisplayComponent implements OnInit {
         let end = Math.min((start + this.page.size), this.page.totalElements);
 
         let entityRows: string[] = [];
-        let identityCols: any[] = [];
-        let allCols: any[] = [];
-        let entityColumn = {
-            'prop': 'entityId',
-            cellTemplate: this.identityTmpl,
-            headerTemplate: this.hdrTpl
-        };
-        allCols.push(entityColumn);
-        identityCols.push(entityColumn);
-
-        let refsColumn = {
-            'prop': 'refs',
-            'name': 'Associations',
-            headerTemplate: this.hdrTpl
-        };
-
-        if (this.showRefCount) {
-            identityCols.push(refsColumn);
-        }
-        allCols.push(refsColumn);
-
-        entities.fields.forEach(field => {
-            let propColumn = {
-                'prop': this.propertyKey(field),
-                propSource: field.source,
-                propName: field.data_name,
-                cellTemplate: this.propertyValueTmpl,
-                headerTemplate: this.hdrTpl
-            };
-            allCols.push(propColumn);
-        });
 
         entities.entities.forEach(entity => {
             let entityRow: any = {
@@ -163,7 +173,7 @@ export class EntitiesDisplayComponent implements OnInit {
             entityRows.push(entityRow);
         });
         this.rows = entityRows;
-        this.columns = allCols;
+
     }
 
     loadEntities(): void {

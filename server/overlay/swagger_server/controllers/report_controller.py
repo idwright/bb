@@ -11,6 +11,31 @@ import sys
 import io
 import json
 
+def fields_used_by_entities(propName, propValue, sources=None, include=None):
+    """
+    fetches entities by property value
+    
+    :param propName: name of property to search
+    :type propName: str
+    :param propValue: matching value of property to search
+    :type propValue: str
+    :param sources: comma separated list of sources
+    :type sources: str
+    :param include: whether to include all fields (faster) or just those in use
+    :type include: str
+
+    :rtype: Fields
+    """
+
+    print("report_controller.get_properties_summary")
+    edao = EntityDAO()
+
+    fields = edao.fetch_fields_by_property(sources, propName, propValue, include)
+
+    return fields
+
+
+
 def get_properties_summary():
     """
     fetches a summary of all the properties

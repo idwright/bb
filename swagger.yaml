@@ -414,14 +414,49 @@ paths:
           description: Not found
           schema:
               type: string
+  '/entities/fields/{propName}/{propValue}':
+    get:
+      tags:
+        - report
+      summary: fetches entities by property value
+      description: ''
+      operationId: fieldsUsedByEntities
+      produces:
+        - application/json
+      parameters:
+        - name: propName
+          in: path
+          description: name of property to search
+          required: true
+          type: string
+        - name: propValue
+          in: path
+          description: matching value of property to search
+          required: true
+          type: string
+        - name: sources
+          in: query
+          description: comma separated list of sources
+          required: false
+          type: string
+        - name: include
+          in: query
+          description: whether to include all fields (faster) or just those in use
+          required: false
+          type: string
+          default: all
+          enum:
+            - all
+            - used
+      responses:
+        '200':
+          description: successful operation
+          schema:
+            $ref: '#/definitions/Fields'
 definitions:
   Entities:
     type: object
     properties:
-      fields:
-        type: array
-        items:
-          $ref: '#/definitions/Property'
       entities:
         type: array
         items:
@@ -444,6 +479,13 @@ definitions:
         type: array
         items:
           $ref: '#/definitions/Relationship'
+  Fields:
+    type: object
+    properties:
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/Property'
   SourceEntity:
     type: object
     required:

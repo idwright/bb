@@ -8,6 +8,7 @@ from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
 from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
+from swagger_server.models.fields import Fields
 from swagger_server.models.property import Property
 from swagger_server.models.relationship import Relationship
 from swagger_server.models.summary_item import SummaryItem
@@ -645,7 +646,6 @@ class EntityDAO(BaseDAO):
 
         props = self.get_properties_by_name(source, prop_name)
 
-        cols = []
         for prop in props:
             prop.data_value = prop_value
             props_query = '''SELECT
@@ -692,15 +692,43 @@ class EntityDAO(BaseDAO):
                 self._logger.warn("Mismatch type when searching: {}"
                                   .format(repr(prop)))
 
-            new_columns = self.find_columns(prop)
-            old_set = set(cols)
-            cols = cols + [x for x in new_columns if x not in old_set]
+        self._cursor.close()
+        self._connection.close()
+
+        result.entities = entities
+        return result
+
+    def fetch_fields_by_property(self, sources, prop_name, prop_value, include_filter):
+
+        self._connection = self.get_connection()
+        self._cursor = self._connection.cursor()
+
+
+        result = Fields()
+        entities = []
+        cols = []
+        source_list = [None]
+        if sources:
+            source_list = sources.split(",")
+
+        if include_filter == "all":
+            pass
+        else:
+            for source in source_list:
+                props = self.get_properties_by_name(source, prop_name)
+
+                for prop in props:
+                    prop.data_value = prop_value
+
+                    new_columns = self.find_columns(prop)
+                    old_set = set(cols)
+                    cols = cols + [x for x in new_columns if x not in old_set]
 
         self._cursor.close()
         self._connection.close()
 
         result.fields = cols
-        result.entities = entities
+
         return result
 
     def find_columns(self, prop):
