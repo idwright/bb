@@ -653,16 +653,25 @@ class EntityDAO(BaseDAO):
                 FROM
                     properties p
                 JOIN entity_properties ep ON ep.property_id = p.id
-                JOIN entities e ON e.added_id = ep.entity_id
-                WHERE prop_type_id = %s AND ''' + prop.data_field + ' = %s'
+                JOIN entities e ON e.added_id = ep.entity_id'''
+
+            where_clause = ' WHERE prop_type_id = %s '
+            if prop_value == "*":
+                where_clause = where_clause + ' AND ' + prop.data_field + ' IS NOT NULL'
+                query_args = (prop.type_id, )
+            else:
+                where_clause = where_clause + ' AND ' + prop.data_field + ' = %s'
+                query_args = (prop.type_id, prop.typed_data_value,)
+
+            props_query = props_query + where_clause
 
             #print(str(start) + str(count))
             if not (start is None and count is None):
                 props_query = props_query + ' LIMIT ' + str(start) + "," + str(count)
-            #print(props_query % (prop.type_id, prop.typed_data_value,))
+            #print(props_query % query_args))
             if count is None or int(count) == 0 or len(entities) < int(count):
                 try:
-                    self._cursor.execute(props_query, (prop.type_id, prop.typed_data_value,))
+                    self._cursor.execute(props_query, query_args)
 
                     ents = []
                     for (ent_id, added_id,) in self._cursor:
@@ -674,18 +683,18 @@ class EntityDAO(BaseDAO):
                     self._logger.warn("Mismatch type when searching: {} {} {}"
                                       .format(prop_name, prop_value, repr(prop)))
 
+            #Note that there is never a limit on the count, which is why it's a separate query
             count_query = '''SELECT
                     COUNT(e.added_id)
                     FROM
                         properties p
                     JOIN entity_properties ep ON ep.property_id = p.id
-                    JOIN entities e ON e.added_id = ep.entity_id
-                    WHERE prop_type_id = %s AND ''' + prop.data_field + ' = %s'
+                    JOIN entities e ON e.added_id = ep.entity_id ''' + where_clause
 
             try:
                 #print(props_query)
                 #print("{} {}".format(repr(prop), repr(query_value)))
-                self._cursor.execute(count_query, (prop.type_id, prop.typed_data_value,))
+                self._cursor.execute(count_query, query_args)
 
                 result.count = result.count + self._cursor.fetchone()[0]
             except ValueError:
@@ -733,7 +742,17 @@ class EntityDAO(BaseDAO):
 
     def find_columns(self, prop):
 
-        columns_query = '''SELECT 
+        where_clause = ' WHERE prop_type_id = %s AND source = %s '
+        query_args = ()
+
+        if prop.data_value == '*':
+            where_clause = where_clause + ' AND ' + prop.data_field + ' IS NOT NULL '
+            query_args = (prop.type_id, prop.source)
+        else:
+            where_clause = where_clause + ' AND ' + prop.data_field + ' = %s '
+            query_args = (prop.type_id, prop.source, prop.typed_data_value)
+
+        columns_query = '''SELECT
     pt.`source`, pt.prop_name, pt.prop_type, pt.identity
 FROM
     properties p
@@ -745,22 +764,19 @@ WHERE
         FROM
             entity_properties ep
         WHERE
-            ep.entity_id IN (SELECT DISTINCT 
+            ep.entity_id IN (SELECT DISTINCT
                     ep.entity_id
                 FROM
                     properties p
                         JOIN
                     entity_properties ep ON ep.property_id = p.id
                         JOIN
-                    property_types pt ON p.prop_type_id = pt.id
-                WHERE
-    prop_type_id = %s AND ''' + prop.data_field + ''' = %s AND source = %s
-))
+                    property_types pt ON p.prop_type_id = pt.id ''' + where_clause + '''))
 GROUP BY pt.id
 ORDER BY pt.`source` , pt.prop_name;'''
 
-        #print(columns_query % (prop.type_id, prop.typed_data_value, prop.source))
-        self._cursor.execute(columns_query, (prop.type_id, prop.typed_data_value, prop.source))
+        #print(columns_query % query_args)
+        self._cursor.execute(columns_query, query_args)
         columns = []
         for (source, prop_name, prop_type, identity) in self._cursor:
             sprop = ServerProperty()
