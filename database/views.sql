@@ -104,9 +104,7 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         ((tpt.prop_type = 'string'
             AND tp.string_value IS NOT NULL
             AND sp.string_value = tp.string_value)
-            OR (tpt.prop_type = 'integer'
-            AND tp.long_value IS NOT NULL
-            AND sp.long_value = tp.long_value));
+            );
         
    CREATE OR REPLACE VIEW `implied_sources` AS
     SELECT 
