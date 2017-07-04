@@ -9,6 +9,7 @@ from ..util import deserialize_date, deserialize_datetime
 from backbone_server.dao.source_dao import SourceDAO
 from backbone_server.dao.entity_dao import EntityDAO
 import sys
+import io
 import json
 
 from backbone_server.errors.incomplete_combination_key_exception import IncompleteCombinationKeyException
