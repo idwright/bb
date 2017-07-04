@@ -142,7 +142,9 @@ export class EntitiesDisplayComponent implements OnInit {
                         cellTemplate: this.propertyValueTmpl,
                         headerTemplate: this.hdrTpl
                     };
-                    allCols.push(propColumn);
+                    if (this.showRefCount || field.source != 'system') {
+                        allCols.push(propColumn);
+                    }
                 });
                 this.columns = allCols;
             },
