@@ -179,6 +179,7 @@ export class EntitiesDisplayComponent implements OnInit {
     loadEntities(): void {
         console.log("entities-display.loadEntities:" + JSON.stringify(this.page));
         let coder = new QueryEncoder();
+        this.rows = [];
         if (this._sourceName && this._propertyName && this._propertyValue) {
 
             this.sourceApi.downloadSourceEntitiesByProperty(coder.encodeValue(this._sourceName), coder.encodeValue(this._propertyName), coder.encodeValue(this._propertyValue), this.page.pageNumber * this.page.size, this.page.size).subscribe(
