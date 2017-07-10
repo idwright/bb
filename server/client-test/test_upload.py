@@ -71,3 +71,22 @@ class TestUpload(TestBase):
         except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % error)
 
+    """
+    """
+    def test_transform(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('test_transform', 'test_source.txt',
+                                       additional_metadata='test_transform.json')
+
+            rec1 = self.find_entity(api_instance, 'test_transform', '3288_6_nonhuman')
+
+            self.check_implied_target(api_instance, 'alfresco_transform', '1011', rec1, True)
+            self.check_implied_target(api_instance, 'sanger_ega_dataset_transform',
+                                      '3288_6_nonhuman', rec1, True)
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities\n")
+

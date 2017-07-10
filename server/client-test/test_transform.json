@@ -1,0 +1,37 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 2,
+            "type": "string",
+            "source": "alfresco_transform"
+        },
+        "ega_file_name": {
+            "column": 3,
+            "type": "string",
+            "fk_name": "file_name",
+            "source": "sanger_ega_dataset_transform"
+        }
+    },
+    "values":
+    {
+        "oxford_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "study_group": {
+            "column": 1,
+            "type": "string"
+        },
+        "alfresco_code": {
+            "column": 2,
+            "type": "string",
+            "regex": "^([0-9]{4})"
+        },
+        "name": {
+            "column": 3,
+            "type": "string",
+            "id": true,
+            "regex": "[^.]*"
+        }
+    }
+}

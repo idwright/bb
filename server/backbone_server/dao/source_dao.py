@@ -1,5 +1,6 @@
 import json
 import csv
+import re
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.server_property import ServerProperty
@@ -51,7 +52,13 @@ class SourceDAO(EntityDAO):
                     #print(repr(row))
                     prop_by_column[defn['column']] = defn['ptype']
                     try:
-                        data = ServerProperty(name, defn['type'], row[defn['column']], source, identity)
+                        data_value = row[defn['column']]
+                        if 'regex' in defn:
+                            re_match = re.search(defn['regex'], data_value)
+                            if re_match:
+                                data_value = re_match.group(0)
+                                #print("Transformed value is:" + data_value)
+                        data = ServerProperty(name, defn['type'], data_value, source, identity)
                     except IndexError:
                         self._logger.critical(repr(defn))
                         self._logger.critical(repr(row))
