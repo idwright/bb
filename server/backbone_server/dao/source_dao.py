@@ -1,6 +1,7 @@
 import json
 import csv
 import re
+import time
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.server_property import ServerProperty
@@ -112,16 +113,19 @@ class SourceDAO(EntityDAO):
 
         id_properties = []
         for prop in source_rec.values:
-            if isinstance(prop, ServerProperty):
-                if not prop.type_id:
-                    prop_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
-                                                              prop.data_type, prop.identity, 0,
-                                                              True)
-                    prop.type_id = prop_type.ident
+            if not isinstance(prop, ServerProperty):
+                sprop = ServerProperty(prop.data_name, prop.data_type, prop.data_value,
+                                       prop.source, prop.identity)
+                prop = sprop
+            if not prop.type_id:
+                prop_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
+                                                          prop.data_type, prop.identity, 0,
+                                                          True)
+                prop.type_id = prop_type.ident
 
             if prop.identity:
                 id_properties.append(prop)
-                if self.get_prop_value(prop) is None or (prop.data_type == 'string' and prop.data_value == ''):
+                if prop.typed_data_value is None or (prop.data_type == 'string' and prop.data_value == ''):
                     self._logger.error("No key value:" + repr(prop))
 #                print (repr(prop))
 

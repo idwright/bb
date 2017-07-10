@@ -1,3 +1,4 @@
+from swagger_server.util import deserialize_model
 from swagger_server.models.property import Property
 
 
@@ -8,8 +9,21 @@ class ServerProperty(Property):
         Property.__init__(self, data_name=data_name, data_type=data_type,
                           data_value=data_value, source=source, identity=identity)
 
-        self.swagger_types['type_id'] = 'integer'
+        self.swagger_types['type_id'] = int
+        self.attribute_map['type_id'] = 'type_id'
         self._type_id = None
+
+    @classmethod
+    def from_dict(self, dikt) -> 'ServerProperty':
+        """
+        Returns the dict as a model
+
+        :param dikt: A dict.
+        :type: dict
+        :return: The ServerProperty of this Property.
+        :rtype: ServerProperty
+        """
+        return deserialize_model(dikt, self)
 
     def __hash__(self):
         return hash(repr(self.to_dict()))
@@ -61,7 +75,7 @@ class ServerProperty(Property):
             'double': lambda x: float(x),
             'json': lambda x: x,
             'boolean': lambda x: 1 if x.lower() == 'true' else 0,
-            'datetime': lambda x: None if x is None or x.lower() == "null" or x == '' else x,
+            'datetime': lambda x: x,
             }.get(self._data_type)(self._data_value)
 
         return converted_field

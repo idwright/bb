@@ -58,8 +58,8 @@ class EntityDAO(BaseDAO):
                 if not found:
                     #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
                     self._system_fk_data.data_value = "true"
-                    self.add_entity_property(fk, self._system_fk_data, self._system_fk_type_id)
-                    self.add_entity_property(fk, missing, missing.type_id)
+                    self.add_entity_property(fk, self._system_fk_data)
+                    self.add_entity_property(fk, missing)
                     i = i + 1
                 #else:
                 #    print("Found!!!!!" + str(missing.type_id) + repr(missing))
@@ -79,31 +79,30 @@ class EntityDAO(BaseDAO):
 
         #Initialization of this is not ideal but not a good idea to do in __init__
         self._system_fk_type = self.find_or_create_prop_defn('system', 'implied_id', 'boolean', False, 0, False)
-        self._system_fk_type_id = self._system_fk_type.ident
         self._system_fk_data = ServerProperty('implied_id', 'boolean', 'false', 'system', False)
-        self._system_fk_data.type_id = self._system_fk_type_id
+        self._system_fk_data.type_id = self._system_fk_type.ident
 
         self._system_fk_data.data_value = 'false'
-        self.add_entity_property(internal_id, self._system_fk_data, self._system_fk_type_id)
+        self.add_entity_property(internal_id, self._system_fk_data)
 
         props = {}
         for prop in entity.values:
-            property_type_id = None
-            if isinstance(prop, ServerProperty):
-                property_type_id = prop.type_id
-            else:
+            if not isinstance(prop, ServerProperty):
                 property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
                                                               prop.data_type, prop.identity, 0, True)
-                property_type_id = property_type.ident
-            if property_type_id in props:
+                sprop = ServerProperty(prop.data_name, prop.data_type, prop.data_value, prop.source,
+                                                       prop.identity)
+                prop = sprop
+                prop.type_id = property_type.ident
+            if prop.type_id in props:
                 self._cursor.close()
                 self._connection.close()
                 raise DuplicatePropertyException("Duplicate properties: {} {} {} {}".format(
                     prop.source, prop.data_name,
-                    prop.data_value, props[property_type_id].data_value))
-            props[property_type_id] = prop
+                    prop.data_value, props[prop.type_id].data_value))
+            props[prop.type_id] = prop
             if prop.data_value != '':
-                self.add_entity_property(internal_id, prop, property_type_id)
+                self.add_entity_property(internal_id, prop)
 
         fk_keys = []
         if entity.refs:
@@ -121,10 +120,16 @@ class EntityDAO(BaseDAO):
                 if assoc.values:
                     props = {}
                     for prop in assoc.values:
-                        property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
-                                                                      prop.data_type,
-                                                                      prop.identity, 0, True)
-                        property_type_id = property_type.ident
+                        if isinstance(prop, ServerProperty):
+                            property_type_id = prop.type_id
+                        else:
+                            property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
+                                                                      prop.data_type, prop.identity, 0, True)
+                            property_type_id = property_type.ident
+                            sprop = ServerProperty(prop.data_name, prop.data_type, prop.data_value, prop.source,
+                                                       prop.identity)
+                            prop = sprop
+                            prop.type_id = property_type.ident
                         if property_type_id in props:
                             self._cursor.close()
                             self._connection.close()
@@ -185,10 +190,10 @@ class EntityDAO(BaseDAO):
         #print("count:" + str(count))
         if count == 1:
             #Update property value
-            #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(self.get_prop_value(prop))))
+            #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(prop.typed_data_value)))
             #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
-            update_prop = ("UPDATE properties SET `" + data_field + "` = %s WHERE id = %s;")
-            self._cursor.execute(update_prop, (self.get_prop_value(prop), property_id))
+            update_prop = ("UPDATE properties SET `" + prop.data_field + "` = %s WHERE id = %s;")
+            self._cursor.execute(update_prop, (prop.typed_data_value, property_id))
             return True
 
         return False
@@ -201,17 +206,17 @@ class EntityDAO(BaseDAO):
 
         :rtype: None
     """
-    def add_or_update_property_entity(self, entity_id, prop, property_type_id):
+    def add_or_update_property_entity(self, entity_id, prop):
 
         data_field = self.get_data_field(prop.data_type)
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + data_field + ''' FROM `properties` p
+        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + prop.data_field + ''' FROM `properties` p
                      JOIN `property_types` AS pt ON pt.id = p.prop_type_id
                      JOIN `entity_properties` AS ep ON ep.property_id = p.id
                      JOIN `entities` AS e ON ep.entity_id = e.added_id
                      WHERE `p`.`prop_type_id` = %s AND `added_id` = %s''')
 
-        self._cursor.execute(fetch_row, (property_type_id, entity_id))
+        self._cursor.execute(fetch_row, (prop.type_id, entity_id))
         property_id = None
         old_value = None
 
@@ -220,9 +225,9 @@ class EntityDAO(BaseDAO):
         prop_matched_id = None
         for (ent_id, added_id, prop_id, old_v) in self._cursor:
             old_val = self.get_db_prop_value(prop, old_v)
-            #print ("comparing: " + str(old_val) + " vs " + str(self.get_prop_value(prop)))
-            #print ("comparing types: " + str(type(old_val)) + " vs " + str(type(self.get_prop_value(prop))))
-            if old_val == self.get_prop_value(prop):
+            #print ("comparing: " + str(old_val) + " vs " + str(prop.typed_data_value))
+            #print ("comparing types: " + str(type(old_val)) + " vs " + str(type(prop.typed_data_value)))
+            if old_val == prop.typed_data_value:
                 #print ("match")
                 prop_matched_id = prop_id
                 return prop_id, None, True
@@ -236,7 +241,7 @@ class EntityDAO(BaseDAO):
 
 #        cursor.close()
 #        cnx.close()
-        return self.insert_property(prop, property_type_id, data_field), property_id, False
+        return self.insert_property(prop), property_id, False
 
 
     """
@@ -247,9 +252,9 @@ class EntityDAO(BaseDAO):
 
         :rtype: None
     """
-    def add_entity_property(self, entity_id, prop, property_type_id):
+    def add_entity_property(self, entity_id, prop):
         #print("Add entity_property:" + str(entity_id) + " " + repr(prop))
-        property_id, delete_old, linked = self.add_or_update_property_entity(entity_id, prop, property_type_id)
+        property_id, delete_old, linked = self.add_or_update_property_entity(entity_id, prop)
 
         #print("add_entity_property:" + str(property_id) + str(create) + str(delete_old) + str(exists) + str(linked))
         if delete_old:
@@ -286,14 +291,11 @@ class EntityDAO(BaseDAO):
 
         return converted_field
 
-    def get_prop_value(self, prop):
-
-        return self.get_data_value(prop.data_type, prop.data_value)
 
     def get_db_prop_value(self, prop, db_value):
 
         converted_field = {
-            'string': lambda x: x.decode('utf-8'),
+            'string': lambda x: None if x is None else x.decode('utf-8'),
             'integer': lambda x: x,
             'float': lambda x: x,
             'double': lambda x: x,
@@ -306,9 +308,7 @@ class EntityDAO(BaseDAO):
 
     def add_or_update_assoc_property(self, entity_id, fk, assoc_type, prop, property_type_id):
 
-        data_field = self.get_data_field(prop.data_type)
-
-        fetch_row = ("SELECT p.id as property_id, " + data_field + " FROM `properties` p JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `p`.`prop_type_id` = %s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
+        fetch_row = ("SELECT p.id as property_id, " + prop.data_field + " FROM `properties` p JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `p`.`prop_type_id` = %s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
 
         values = (property_type_id, entity_id, fk, assoc_type.ident)
         #print(fetch_row)
@@ -319,7 +319,7 @@ class EntityDAO(BaseDAO):
 
         for (prop_id, value) in self._cursor:
             old_val = self.get_db_prop_value(prop, value)
-            if old_val == self.get_prop_value(prop):
+            if old_val == prop.typed_data_value:
                 prop_matched_id = prop_id
                 return prop_id, None, True
             else:
@@ -328,7 +328,7 @@ class EntityDAO(BaseDAO):
                 if self.update_property(prop, property_id, old_value, data_field):
                     return property_id, None, True
 
-        return self.insert_property(prop, property_type_id, data_field), property_id, False
+        return self.insert_property(prop), property_id, False
 
 
     """
@@ -365,15 +365,15 @@ class EntityDAO(BaseDAO):
 
         return count
 
-    def find_property_with_value(self, prop, data_field):
-        count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
+    def find_property_with_value(self, prop):
+        count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + prop.data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
 
         #print(count_query)
         #print(repr(prop))
         existing_property_id = None
 
         try:
-            self._cursor.execute(count_query, (self.get_prop_value(prop), prop.source, prop.data_name, prop.data_type))
+            self._cursor.execute(count_query, (prop.typed_data_value, prop.source, prop.data_name, prop.data_type))
 
             for (prop_id,) in self._cursor:
                 existing_property_id = prop_id
@@ -395,24 +395,24 @@ class EntityDAO(BaseDAO):
 
         :rtype: int
     """
-    def insert_property(self, prop, property_type_id, data_field):
+    def insert_property(self, prop):
 
         #print("insert_property:" + str(data_field) + " property_id:" + str(property_id))
         #print("insert_property old_value:" + str(old_value) + " type:" + str(type(old_value)))
         self._logger.debug("insert_property:" + repr(prop))
 
-        existing_property_id = self.find_property_with_value(prop, data_field)
+        existing_property_id = self.find_property_with_value(prop)
 
         if existing_property_id:
             #print("update_property: existing property found")
             return existing_property_id
 
         #print ("insert_property: inserting")
-        insert_statement = ("INSERT INTO properties (`prop_type_id`, `" + data_field + "`) VALUES (%s, %s);")
+        insert_statement = ("INSERT INTO properties (`prop_type_id`, `" + prop.data_field + "`) VALUES (%s, %s);")
 
         #print(insert_statement)
         #print (repr(prop))
-        self._cursor.execute(insert_statement, (property_type_id, self.get_prop_value(prop)))
+        self._cursor.execute(insert_statement, (prop.type_id, prop.typed_data_value))
         new_property_id = self._cursor.lastrowid
         #print ("Added property id:" + str(new_property_id) + repr(prop))
 
