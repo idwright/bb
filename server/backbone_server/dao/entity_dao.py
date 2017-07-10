@@ -641,8 +641,6 @@ class EntityDAO(BaseDAO):
 
         result = Entities()
         result.count = 0
-        property_type_id = None
-        property_type = None
         entities = []
 
         props = self.get_properties_by_name(source, prop_name)
@@ -668,8 +666,8 @@ class EntityDAO(BaseDAO):
 
             #print(str(start) + str(count))
             if not (start is None and count is None):
-                props_query = props_query + ' LIMIT ' + str(start) + "," + str(count)
-            #print(props_query % query_args))
+                props_query = props_query + ' ORDER BY e.added_id LIMIT ' + str(count) + " OFFSET " + str(start)
+                #print(props_query % query_args))
             if count is None or int(count) == 0 or len(entities) < int(count):
                 try:
                     self._cursor.execute(props_query, query_args)
