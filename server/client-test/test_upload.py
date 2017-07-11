@@ -79,7 +79,8 @@ class TestUpload(TestBase):
         api_instance = swagger_client.SourceApi()
         try:
             api_instance.upload_source('test_transform', 'test_source.txt',
-                                       additional_metadata='test_transform.json')
+                                       additional_metadata='test_transform.json',
+                                       skip_header=True)
 
             rec1 = self.find_entity(api_instance, 'test_transform', '3288_6_nonhuman')
 

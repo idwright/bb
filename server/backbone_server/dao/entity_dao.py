@@ -6,6 +6,7 @@ from backbone_server.dao.model.server_property import ServerProperty
 from backbone_server.errors.invalid_id_exception import InvalidIdException
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
+from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 from swagger_server.models.entity import Entity
 from swagger_server.models.entities import Entities
 from swagger_server.models.fields import Fields
@@ -70,6 +71,9 @@ class EntityDAO(BaseDAO):
 
         return i
 
+    """
+        :return: True if a property is modified
+    """
     def save_entity(self, internal_id, entity, update_associations):
 
         if not internal_id:
@@ -86,6 +90,8 @@ class EntityDAO(BaseDAO):
         self.add_entity_property(internal_id, self._system_fk_data)
 
         props = {}
+        modified = False
+
         for prop in entity.values:
             if not isinstance(prop, ServerProperty):
                 property_type = self.find_or_create_prop_defn(prop.source, prop.data_name,
@@ -102,7 +108,7 @@ class EntityDAO(BaseDAO):
                     prop.data_value, props[prop.type_id].data_value))
             props[prop.type_id] = prop
             if prop.data_value != '':
-                self.add_entity_property(internal_id, prop)
+                modified = self.add_entity_property(internal_id, prop) or modified
 
         fk_keys = []
         if entity.refs:
@@ -142,6 +148,7 @@ class EntityDAO(BaseDAO):
         if update_associations:
             self.update_associations(internal_id, fk_keys)
 
+        return modified
 
 
     def find_or_create_assoc_type(self, assoc_type):
@@ -184,16 +191,21 @@ class EntityDAO(BaseDAO):
 
         return pt
 
-    def update_property(self, prop, property_id, old_value, data_field):
+    def update_property(self, prop, property_id, old_value):
         #Need to check if there are other entities referencing the same property before updating
-        count = self.count_entities_with_property_value(property_id, old_value, data_field)
+        count = self.count_entities_with_property_value(property_id, old_value, prop.data_field)
         #print("count:" + str(count))
         if count == 1:
             #Update property value
             #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(prop.typed_data_value)))
             #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
             update_prop = ("UPDATE properties SET `" + prop.data_field + "` = %s WHERE id = %s;")
-            self._cursor.execute(update_prop, (prop.typed_data_value, property_id))
+            try:
+                self._cursor.execute(update_prop, (prop.typed_data_value, property_id))
+            except mysql.connector.Error as err:
+                if err.errno == errorcode.ER_WARN_DATA_OUT_OF_RANGE:
+                    raise InvalidDataValueException("Bad value for property id {} {}"
+                                                    .format(property_id, str(prop.typed_data_value))) from err
             return True
 
         return False
@@ -208,8 +220,6 @@ class EntityDAO(BaseDAO):
     """
     def add_or_update_property_entity(self, entity_id, prop):
 
-        data_field = self.get_data_field(prop.data_type)
-
         fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + prop.data_field + ''' FROM `properties` p
                      JOIN `property_types` AS pt ON pt.id = p.prop_type_id
                      JOIN `entity_properties` AS ep ON ep.property_id = p.id
@@ -223,24 +233,25 @@ class EntityDAO(BaseDAO):
         #print (fetch_row % (prop.type_id, entity_id))
         prop_matched_id = None
         for (ent_id, added_id, prop_id, old_v) in self._cursor:
-            old_val = self.get_db_prop_value(prop, old_v)
-            #print ("comparing: " + str(old_val) + " vs " + str(prop.typed_data_value))
-            #print ("comparing types: " + str(type(old_val)) + " vs " + str(type(prop.typed_data_value)))
-            if old_val == prop.typed_data_value:
+            if prop.compare(ServerProperty.from_db_value(prop.data_type,old_v)):
                 #print ("match")
                 prop_matched_id = prop_id
-                return prop_id, None, True
+                return prop_id, None, True, False
             else:
                 if property_id:
                     self._logger.warn("Multiple values for:" + entity_id + repr(prop))
-                old_value = old_val
+                    #print("Multiple values for:" + str(entity_id) + repr(prop))
+                #print ("no match for:" + str(entity_id) + " " +
+                #       str(ServerProperty.from_db_value(prop.data_type, old_v)) + " != " + str(prop.typed_data_value))
+                #print (fetch_row % (prop.type_id, entity_id))
                 property_id = prop_id
-                if self.update_property(prop, property_id, old_value, data_field):
-                    return property_id, None, True
+                if self.update_property(prop, property_id,
+                                        ServerProperty.from_db_value(prop.data_type, old_v)):
+                    return property_id, None, True, True
 
 #        cursor.close()
 #        cnx.close()
-        return self.insert_property(prop), property_id, False
+        return self.insert_property(prop), property_id, False, True
 
 
     """
@@ -249,20 +260,27 @@ class EntityDAO(BaseDAO):
         :param prop:
         :type prop: Property
 
-        :rtype: None
+        :return: True if a change has been made
+        :rtype: bool
     """
     def add_entity_property(self, entity_id, prop):
+
         #print("Add entity_property:" + str(entity_id) + " " + repr(prop))
-        property_id, delete_old, linked = self.add_or_update_property_entity(entity_id, prop)
+        property_id, delete_old, linked, modified = self.add_or_update_property_entity(entity_id, prop)
 
         #print("add_entity_property:" + str(property_id) + str(create) + str(delete_old) + str(exists) + str(linked))
         if delete_old:
             old_property_id = delete_old
             #Note - do not delete the old property, intended to be used for history
-#            print ("Delete reference to old property value:" + str(entity_id) + ":" + str(old_property_id))
+            #print ("Delete reference to old property value:" + str(entity_id) + ":" + str(old_property_id))
             self._cursor.execute("DELETE FROM `entity_properties` WHERE `entity_id` = %s AND `property_id` = %s", (entity_id, old_property_id))
         if not linked:
+            #print ("insert reference to new property value:" + str(entity_id) + ":" + str(property_id))
             self._cursor.execute("INSERT INTO `entity_properties` (`entity_id`, `property_id`) VALUES (%s, %s)", (entity_id, property_id))
+
+        #if modified:
+        #    print("Modified entity_property:" + str(entity_id) + " " + repr(prop))
+        return modified
 
     def get_data_field(self, data_type):
         data_field = {
@@ -324,7 +342,7 @@ class EntityDAO(BaseDAO):
             else:
                 old_value = old_val
                 property_id = prop_id
-                if self.update_property(prop, property_id, old_value, data_field):
+                if self.update_property(prop, property_id, old_value):
                     return property_id, None, True
 
         return self.insert_property(prop), property_id, False
@@ -411,7 +429,12 @@ class EntityDAO(BaseDAO):
 
         #print(insert_statement)
         #print (repr(prop))
-        self._cursor.execute(insert_statement, (prop.type_id, prop.typed_data_value))
+        try:
+            self._cursor.execute(insert_statement, (prop.type_id, prop.typed_data_value))
+        except mysql.connector.Error as err:
+            if err.errno == errorcode.ER_WARN_DATA_OUT_OF_RANGE:
+                raise InvalidDataValueException("Bad value for property {} {}".format(prop.type_id,
+                                                                                      str(prop.typed_data_value))) from err
         new_property_id = self._cursor.lastrowid
         #print ("Added property id:" + str(new_property_id) + repr(prop))
 
@@ -780,7 +803,7 @@ ORDER BY pt.`source` , pt.prop_name;'''
             sprop.data_name = prop_name.decode('utf-8')
             sprop.source = source.decode('utf-8')
             sprop.prop_type = prop_type.decode('utf-8')
-            sprop.identity = sprop.from_db_value('boolean', identity)
+            sprop.identity = ServerProperty.from_db_value('boolean', identity)
             columns.append(sprop)
 
         return columns
@@ -869,7 +892,7 @@ ORDER BY pt.`source` , pt.prop_name;'''
         for (count, pname, pvalue) in self._cursor:
             #print(repr(prop), pvalue)
             summ = SummaryItem()
-            summ.source_name = str(prop.from_db_value(prop.data_type, pvalue))
+            summ.source_name = str(ServerProperty.from_db_value(prop.data_type, pvalue))
             summ.num_items = count
             results.append(summ)
 

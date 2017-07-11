@@ -14,6 +14,7 @@ from backbone_server.errors.invalid_date_format_exception import InvalidDateForm
 from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 from swagger_server.models.source_entity import SourceEntity
 from swagger_server.models.summary_item import SummaryItem
+from swagger_server.models.upload_response import UploadResponse
 
 class SourceDAO(EntityDAO):
 
@@ -24,15 +25,16 @@ class SourceDAO(EntityDAO):
         return self.load_data(source, data_def, input_stream)
 
 #https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
-    def load_data(self, source, data_def, input_stream):
+    def load_data(self, source, data_def, input_stream, skip_header, update_only):
+
+        response = UploadResponse(0,0,0)
 
         retcode = 200
 
         with input_stream as csvfile:
-            has_header = csv.Sniffer().has_header(csvfile.read(1024))
-            csvfile.seek(0)
             data_reader = csv.reader(csvfile, delimiter='\t')
-            if has_header:
+
+            if skip_header:
                 next(data_reader)
 
             self._connection = self.get_connection()
@@ -41,6 +43,7 @@ class SourceDAO(EntityDAO):
                 entity_id = None
                 values = []
                 prop_by_column = {}
+                response.processed = response.processed + 1
                 for name, defn in data_def['values'].items():
                     identity = False
                     if 'id' in defn and defn['id']:
@@ -61,8 +64,14 @@ class SourceDAO(EntityDAO):
                         if 'regex' in defn:
                             re_match = re.search(defn['regex'], data_value)
                             if re_match:
-                                data_value = re_match.group(0)
-                                #print("Transformed value is:" + data_value)
+                                #print("Groupdict:" + repr(re_match.groupdict()))
+                                try:
+                                    data_value = re_match.group(1)
+                                except IndexError as iere:
+                                        raise InvalidDataValueException("Failed to parse {} using {}"
+                                                                        .format(data_value, defn['regex'])) from iere
+                                #print("Transformed value is:" + data_value + " from " + row[defn['column']])
+                                #print(repr(re_match.groupdict()))
                         if defn['type'] == 'datetime':
                             date_format = data.default_date_format
                             try:
@@ -89,8 +98,7 @@ class SourceDAO(EntityDAO):
                     except IndexError:
                         self._logger.critical(repr(defn))
                         self._logger.critical(repr(row))
-                        retcode = 500
-                        break
+                        raise
 
 
                     data.type_id = defn['type_id']
@@ -123,14 +131,20 @@ class SourceDAO(EntityDAO):
 
                 record = SourceEntity()
                 record.values = values
-                entity_id = self.edit_source(record)
+                entity_id, exists, modified = self.edit_source(record)
+
+                if not exists:
+                    response.created = response.created + 1
+                elif modified:
+                    response.modified = response.modified + 1
+
                 self.update_associations(entity_id, [])
 
             self._connection.commit()
             self._cursor.close()
             self._connection.close()
 
-            return retcode
+            return response, retcode
 
     def edit_source(self, source_rec):
 
@@ -158,9 +172,9 @@ class SourceDAO(EntityDAO):
 
         entity_id, found = self.find_entity(id_properties)
 
-        self.save_entity(entity_id, source_rec, False)
+        modified = self.save_entity(entity_id, source_rec, False)
 
-        return entity_id
+        return entity_id, found, modified
 
 
     def fetch_entity_by_source(self, source, source_id):

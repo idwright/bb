@@ -1,3 +1,4 @@
+from decimal import *
 import time
 from swagger_server.util import deserialize_model
 from swagger_server.models.property import Property
@@ -68,6 +69,18 @@ class ServerProperty(Property):
 
         return data_field
 
+    @staticmethod
+    def float_value(x):
+        getcontext().prec = 6
+
+        return Decimal(x)
+
+    @staticmethod
+    def double_value(x):
+        getcontext().prec = 12
+
+        return Decimal(x)
+
     @property
     def typed_data_value(self):
 
@@ -75,8 +88,8 @@ class ServerProperty(Property):
             converted_field = {
                 'string': lambda x: x,
                 'integer': lambda x: None if x is None or x.lower() == "null" or x == '' else int(x),
-                'float': lambda x: float(x),
-                'double': lambda x: float(x),
+                'float': lambda x: ServerProperty.float_value(x),
+                'double': lambda x: ServerProperty.double_value(x),
                 'json': lambda x: x,
                 'boolean': lambda x: 1 if x.lower() == 'true' else 0,
                 'datetime': lambda x: x if isinstance(x, time.struct_time) else 
@@ -95,13 +108,27 @@ class ServerProperty(Property):
     def db_data_value(self):
         return self.from_db_value(self._data_type, self._data_value)
 
-    def from_db_value(self, db_type, value):
+    def compare(self, value):
+        #print ("comparing: " + str(value) + " vs " + str(self.typed_data_value))
+        #print ("comparing types: " + str(type(value)) + " vs " + str(type(self.typed_data_value)))
+
+        if self._data_type == 'float' or self._data_type == 'double':
+            #This will set the prec, which if it's too small can result in InvalidOperation
+            compv = self.typed_data_value
+            compv_rounded = compv.quantize(value, rounding = ROUND_FLOOR)
+            #print ("comparing: " + str(value) + " vs " + str(compv_rounded))
+            return compv_rounded == value
+        else:
+            return self.typed_data_value == value
+
+    @staticmethod
+    def from_db_value(db_type, value):
 
         converted_field = {
             'string': lambda x: x.decode('utf-8'),
             'integer': lambda x: x,
-            'float': lambda x: x,
-            'double': lambda x: x,
+            'float': lambda x: ServerProperty.float_value(x),
+            'double': lambda x: ServerProperty.double_value(x),
             'json': lambda x: x,
             'boolean': lambda x: True if x == 1 else False,
             'datetime': lambda x: x,

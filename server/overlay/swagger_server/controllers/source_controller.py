@@ -1,7 +1,9 @@
 import connexion
-from swagger_server.models.api_response import ApiResponse
+from swagger_server.models.entities import Entities
 from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
+from swagger_server.models.upload_response import UploadResponse
+from datetime import date, datetime
 from typing import List, Dict
 from six import iteritems
 from ..util import deserialize_date, deserialize_datetime
@@ -101,7 +103,6 @@ def upload_entity(sourceId, entity):
 
     :rtype: str
     """
-
     if connexion.request.is_json:
         ent = SourceEntity.from_dict(connexion.request.get_json())
 
@@ -120,8 +121,7 @@ def upload_entity(sourceId, entity):
 
     return result, 201
 
-
-def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None):
+def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, skipHeader=None):
     """
     bulk upload of entities for a given source
     
@@ -133,8 +133,10 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
     :type additionalMetadata: werkzeug.datastructures.FileStorage
     :param updateOnly: Only update existing records e.g. for filling in implied values
     :type updateOnly: bool
+    :param skipHeader: whether to skip a header row
+    :type skipHeader: bool
 
-    :rtype: ApiResponse
+    :rtype: UploadResponse
     """
     print("upload_source")
     data_def = None
@@ -148,7 +150,7 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
 #    profile = cProfile.Profile()
 #    profile.enable()
     try:
-        result = sd.load_data(sourceId, data_def, input_stream)
+        result, response_code = sd.load_data(sourceId, data_def, input_stream, skipHeader, updateOnly)
     except (InvalidDataValueException,InvalidDateFormatException) as nie:
         return repr(nie), 422 #Unprocessable entity
 #    profile.disable()
@@ -156,4 +158,4 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
 #    profile.dump_stats('upload_source_stats.cprof')
 #$ pyprof2calltree -k -i upload_source_stats.cprof
 
-    return ApiResponse(code=result)
+    return result, response_code
