@@ -10,17 +10,35 @@
             "column": 1,
             "type": "string"
         },
-        "lat_long": {
+        "latitude": {
             "column": 2,
-            "type": "string"
+            "type": "float",
+            "regex": "^([-.0-9]*)"
         },
-        "public_location": {
+        "longitude": {
+            "column": 2,
+            "type": "float",
+            "regex": "([-.0-9]*)$"
+        },
+        "public_latitude": {
             "column": 3,
-            "type": "string"
+            "type": "float",
+            "regex": "^([-.0-9]*)"
         },
-        "public_gps": {
+        "public_longitude": {
+            "column": 3,
+            "type": "float",
+            "regex": "([-.0-9]*)$"
+        },
+        "public_gps_latitude": {
             "column": 4,
-            "type": "string"
+            "type": "float",
+            "regex": "^([-.0-9]*)"
+        },
+        "public_gps_longitude": {
+            "column": 4,
+            "type": "float",
+            "regex": "([-.0-9]*)$"
         }
     }
 }
