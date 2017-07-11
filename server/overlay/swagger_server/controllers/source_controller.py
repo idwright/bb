@@ -16,6 +16,8 @@ from backbone_server.errors.incomplete_combination_key_exception import Incomple
 from backbone_server.errors.no_id_exception import NoIdException
 from backbone_server.errors.duplicate_id_exception import DuplicateIdException
 from backbone_server.errors.invalid_id_exception import InvalidIdException
+from backbone_server.errors.invalid_date_format_exception import InvalidDateFormatException
+from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 
 #import cProfile
 
@@ -145,7 +147,10 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, update_only=None)
 
 #    profile = cProfile.Profile()
 #    profile.enable()
-    result = sd.load_data(sourceId, data_def, input_stream)
+    try:
+        result = sd.load_data(sourceId, data_def, input_stream)
+    except (InvalidDataValueException,InvalidDateFormatException) as nie:
+        return repr(nie), 422 #Unprocessable entity
 #    profile.disable()
 #    profile.print_stats()
 #    profile.dump_stats('upload_source_stats.cprof')

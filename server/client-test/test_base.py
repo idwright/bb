@@ -19,6 +19,14 @@ class TestBase(unittest.TestCase):
         self._example_id_prop.source = self._test_source
         self._example_id_prop.identity = True
 
+    def get_test_prop(self):
+
+        new_prop = swagger_client.ModelProperty(data_name='Added property', \
+                                 data_type='string', \
+                                 data_value='Added property value', \
+                                 source=self._test_source, identity=False)
+        return new_prop
+
     """
     """
     def tearDown(self):

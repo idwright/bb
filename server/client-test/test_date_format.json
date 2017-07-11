@@ -1,22 +1,4 @@
 {
-    "refs": {
-        "alfresco_code": {
-            "column": 0,
-            "type": "string",
-            "source": "alfresco"
-        },
-        "oxford_donor_code": {
-            "column": 1,
-            "type": "string",
-            "fk_name": "individual_code",
-            "source": "oxford_central_samples"
-        },
-        "type": {
-            "column": 5,
-            "type": "string",
-            "source": "oxford_central_samples"
-        }
-    },
     "values":
     {
         "alfresco_code": {
@@ -26,8 +8,7 @@
         },
         "oxford_src_code": {
             "column": 1,
-            "type": "string",
-            "id": true
+            "type": "string"
         },
         "oxford_donor_code": {
             "column": 2,
@@ -48,6 +29,11 @@
         "individual_id": {
             "column": 6,
             "type": "string"
+        },
+        "collection_date": {
+            "column": 7,
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "collection_location": {
             "column": 8,

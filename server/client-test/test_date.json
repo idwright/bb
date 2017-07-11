@@ -1,0 +1,15 @@
+{
+    "values":
+    {
+        "individual_code": {
+            "column": 5,
+            "type": "string",
+            "id": true,
+            "comment": "sample.individual_code"
+        },
+        "batch_arrived": {
+            "column": 15,
+            "type": "datetime"
+        }
+    }
+}

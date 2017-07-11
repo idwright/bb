@@ -220,8 +220,7 @@ class EntityDAO(BaseDAO):
         property_id = None
         old_value = None
 
-        #print (fetch_row)
-        #print ((prop.data_name, prop.source, entity_id))
+        #print (fetch_row % (prop.type_id, entity_id))
         prop_matched_id = None
         for (ent_id, added_id, prop_id, old_v) in self._cursor:
             old_val = self.get_db_prop_value(prop, old_v)

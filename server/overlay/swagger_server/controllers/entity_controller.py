@@ -2,6 +2,7 @@ import connexion
 
 from backbone_server.errors.no_such_type_exception import NoSuchTypeException
 from backbone_server.errors.duplicate_property_exception import DuplicatePropertyException
+from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 
 from swagger_server.models.entities import Entities
 from swagger_server.models.entity import Entity
@@ -97,6 +98,9 @@ def update_entity(entityId, entity):
     retcode = 200
     try:
         retval = ed.update_entity(entity)
+    except InvalidDataValueException as t:
+        logging.getLogger().error("update_entity: {}".format(repr(t)))
+        retcode = 422
     except DuplicatePropertyException as t:
         logging.getLogger().error("update_entity: {}".format(repr(t)))
         retcode = 422

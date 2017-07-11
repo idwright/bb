@@ -10,6 +10,8 @@ from backbone_server.errors.incomplete_combination_key_exception import Incomple
 from backbone_server.errors.no_id_exception import NoIdException
 from backbone_server.errors.duplicate_id_exception import DuplicateIdException
 from backbone_server.errors.invalid_id_exception import InvalidIdException
+from backbone_server.errors.invalid_date_format_exception import InvalidDateFormatException
+from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 from swagger_server.models.source_entity import SourceEntity
 from swagger_server.models.summary_item import SummaryItem
 
@@ -52,14 +54,38 @@ class SourceDAO(EntityDAO):
                     #print(repr(defn))
                     #print(repr(row))
                     prop_by_column[defn['column']] = defn['ptype']
+                    data_value = row[defn['column']]
+                    data = ServerProperty(name, defn['type'], data_value, source, identity)
+                    #Convert data value - make sure you set data_value
                     try:
-                        data_value = row[defn['column']]
                         if 'regex' in defn:
                             re_match = re.search(defn['regex'], data_value)
                             if re_match:
                                 data_value = re_match.group(0)
                                 #print("Transformed value is:" + data_value)
-                        data = ServerProperty(name, defn['type'], data_value, source, identity)
+                        if defn['type'] == 'datetime':
+                            date_format = data.default_date_format
+                            try:
+                                if 'date_format' in defn:
+                                    try:
+                                        date_format = defn['date_format']
+                                        data_value = time.strptime(data_value, date_format)
+                                    except ValueError as dpe:
+                                        raise InvalidDateFormatException("Failed to parse date {} using {}".format(data_value, date_format)) from dpe
+                                else:
+                                    #To make sure that the default conversion works
+                                    data.typed_data_value
+                            except (InvalidDataValueException,InvalidDateFormatException) as idfe:
+
+                                self._connection.rollback()
+
+                                self._cursor.close()
+                                self._connection.close()
+                                raise
+
+                    #Reset data_value in data after any conversions
+                        data.data_value = data_value
+
                     except IndexError:
                         self._logger.critical(repr(defn))
                         self._logger.critical(repr(row))
@@ -99,8 +125,8 @@ class SourceDAO(EntityDAO):
                 record.values = values
                 entity_id = self.edit_source(record)
                 self.update_associations(entity_id, [])
-                self._connection.commit()
 
+            self._connection.commit()
             self._cursor.close()
             self._connection.close()
 

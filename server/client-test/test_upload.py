@@ -90,3 +90,55 @@ class TestUpload(TestBase):
         except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities\n")
 
+    """
+    """
+    def test_date(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('test_date', 'test_target.txt',
+                                       additional_metadata='test_date.json')
+
+            rec1 = self.find_entity(api_instance, 'test_date', 'PH0042-C')
+
+            for prop in rec1.values:
+                if prop.data_name == 'batch_arrived':
+                    self.assertEqual(prop.data_type, "datetime")
+                    self.assertEqual(prop.data_value, "2009-04-16 00:00:00", "Date value mismatch")
+        except ApiException as error:
+            self.fail("Exception when calling SourceApi->upload_source: %s\n" % error)
+
+    """
+    """
+    def test_date_format(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('date_format', 'combination_keys.txt',
+                                       additional_metadata='test_date_format.json')
+            rec1 = self.find_entity(api_instance, 'date_format', '1046')
+
+            for prop in rec1.values:
+                if prop.data_name == 'collection_date':
+                    self.assertEqual(prop.data_type, "datetime")
+                    self.assertEqual(prop.data_value, "2008-07-02 00:00:00", "Date value mismatch")
+        except ApiException as error:
+            self.fail("Exception when calling SourceApi->upload_source: %s\n" % error)
+
+    """
+    """
+    def test_date_format_fail(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            with self.assertRaises(Exception) as context:
+                api_instance.upload_source('date_format_fail', 'combination_keys.txt',
+                                       additional_metadata='test_date_format_fail.json')
+
+            self.assertEqual(context.exception.status, 422, context.exception)
+
+        except ApiException as error:
+            self.fail("Exception when calling SourceApi->upload_source: %s\n" % error)
