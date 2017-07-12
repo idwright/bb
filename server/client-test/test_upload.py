@@ -38,7 +38,8 @@ class TestUpload(TestBase):
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
         try:
-            api_instance.upload_source('test_source', 'test_source.txt', additional_metadata='test_source.json')
+            api_instance.upload_source('test_source', 'test_source.txt', additional_metadata='test_source.json',
+                                       skip_header=True)
 
             rec1 = self.find_entity(api_instance, 'test_source', '3288_6_nonhuman.bam')
             self.check_implied_target(api_instance, 'test_target', 'PH0042-C', rec1, True)
@@ -143,3 +144,34 @@ class TestUpload(TestBase):
 
         except ApiException as error:
             self.fail("Exception when calling SourceApi->upload_source: %s\n" % error)
+
+    """
+    """
+    def test_skip_header(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            skip_default = api_instance.upload_source('header_test_default', 'test_records', additional_metadata='test_metadata.json')
+            skip_true = api_instance.upload_source('header_test_true', 'test_records',
+                                       additional_metadata='test_metadata.json', skip_header=True)
+            skip_false = api_instance.upload_source('header_test_false', 'test_records',
+                                       additional_metadata='test_metadata.json', skip_header=False)
+
+            self.assertEqual(skip_default.processed, skip_false.processed)
+            self.assertEqual(skip_default.processed, skip_true.processed + 1)
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
+
+    """
+    """
+    def test_load_simple_entities(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('bulk_test', 'test_records', additional_metadata='test_metadata.json')
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
+

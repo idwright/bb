@@ -83,7 +83,7 @@ class TestAssociation(TestBase):
         api_instance = swagger_client.SourceApi()
         try:
             api_instance.upload_source('test_merge', 'test_source.txt',
-                                       additional_metadata='test_merge.json')
+                                       additional_metadata='test_merge.json', skip_header=True)
 
             rec1 = self.find_entity(api_instance, 'test_merge', '3288_6_nonhuman.bam')
             rec2 = self.find_entity(api_instance, 'test_target', 'PH0042-C')
