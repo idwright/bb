@@ -1,10 +1,12 @@
 from decimal import *
 import time
+import datetime
 from swagger_server.util import deserialize_model
 from swagger_server.models.property import Property
 from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 
 class ServerProperty(Property):
+
 
     def __init__(self, data_name: str=None, data_type: str='string', data_value: str=None, source:
               str=None, identity: bool=False):
@@ -14,7 +16,6 @@ class ServerProperty(Property):
         self.swagger_types['type_id'] = int
         self.attribute_map['type_id'] = 'type_id'
         self._type_id = None
-        self.default_date_format = '%Y-%m-%d %H:%M:%S'
 
     @classmethod
     def from_dict(self, dikt) -> 'ServerProperty':
@@ -30,6 +31,14 @@ class ServerProperty(Property):
 
     def __hash__(self):
         return hash(repr(self.to_dict()))
+
+    @classmethod
+    def get_default_date_format(klass):
+        return klass.default_date_format
+
+    @property
+    def default_date_format(self) -> str:
+        return '%Y-%m-%d %H:%M:%S'
 
     @property
     def type_id(self) -> int:
@@ -92,13 +101,14 @@ class ServerProperty(Property):
                 'double': lambda x: ServerProperty.double_value(x),
                 'json': lambda x: x,
                 'boolean': lambda x: 1 if x.lower() == 'true' else 0,
-                'datetime': lambda x: x if isinstance(x, time.struct_time) else 
-                                                    time.strptime(x, self.default_date_format)
+                'datetime': lambda x: x if isinstance(x, datetime.datetime) else 
+                    datetime.datetime(*(time.strptime(x, self.default_date_format))[:6])
                 ,
                 }.get(self._data_type)(self._data_value)
         except ValueError as dpe:
             if self._data_type == 'datetime':
-                raise InvalidDataValueException("Failed to parse date {} '{}'".format(self.default_date_format, self._data_value)) from dpe
+                raise InvalidDataValueException("Failed to parse date {} '{}'"
+                                                .format(self.default_date_format, self._data_value)) from dpe
             else:
                 raise InvalidDataValueException("Failed to parse property value {} {} '{}'"
                                                 .format(self._data_name, self._data_type, self._data_value)) from dpe
@@ -131,7 +141,7 @@ class ServerProperty(Property):
             'double': lambda x: ServerProperty.double_value(x),
             'json': lambda x: x,
             'boolean': lambda x: True if x == 1 else False,
-            'datetime': lambda x: x,
+            'datetime': lambda x: x
             }.get(db_type)(value)
 
         return converted_field

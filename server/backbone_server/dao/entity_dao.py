@@ -242,9 +242,12 @@ class EntityDAO(BaseDAO):
                 if property_id:
                     self._logger.warn("Multiple values for:" + entity_id + repr(prop))
                     #print("Multiple values for:" + str(entity_id) + repr(prop))
-                #print ("no match for:" + str(entity_id) + " " +
-                #       str(ServerProperty.from_db_value(prop.data_type, old_v)) + " != " + str(prop.typed_data_value))
-                #print (fetch_row % (prop.type_id, entity_id))
+               # print ("no match for:" + str(entity_id) + " " +
+               #        str(ServerProperty.from_db_value(prop.data_type, old_v)) + " != " + str(prop.typed_data_value))
+               # print ("no match for:" + str(entity_id) + " " +
+               #        str(type(ServerProperty.from_db_value(prop.data_type, old_v))) + " != " +
+               #        str(type(prop.typed_data_value)))
+               # print (fetch_row % (prop.type_id, entity_id))
                 property_id = prop_id
                 if self.update_property(prop, property_id,
                                         ServerProperty.from_db_value(prop.data_type, old_v)):

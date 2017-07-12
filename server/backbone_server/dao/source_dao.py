@@ -2,6 +2,7 @@ import json
 import csv
 import re
 import time
+import datetime
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.server_property import ServerProperty
@@ -83,7 +84,7 @@ class SourceDAO(EntityDAO):
                                     if 'date_format' in defn:
                                         try:
                                             date_format = defn['date_format']
-                                            data_value = time.strptime(data_value, date_format)
+                                            data_value = datetime.datetime(*(time.strptime(data_value, date_format))[:6])
                                         except ValueError as dpe:
                                             raise InvalidDateFormatException("Failed to parse date '{}' using {}".format(data_value, date_format)) from dpe
                                     else:
