@@ -180,7 +180,9 @@ class EntityDAO(BaseDAO):
             property_type_id = pti
 
         if not property_type_id:
-            self._cursor.execute("INSERT INTO `property_types` (`source`, `prop_name`, `prop_type`, `identity`) VALUES (%s, %s, %s, %s)", (source, name, data_type, identity))
+            self._cursor.execute('''INSERT INTO `property_types` (`source`, `prop_name`, `prop_type`,
+                                 `prop_order`, `identity`) VALUES (%s, %s, %s, %s, %s)''',
+                                 (source, name, data_type, order, identity))
             property_type_id = self._cursor.lastrowid
             #cnx.commit()
 #        cursor.close()
@@ -795,7 +797,7 @@ WHERE
                         JOIN
                     property_types pt ON p.prop_type_id = pt.id ''' + where_clause + '''))
 GROUP BY pt.id
-ORDER BY pt.`source` , pt.prop_name;'''
+ORDER BY pt.`source` , pt.prop_order, pt.prop_name;'''
 
         #print(columns_query % query_args)
         self._cursor.execute(columns_query, query_args)
