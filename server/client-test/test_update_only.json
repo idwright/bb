@@ -1,0 +1,9 @@
+{
+    "values": {
+        "alfresco_code": {
+            "column": 0,
+            "id": true,
+            "type": "string"
+        }
+    }
+}
