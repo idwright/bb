@@ -72,18 +72,23 @@ class SourceDAO(EntityDAO):
                                                                         .format(data_value, defn['regex'])) from iere
                                 #print("Transformed value is:" + data_value + " from " + row[defn['column']])
                                 #print(repr(re_match.groupdict()))
+                                #if row[defn['column']] != "" and data_value == "":
+                                #    print("Empty match: {} {}".format(defn['regex'], row[defn['column']]))
+                            #else:
+                            #    print("No match: {} {}".format(defn['regex'], data_value))
                         if defn['type'] == 'datetime':
                             date_format = data.default_date_format
                             try:
-                                if 'date_format' in defn:
-                                    try:
-                                        date_format = defn['date_format']
-                                        data_value = time.strptime(data_value, date_format)
-                                    except ValueError as dpe:
-                                        raise InvalidDateFormatException("Failed to parse date {} using {}".format(data_value, date_format)) from dpe
-                                else:
-                                    #To make sure that the default conversion works
-                                    data.typed_data_value
+                                if data_value != '':
+                                    if 'date_format' in defn:
+                                        try:
+                                            date_format = defn['date_format']
+                                            data_value = time.strptime(data_value, date_format)
+                                        except ValueError as dpe:
+                                            raise InvalidDateFormatException("Failed to parse date '{}' using {}".format(data_value, date_format)) from dpe
+                                    else:
+                                        #To make sure that the default conversion works
+                                        data.typed_data_value
                             except (InvalidDataValueException,InvalidDateFormatException) as idfe:
 
                                 self._connection.rollback()

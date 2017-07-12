@@ -98,9 +98,9 @@ class ServerProperty(Property):
                 }.get(self._data_type)(self._data_value)
         except ValueError as dpe:
             if self._data_type == 'datetime':
-                raise InvalidDataValueException("Failed to parse property value {} {}".format(self.default_date_format, self._data_value)) from dpe
+                raise InvalidDataValueException("Failed to parse date {} '{}'".format(self.default_date_format, self._data_value)) from dpe
             else:
-                raise InvalidDataValueException("Failed to parse property value {} {} {}"
+                raise InvalidDataValueException("Failed to parse property value {} {} '{}'"
                                                 .format(self._data_name, self._data_type, self._data_value)) from dpe
         return converted_field
 
