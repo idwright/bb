@@ -164,14 +164,41 @@ class TestUpload(TestBase):
         except ApiException as error:
             self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
 
+
+
     """
     """
-    def test_load_simple_entities(self):
+    def test_update_only(self):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
         try:
-            api_instance.upload_source('bulk_test', 'test_records', additional_metadata='test_metadata.json')
+            update_only = api_instance.upload_source('alfresco_transform', 'alfresco_codes',
+                                                      additional_metadata='test_update_only.json',
+                                                     update_only=True, skip_header=False)
+
+            self.assertEqual(update_only.modified, 1)
+            self.assertEqual(update_only.processed, 4)
+            self.assertEqual(update_only.created, 0)
+
         except ApiException as error:
             self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)
 
+
+    """
+    """
+    def test_update_only_false(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            update_only = api_instance.upload_source('alfresco_transform', 'alfresco_codes',
+                                                      additional_metadata='test_update_only.json',
+                                                     update_only=False, skip_header=False)
+
+            self.assertEqual(update_only.modified, 0)
+            self.assertEqual(update_only.processed, 4)
+            self.assertEqual(update_only.created, 3)
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->upload_entity: %s\n" % error)

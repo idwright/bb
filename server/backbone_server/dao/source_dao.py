@@ -131,9 +131,9 @@ class SourceDAO(EntityDAO):
 
                 record = SourceEntity()
                 record.values = values
-                entity_id, exists, modified = self.edit_source(record)
+                entity_id, exists, modified = self.edit_source(record, update_only)
 
-                if not exists:
+                if not exists and entity_id is not None:
                     response.created = response.created + 1
                 elif modified:
                     response.modified = response.modified + 1
@@ -146,7 +146,7 @@ class SourceDAO(EntityDAO):
 
             return response, retcode
 
-    def edit_source(self, source_rec):
+    def edit_source(self, source_rec, update_only):
 
         entity_id = None
         id_prop = None
@@ -171,6 +171,12 @@ class SourceDAO(EntityDAO):
 
 
         entity_id, found = self.find_entity(id_properties)
+
+        if not found:
+            if update_only:
+                return None, False, False
+            else:
+                entity_id = self.create_entity()
 
         modified = self.save_entity(entity_id, source_rec, False)
 
@@ -253,7 +259,7 @@ class SourceDAO(EntityDAO):
             self._connection.close()
             raise DuplicateIdException("Duplicate identity value specified:" + source + ":" + repr(entity))
 
-        entity_id = self.edit_source(entity)
+        entity_id = self.edit_source(entity, False)
         self._connection.commit()
         self._cursor.close()
         self._connection.close()

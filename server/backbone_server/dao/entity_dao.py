@@ -55,7 +55,7 @@ class EntityDAO(BaseDAO):
             missing_sources = assoc_dao.find_missing_association_sources(int_id)
 
             for missing in missing_sources:
-                fk, found = self.find_entity([missing])
+                fk, found = self.find_or_create_entity([missing])
                 if not found:
                     #print(str(missing.type_id) + "\n" + str(fk) + "\n" + repr(missing))
                     self._system_fk_data.data_value = "true"
@@ -87,10 +87,9 @@ class EntityDAO(BaseDAO):
         self._system_fk_data.type_id = self._system_fk_type.ident
 
         self._system_fk_data.data_value = 'false'
-        self.add_entity_property(internal_id, self._system_fk_data)
+        modified = self.add_entity_property(internal_id, self._system_fk_data)
 
         props = {}
-        modified = False
 
         for prop in entity.values:
             if not isinstance(prop, ServerProperty):
@@ -506,6 +505,8 @@ class EntityDAO(BaseDAO):
     def find_entity(self, id_properties):
 
         found = False
+        parent_entity_id = None
+
         property_details = self.find_entity_by_properties(id_properties)
 
         #print(property_details)
@@ -515,22 +516,23 @@ class EntityDAO(BaseDAO):
             found = True
         elif len(property_details) > 1:
             self._logger.critical("Duplicate entities:" + repr(id_properties))
-        else:
-#            cnx = self.get_connection()
-#            cursor = cnx.cursor()
-            query = ("INSERT INTO `entities` (`id`) VALUES (ordered_uuid(uuid()))")
-            args = ()
-            self._cursor.execute(query, args)
-#            cnx.commit()
-            parent_entity_id = self._cursor.lastrowid
-#            print ("Added" + str(row_id))
-#            cursor.execute("SELECT id FROM `entities` WHERE `added_id` = %s", (row_id,))
-#            parent_entity_id = cursor.fetchone()[0]
-#            print("inserted entity " + str(parent_entity_id))
-#            cnx.commit()
 
-#            cursor.close()
-#            cnx.close()
+        return parent_entity_id, found
+
+    def create_entity(self):
+        query = ("INSERT INTO `entities` (`id`) VALUES (ordered_uuid(uuid()))")
+        args = ()
+        self._cursor.execute(query, args)
+        parent_entity_id = self._cursor.lastrowid
+
+        return parent_entity_id
+
+    def find_or_create_entity(self, id_properties):
+
+        parent_entity_id, found = self.find_entity(id_properties)
+
+        if not found:
+            parent_entity_id = self.create_entity()
 
         return parent_entity_id, found
 
