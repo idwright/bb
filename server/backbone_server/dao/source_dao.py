@@ -80,7 +80,7 @@ class SourceDAO(EntityDAO):
                         if defn['type'] == 'datetime':
                             date_format = data.default_date_format
                             try:
-                                if data_value != '':
+                                if not (data_value == '' or data_value == 'NULL'):
                                     if 'date_format' in defn:
                                         try:
                                             date_format = defn['date_format']
@@ -90,6 +90,9 @@ class SourceDAO(EntityDAO):
                                     else:
                                         #To make sure that the default conversion works
                                         data.typed_data_value
+                                else:
+                                    #Skip this property
+                                    continue
                             except (InvalidDataValueException,InvalidDateFormatException) as idfe:
 
                                 self._connection.rollback()

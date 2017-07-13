@@ -96,19 +96,19 @@ class ServerProperty(Property):
         try:
             converted_field = {
                 'string': lambda x: x,
-                'integer': lambda x: None if x is None or x.lower() == "null" or x == '' else int(x),
+                'integer': lambda x: None if x is None or x.lower() == "null" or x == '' or x.lower() == 'na' else int(x),
                 'float': lambda x: ServerProperty.float_value(x),
                 'double': lambda x: ServerProperty.double_value(x),
                 'json': lambda x: x,
-                'boolean': lambda x: 1 if x.lower() == 'true' else 0,
+                'boolean': lambda x: True if x.lower() == 'true' or x.lower() == 'yes' else False,
                 'datetime': lambda x: x if isinstance(x, datetime.datetime) else 
                     datetime.datetime(*(time.strptime(x, self.default_date_format))[:6])
                 ,
                 }.get(self._data_type)(self._data_value)
-        except ValueError as dpe:
+        except (ValueError, InvalidOperation) as dpe:
             if self._data_type == 'datetime':
-                raise InvalidDataValueException("Failed to parse date {} '{}'"
-                                                .format(self.default_date_format, self._data_value)) from dpe
+                raise InvalidDataValueException("Failed to parse date {} {} '{}'"
+                                                .format(self._data_name, self.default_date_format, self._data_value)) from dpe
             else:
                 raise InvalidDataValueException("Failed to parse property value {} {} '{}'"
                                                 .format(self._data_name, self._data_type, self._data_value)) from dpe
