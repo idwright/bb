@@ -54,7 +54,8 @@
         },
         "batch_arrived": {
             "column": 15,
-            "type": "string"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d %H:%M:%S.000"
         },
         "batch_country": {
             "column": 16,

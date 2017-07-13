@@ -5,7 +5,7 @@
             "type": "string",
             "source": "alfresco"
         },
-        "Oxford code": {
+        "oxford_code": {
             "column": 26,
             "type": "string",
             "source": "oxford_central_samples",
@@ -31,7 +31,8 @@
         },
         "collection_date": {
             "column": 3,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "location": {
             "column": 4,
@@ -41,73 +42,73 @@
             "column": 5,
             "type": "string"
         },
-        "12. Parasitaemia (p/ul)": {
+        "Parasitaemia (p per ul)": {
             "column": 6,
-            "type": "string"
+            "type": "integer"
         },
-        "13. Clinical Severity": {
+        "Clinical Severity": {
             "column": 7,
             "type": "string"
         },
-        "14. Time spent in culture (days)": {
+        "Time spent in culture (days)": {
             "column": 8,
-            "type": "string"
+            "type": "integer"
         },
-        "15. Sample Volume (uL)": {
+        "Sample Volume (uL)": {
             "column": 9,
-            "type": "string"
+            "type": "integer"
         },
-        "16. Sample Type": {
+        "Sample Type": {
             "column": 10,
             "type": "string"
         },
-        "18. DNA concentration (ng/uL)": {
+        "DNA concentration (ng per uL)": {
             "column": 11,
-            "type": "string"
+            "type": "integer"
         },
-        "19. Total DNA (ng)": {
+        "Total DNA (ng)": {
             "column": 12,
-            "type": "string"
+            "type": "integer"
         },
-        "20. DNA quantification method": {
+        "DNA quantification method": {
             "column": 13,
             "type": "string"
         },
-        "21. WBC Depletion Method": {
+        "WBC Depletion Method": {
             "column": 14,
             "type": "string"
         },
-        "22. Relationship to other sample": {
+        "Relationship to other sample": {
             "column": 15,
             "type": "string"
         },
-        "23. Related sample": {
+        "Related sample": {
             "column": 16,
             "type": "string"
         },
-        "24. Patient Id": {
+        "Patient Id": {
             "column": 17,
             "type": "string"
         },
-        "26. Sequenom Pass Rate": {
+        "Sequenom Pass Rate": {
             "column": 18,
             "type": "string"
         },
-        "27. original_oxford_code": {
+        "original_oxford_code": {
             "column": 19,
             "type": "string"
         },
-        "28. Previous_sanger_supplier_id": {
+        "Previous_sanger_supplier_id": {
             "column": 20,
             "type": "string"
         },
         "Collected according to SPOTMalaria Protocol": {
             "column": 21,
-            "type": "string"
+            "type": "boolean"
         },
         "Collected according to SpoTMalaria Protocol": {
             "column": 22,
-            "type": "string"
+            "type": "boolean"
         },
         "Day of follow up": {
             "column": 23,
@@ -121,7 +122,7 @@
             "column": 25,
             "type": "string"
         },
-        "Oxford code": {
+        "oxford_code": {
             "column": 26,
             "type": "string"
         },
@@ -129,17 +130,18 @@
             "column": 27,
             "type": "string"
         },
-        "Parasitaemia (PF/uL)": {
+        "Parasitaemia (PF per uL)": {
             "column": 28,
-            "type": "string"
+            "type": "string",
+            "comment": "Should be integer but there are values with . , and text in them"
         },
-        "Parasitaemia (parasites/uL)": {
+        "Parasitaemia (parasites per uL)": {
             "column": 29,
-            "type": "string"
+            "type": "integer"
         },
-        "Parasites/µl": {
+        "Parasites per µl": {
             "column": 30,
-            "type": "string"
+            "type": "integer"
         },
         "Patient ID": {
             "column": 31,
@@ -157,7 +159,7 @@
             "column": 34,
             "type": "string"
         },
-        "Species": {
+        "species": {
             "column": 35,
             "type": "string"
         },

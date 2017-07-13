@@ -22,7 +22,8 @@
         },
         "collection_date": {
             "column": 3,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "location": {
             "column": 4,
@@ -32,7 +33,7 @@
             "column": 5,
             "type": "string"
         },
-        "clinical_severity": {
+        "Clinical Severity": {
             "column": 6,
             "type": "string"
         },
@@ -46,7 +47,8 @@
         },
         "dna_extraction_date": {
             "column": 9,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%dT%H:%M:%S"
         },
         "Day after admission": {
             "column": 10,
@@ -80,7 +82,7 @@
             "column": 17,
             "type": "string"
         },
-        "Species": {
+        "species": {
             "column": 18,
             "type": "string"
         },

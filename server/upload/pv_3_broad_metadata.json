@@ -16,11 +16,13 @@
         },
         "collection_date": {
             "column": 3,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "collection_year": {
             "column": 4,
-            "type": "datetime"
+            "type": "string",
+            "comment": "Can't use datetime because of %Y/%Y format"
         },
         "collection_location": {
             "column": 5,

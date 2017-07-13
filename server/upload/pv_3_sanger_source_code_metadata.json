@@ -21,7 +21,8 @@
     {
         "alfresco_code": {
             "column": 0,
-            "type": "string"
+            "type": "string",
+            "id": true
         },
         "oxford_src_code": {
             "column": 1,
@@ -50,7 +51,8 @@
         },
         "collection_date": {
             "column": 7,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "collection_location": {
             "column": 8,

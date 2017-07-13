@@ -23,7 +23,8 @@
         },
         "collection_date": {
             "column": 3,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%d/%m/%Y"
         },
         "location": {
             "column": 4,
@@ -59,7 +60,8 @@
         },
         "dna_extraction_date": {
             "column": 12,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%d-%b-%y"
         },
         "S05_box_num": {
             "column": 13,

@@ -23,7 +23,8 @@
         },
         "collection_date": {
             "column": 3,
-            "type": "datetime"
+            "type": "datetime",
+            "date_format": "%Y-%m-%d"
         },
         "location": {
             "column": 4,

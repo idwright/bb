@@ -14,7 +14,7 @@
         "ega_file_name": {
             "column": 3,
             "type": "string",
-            "fk_name": "file_name",
+            "fk_name": "dataset_id",
             "source": "sanger_ega_dataset"
         }
     },
@@ -35,6 +35,7 @@
         "name": {
             "column": 3,
             "type": "string",
+            "regex": "([^.]*)",
             "id": true
         }
     }
