@@ -1,4 +1,5 @@
 import connexion
+import logging
 from swagger_server.models.entities import Entities
 from swagger_server.models.entity import Entity
 from swagger_server.models.source_entity import SourceEntity
@@ -152,6 +153,7 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, 
     try:
         result, response_code = sd.load_data(sourceId, data_def, input_stream, skipHeader, updateOnly)
     except (InvalidDataValueException,InvalidDateFormatException) as nie:
+        logging.exception(nie)
         return repr(nie), 422 #Unprocessable entity
 #    profile.disable()
 #    profile.print_stats()
