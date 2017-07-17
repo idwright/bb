@@ -8,3 +8,5 @@ java -jar swagger-codegen-cli.jar generate -i swagger.yaml -l typescript-angular
 sed -i -e 's/models\.Array/Array/' typescript-angular2-client/model/Entities.ts typescript-angular2-client/model/Summary.ts
 rm -rf python_client
 java -jar swagger-codegen-cli.jar generate -i swagger.yaml -l python -o python_client -c client.config.json
+rm -rf apache2
+java -jar swagger-codegen-cli.jar generate -i swagger.yaml -l apache2 -o apache2
