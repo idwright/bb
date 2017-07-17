@@ -12,11 +12,8 @@ class TestBase(unittest.TestCase):
     """
     def setUp(self):
         self._test_source = 'test'
-        self._example_id_prop = swagger_client.ModelProperty()
-        self._example_id_prop.data_name = 'id'
-        self._example_id_prop.data_value = '1'
-        self._example_id_prop.data_type = 'integer'
-        self._example_id_prop.source = self._test_source
+        self._example_id_prop = swagger_client.ModelProperty('id', 'integer', '1',
+                                                             self._test_source)
         self._example_id_prop.identity = True
 
     def get_test_prop(self):

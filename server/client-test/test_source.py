@@ -14,12 +14,11 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
 
         props = []
         props.append(self._example_id_prop)
 
-        entity.values = props
+        entity = swagger_client.SourceEntity(values=props)
 
         try:
             api_instance.upload_entity(self._test_source, entity)
@@ -34,12 +33,11 @@ class TestSource(TestBase):
 
         # create an instance of the API class
         api_instance = swagger_client.SourceApi()
-        entity = swagger_client.SourceEntity()
 
         props = []
         props.append(self._example_id_prop)
 
-        entity.values = props
+        entity = swagger_client.SourceEntity(values=props)
 
         with self.assertRaises(Exception) as context:
             api_instance.upload_entity(self._test_source + 'fail', entity)

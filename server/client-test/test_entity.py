@@ -80,7 +80,6 @@ class TestEntity(TestBase):
        # create an instance of the API class
         api_instance = swagger_client.SourceApi()
         entity_api = swagger_client.EntityApi()
-        entity = swagger_client.SourceEntity()
 
         props = []
         id_prop = copy(self._example_id_prop)
@@ -89,7 +88,7 @@ class TestEntity(TestBase):
         new_prop = copy(self.get_test_prop())
         props.append(new_prop)
 
-        entity.values = props
+        entity = swagger_client.SourceEntity(values=props)
 
         test_id = self._example_id_prop.data_value
         try:

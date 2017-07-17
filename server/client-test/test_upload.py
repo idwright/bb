@@ -144,7 +144,6 @@ class TestUpload(TestBase):
 
     """
     """
-    """
     def test_date_format_fail(self):
 
         # create an instance of the API class
