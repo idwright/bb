@@ -5,16 +5,17 @@
             "type": "string",
             "source": "alfresco"
         },
-        "oxford_donor_code": {
+        "oxford_src_code": {
             "column": 1,
             "type": "string",
             "fk_name": "individual_code",
             "source": "oxford_central_samples"
         },
-        "type": {
-            "column": 5,
+        "oxford_donor_code": {
+            "column": 1,
             "type": "string",
-            "source": "oxford_central_samples"
+            "fk_name": "individual_code",
+            "source": "oxford_central_donor"
         }
     },
     "values":
@@ -22,6 +23,7 @@
         "alfresco_code": {
             "column": 0,
             "type": "string",
+            "regex": "([0-9]{4})",
             "id": true
         },
         "oxford_src_code": {
