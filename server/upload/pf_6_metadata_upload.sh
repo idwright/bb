@@ -1,1 +1,1 @@
-curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@pf_6_metadata.json;type=text/json" -F dataFile="@pf_6_metadata.txt;type=text/csv" 'http://localhost:8080/v1/source/pf_6_metadata/upload' 
+curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@pf_6_metadata.json;type=text/json" -F dataFile="@pf_6_metadata.txt;type=text/csv" 'http://localhost:8080/v1/source/pf_6_metadata/upload?skipHeader=true' 

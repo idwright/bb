@@ -64,12 +64,15 @@
         },
         "collection_date": {
             "column": 9,
-            "type": "datetime",
-            "date_format": "%Y-%m-%d"
+            "type": "string",
+            "date_format": "%Y-%m-%d",
+            "comment": "inconsistent date format"
         },
         "collection_year": {
             "column": 10,
-            "type": "datetime"
+            "type": "string",
+            "date_format": "%Y",
+            "comment": "inconsistent date format"
         },
         "release_exclusion_reason": {
             "column": 11,
