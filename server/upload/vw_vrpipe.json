@@ -30,6 +30,7 @@
         },
         "alfresco_code": {
             "column": 2,
+            "regex": "([0-9]{4})",
             "type": "string"
         },
         "name": {
