@@ -1,1 +1,1 @@
-curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@vw_vrpipe.json;type=text/json" -F dataFile="@vw_vrpipe.txt;type=text/csv" 'http://localhost:8080/v1/source/vw_vrpipe/upload' 
+curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@vw_vrpipe.json;type=text/json" -F dataFile="@vw_vrpipe.txt;type=text/csv" 'http://localhost:8080/v1/source/vw_vrpipe/upload?skipHeader=true' 
