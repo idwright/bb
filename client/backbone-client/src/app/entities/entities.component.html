@@ -1,7 +1,7 @@
 <div>
     <span>
         <md-input-container class="md-button-ripple">
-            <input mdInput [mdAutocomplete]="auto" [(ngModel)]="sourceNameSelector" />
+            <input mdInput placeholder="Source" [mdAutocomplete]="auto" [(ngModel)]="sourceNameSelector" />
         </md-input-container>
         <md-autocomplete #auto="mdAutocomplete">
             <md-option *ngFor="let source of sources" [value]="source.source_name">
@@ -13,7 +13,7 @@
 
     <span>
         <md-input-container>
-            <input mdInput mdTextareaAutosize [mdAutocomplete]="properties"
+            <input mdInput placeholder="Property" mdTextareaAutosize [mdAutocomplete]="properties"
             [(ngModel)]="propertyNameSelector" />
         </md-input-container>
         <md-autocomplete #properties="mdAutocomplete" panel="sourceprops-panel">
@@ -25,7 +25,7 @@
 
     <span>
         <md-input-container>
-            <input mdInput [mdAutocomplete]="property_value" [(ngModel)]="propertyValueSelector" />
+            <input mdInput placeholder="Value" [mdAutocomplete]="property_value" [(ngModel)]="propertyValueSelector" />
         </md-input-container>
         <md-autocomplete #property_value="mdAutocomplete">
             <md-option *ngFor="let prop of propertyValues" [value]="prop.source_name">
