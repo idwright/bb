@@ -1,6 +1,6 @@
 {
     "refs": {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
             "type": "string",
             "source": "alfresco"
@@ -14,10 +14,9 @@
         }
     },
     "values": {
-    },
-    "values": {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
+            "regex": "([0-9]{4})",
             "type": "string"
         },
         "sample_roma_id": {
@@ -29,7 +28,7 @@
             "column": 2,
             "type": "string"
         },
-        "collection_date": {
+        "doc": {
             "column": 3,
             "type": "datetime",
             "date_format": "%Y-%m-%d"
@@ -42,129 +41,20 @@
             "column": 5,
             "type": "string"
         },
-        "Parasitaemia (p per ul)": {
-            "column": 6,
-            "type": "integer"
-        },
-        "Clinical Severity": {
-            "column": 7,
-            "type": "string"
-        },
-        "Time spent in culture (days)": {
-            "column": 8,
-            "type": "integer"
-        },
-        "Sample Volume (uL)": {
-            "column": 9,
-            "type": "integer"
-        },
-        "Sample Type": {
+        "sample_type": {
             "column": 10,
-            "type": "string"
-        },
-        "DNA concentration (ng per uL)": {
-            "column": 11,
-            "type": "integer"
-        },
-        "Total DNA (ng)": {
-            "column": 12,
-            "type": "integer"
-        },
-        "DNA quantification method": {
-            "column": 13,
-            "type": "string"
-        },
-        "WBC Depletion Method": {
-            "column": 14,
-            "type": "string"
-        },
-        "Relationship to other sample": {
-            "column": 15,
-            "type": "string"
-        },
-        "Related sample": {
-            "column": 16,
-            "type": "string"
-        },
-        "Patient Id": {
-            "column": 17,
-            "type": "string"
-        },
-        "Sequenom Pass Rate": {
-            "column": 18,
             "type": "string"
         },
         "original_oxford_code": {
             "column": 19,
             "type": "string"
         },
-        "Previous_sanger_supplier_id": {
-            "column": 20,
-            "type": "string"
-        },
-        "Collected according to SPOTMalaria Protocol": {
-            "column": 21,
-            "type": "boolean"
-        },
-        "Collected according to SpoTMalaria Protocol": {
-            "column": 22,
-            "type": "boolean"
-        },
-        "Day of follow up": {
-            "column": 23,
-            "type": "string"
-        },
-        "Donor Age (years)": {
-            "column": 24,
-            "type": "string"
-        },
-        "Donor Gender": {
-            "column": 25,
-            "type": "string"
-        },
         "oxford_code": {
             "column": 26,
             "type": "string"
         },
-        "Parasitaemia (%)": {
-            "column": 27,
-            "type": "string"
-        },
-        "Parasitaemia (PF per uL)": {
-            "column": 28,
-            "type": "string",
-            "comment": "Should be integer but there are values with . , and text in them"
-        },
-        "Parasitaemia (parasites per uL)": {
-            "column": 29,
-            "type": "integer"
-        },
-        "Parasites per µl": {
-            "column": 30,
-            "type": "integer"
-        },
-        "Patient ID": {
-            "column": 31,
-            "type": "string"
-        },
-        "Phenotypes Collected": {
-            "column": 32,
-            "type": "string"
-        },
-        "Plate Position": {
-            "column": 33,
-            "type": "string"
-        },
-        "Plate name": {
-            "column": 34,
-            "type": "string"
-        },
         "species": {
             "column": 35,
-            "type": "string"
-        },
-        "Volume (ul)*": {
-            "column": 36,
             "type": "string"
         }
     }

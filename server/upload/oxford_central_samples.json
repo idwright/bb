@@ -1,44 +1,11 @@
 {
     "values":
     {
-        "individual_id": {
-            "column": 4,
-            "type": "integer",
-            "comment": "sample.sample_id"
-        },
         "individual_code": {
             "column": 5,
             "type": "string",
             "id": true,
             "comment": "sample.individual_code"
-        },
-        "individual_source_code": {
-            "column": 6,
-            "type": "string",
-            "comment": "sample.source_code"
-        },
-        "individual_parent_source_code": {
-            "column": 7,
-            "type": "string",
-            "comment": "sample.donor_source_code"
-        },
-        "parent_id1": {
-            "column": 8,
-            "type": "integer",
-            "comment": "sample.donor_id"
-        },
-        "parent_code1": {
-            "column": 9,
-            "type": "string",
-            "comment": "donor.donor_code"
-        },
-        "parent_id2": {
-            "column": 10,
-            "type": "integer"
-        },
-        "parent_code2": {
-            "column": 11,
-            "type": "string"
         },
         "species": {
             "column": 12,
@@ -46,35 +13,6 @@
         },
         "sample_type": {
             "column": 13,
-            "type": "string"
-        },
-        "parent_type": {
-            "column": 14,
-            "type": "string"
-        },
-        "batch_arrived": {
-            "column": 15,
-            "type": "datetime",
-            "date_format": "%Y-%m-%d %H:%M:%S.000"
-        },
-        "batch_country": {
-            "column": 16,
-            "type": "string"
-        },
-        "batch_description": {
-            "column": 17,
-            "type": "string"
-        },
-        "batch_comments": {
-            "column": 18,
-            "type": "string"
-        },
-        "batch_provider1": {
-            "column": 19,
-            "type": "string"
-        },
-        "batch_provider2": {
-            "column": 20,
             "type": "string"
         }
     }

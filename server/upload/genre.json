@@ -1,14 +1,15 @@
 {
     "refs": {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
             "type": "string",
             "source": "alfresco"
         }
     },
     "values": {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
+            "regex": "([0-9]{4})",
             "type": "string"
         },
         "sample_roma_id": {
@@ -20,7 +21,7 @@
             "column": 2,
             "type": "string"
         },
-        "collection_date": {
+        "doc": {
             "column": 3,
             "type": "datetime",
             "date_format": "%Y-%m-%d"
@@ -33,69 +34,16 @@
             "column": 5,
             "type": "string"
         },
-        "Clinical Severity": {
-            "column": 6,
-            "type": "string"
-        },
-        "dna_concentration": {
-            "column": 7,
-            "type": "string"
-        },
-        "dna_quantification_method": {
-            "column": 8,
-            "type": "string"
-        },
-        "dna_extraction_date": {
-            "column": 9,
-            "type": "datetime",
-            "date_format": "%Y-%m-%dT%H:%M:%S"
-        },
-        "Day after admission": {
-            "column": 10,
-            "type": "string"
-        },
-        "Parasitaemia (%)": {
-            "column": 11,
-            "type": "string"
-        },
-        "Partner ID": {
-            "column": 12,
-            "type": "string"
-        },
-        "Patient code": {
-            "column": 13,
-            "type": "string"
-        },
-        "Relationship to other sample": {
-            "column": 14,
-            "type": "string"
-        },
         "SAMPLE TYPE": {
             "column": 15,
             "type": "string"
         },
-        "Sample Type": {
+        "sample_type": {
             "column": 16,
-            "type": "string"
-        },
-        "Sample Volume (uL)": {
-            "column": 17,
             "type": "string"
         },
         "species": {
             "column": 18,
-            "type": "string"
-        },
-        "Time Point": {
-            "column": 19,
-            "type": "string"
-        },
-        "Time spent in culture (days)": {
-            "column": 20,
-            "type": "string"
-        },
-        "Total DNA (ng)": {
-            "column": 21,
             "type": "string"
         }
     }
