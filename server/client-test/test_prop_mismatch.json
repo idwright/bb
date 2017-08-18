@@ -1,0 +1,20 @@
+{
+    "refs": {
+        "alfresco_code": {
+            "column": 1,
+            "type": "integer",
+            "source": "alfresco"
+        }
+    },
+    "values":
+    {
+        "oxford_code": {
+            "column": 0,
+            "type": "string"
+        },
+        "alfresco_code": {
+            "column": 1,
+            "type": "integer"
+        }
+    }
+}

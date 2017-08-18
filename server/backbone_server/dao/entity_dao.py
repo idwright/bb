@@ -180,9 +180,14 @@ class EntityDAO(BaseDAO):
             property_type_id = pti
 
         if not property_type_id:
-            self._cursor.execute('''INSERT INTO `property_types` (`source`, `prop_name`, `prop_type`,
+            try:
+                self._cursor.execute('''INSERT INTO `property_types` (`source`, `prop_name`, `prop_type`,
                                  `prop_order`, `identity`) VALUES (%s, %s, %s, %s, %s)''',
                                  (source, name, data_type, order, identity))
+            except mysql.connector.Error as err:
+                if err.errno == errorcode.ER_DUP_ENTRY:
+                    raise InvalidDataValueException("Error inserting property {} {} {} {} - probably type mismatch"
+                                                    .format(source, name, data_type, str(order))) from err
             property_type_id = self._cursor.lastrowid
             #cnx.commit()
 #        cursor.close()
@@ -493,13 +498,16 @@ class EntityDAO(BaseDAO):
 
         fetch_row = fetch_row + ' AND '.join(filters)
 
-        self._cursor.execute(fetch_row, values)
+        if not filters:
+            raise InvalidIdException("No properties to search")
 
+        #print(fetch_row % filters)
+
+        self._cursor.execute(fetch_row, values)
 
         property_details = []
         for (entity_id, added_id) in self._cursor:
             property_details.append({'entity_id': entity_id, 'added_id': added_id})
-#        print(fetch_row)
 #        print((prop_name, source, prop_value))
 #        print (property_details)
 #        cursor.close()

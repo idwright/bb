@@ -92,3 +92,22 @@ class TestAssociation(TestBase):
         except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities\n")
 
+    """
+    """
+    def test_mismatch_prop_type(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            with self.assertRaises(Exception) as context:
+                api_instance.upload_source('test_mismatch', 'test_prop_mismatch.txt',
+                                       additional_metadata='test_prop_mismatch.json', skip_header=True)
+
+            self.assertEqual(context.exception.status, 422)
+            self.assertEqual(context.exception.body,
+                             '"'+ "InvalidDataValueException('Error inserting property alfresco alfresco_code integer 0 - probably type mismatch',)" + '"\n')
+
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities\n")
+
