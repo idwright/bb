@@ -1,0 +1,39 @@
+{
+    "refs": {
+        "study_id": {
+            "column": 0,
+            "type": "string",
+            "source": "alfresco"
+        },
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "source": "oxford_central_samples",
+            "fk_name": "individual_code",
+            "ref_type": "sibling"
+        },
+        "location_id": {
+            "column": 3,
+            "type": "integer",
+            "source": "manage_sites",
+            "fk_name": "location_id",
+            "ref_type": "sibling"
+        }
+    },
+    "values": {
+        "oxford_code": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "study_id": {
+            "column": 1,
+            "regex": "([0-9]{4})",
+            "type": "string"
+        },
+        "location_id": {
+            "column": 3,
+            "type": "integer"
+        }
+    }
+}

@@ -1,0 +1,48 @@
+{
+    "values":
+    {
+        "location_id": {
+            "column": 0,
+            "type": "integer",
+            "id": true
+        },
+        "code": {
+            "column": 1,
+            "type": "string"
+        },
+        "name": {
+            "column": 2,
+            "type": "string"
+        },
+        "country": {
+            "column": 3,
+            "type": "string"
+        },
+        "description": {
+            "column": 4,
+            "type": "string"
+        },
+        "latitude": {
+            "column": 5,
+            "type": "float",
+            "regex": "^\\s*([-0-9]*\\.?\\d{0,3})"
+        },
+        "longitude": {
+            "column": 6,
+            "type": "float",
+            "regex": "([-0-9]*\\.?\\d{0,3})(\\d*)$"
+        },
+        "map_zoom": {
+            "column": 7,
+            "type": "string"
+        },
+        "type": {
+            "column": 8,
+            "type": "string"
+        },
+        "part_of_site": {
+            "column": 9,
+            "type": "string"
+        }
+    }
+}
