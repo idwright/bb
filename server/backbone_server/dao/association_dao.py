@@ -1,6 +1,9 @@
 from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.model.server_property import ServerProperty
 from backbone_server.dao.model.server_relationship import ServerRelationship
+from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
+import mysql.connector
+from mysql.connector import errorcode
 
 class AssociationDAO(BaseDAO):
 
@@ -24,7 +27,8 @@ class AssociationDAO(BaseDAO):
 
     def merge_implied_associations(self, internal_id):
 
-        query = '''SELECT ia.source_id, ia.target_id, ia.assoc_type_id FROM implied_assocs ia
+        query = '''SELECT ia.source_id, ia.target_id, ia.assoc_type_id, string_value, long_value, target_prop_id 
+            FROM implied_assocs ia
             LEFT JOIN entity_assoc ea ON ia.target_id = ea.target_entity_id AND ia.source_id =
             ea.source_entity_id AND ia.assoc_type_id = ea.assoc_type_id
                 WHERE ia.assoc_type = %s AND ea.source_entity_id IS NULL AND target_prop_id IN (SELECT 
@@ -37,8 +41,15 @@ class AssociationDAO(BaseDAO):
         self._cursor.execute(query, ('sibling', internal_id,))
 
         merges = []
-        for (sid, tid, ati) in self._cursor:
+        string_val = None
+        long_val = None
+        target_prop_id = None
+        for (sid, tid, ati, spv, lpv, tpi) in self._cursor:
             if sid != tid:
+                if spv:
+                    string_val = spv.decode('utf-8')
+                long_val = lpv
+                target_prop_id = tpi
                 srel = ServerRelationship()
                 srel.source_id = sid
                 srel.target_id = tid
@@ -68,19 +79,53 @@ WHERE
                                             WHERE
                                                 pt.`source` = 'system');'''
         delete_query = '''DELETE FROM `entities` WHERE added_id = %s'''
-        for srel in merges:
-            #Delete any that might cause duplicate entries (e.g. system implied_id true)
-#            print("Merge {} {}".format(srel.source_id, srel.target_id))
-            self._cursor.execute(delete_system_query, (srel.target_id,))
 
-            self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
+        duplicate_query = '''
+SELECT 
+    DISTINCT property_id
+FROM
+    property_values
+WHERE
+     property_id IN (SELECT 
+            property_id
+        FROM
+            property_values
+        WHERE
+            added_id IN (%s,%s)
+        GROUP BY property_id
+        HAVING COUNT(*) > 1)
+        '''
+
+        for srel in merges:
+            try:
+            #Delete any that might cause duplicate entries (e.g. system implied_id true)
+                self._cursor.execute(query, (srel.source_id, srel.target_id))
+
+                dups = []
+                for (prop_id) in self._cursor:
+                    dups.append(prop_id)
+
+                for (prop_id) in dups:
+                    self._cursor.execute("DELETE FROM entity_properties WHERE entity_id = %s AND property_id = %s", (srel.target_id, prop_id))
+
+#            print("Merge {} {}".format(srel.source_id, srel.target_id))
+                self._cursor.execute(delete_system_query, (srel.target_id,))
+
+                self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
 
 #            print("Merge assoc:" + merge_assoc_query %
 #                                 (srel.target_id, srel.target_id, srel.source_id))
-            self._cursor.execute('SET foreign_key_checks = 0')
-            self._cursor.execute(merge_assoc_query,
-                                 (srel.target_id, srel.target_id, srel.source_id))
-            self._cursor.execute('SET foreign_key_checks = 1')
+                self._cursor.execute('SET foreign_key_checks = 0')
+                self._cursor.execute(merge_assoc_query,
+                                     (srel.target_id, srel.target_id, srel.source_id))
+                self._cursor.execute('SET foreign_key_checks = 1')
+            except mysql.connector.Error as err:
+                if err.errno == errorcode.ER_DUP_ENTRY:
+                    print("Error creating implied_association {} {}".format(internal_id, merge_query % (srel.source_id, srel.target_id)))
+                    print("Prop id:" + str(target_prop_id) + " values:" + string_val + ", " + str(long_val))
+                    raise InvalidDataValueException("Error creating implied_association for {} - {}".
+                                                    format(internal_id, merge_query % (srel.source_id, srel.target_id))) from err
+
 
 #            print(delete_query % srel.target_id)
 #            self._cursor.execute(delete_query, (srel.target_id,))
