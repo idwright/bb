@@ -106,6 +106,33 @@ CREATE OR REPLACE VIEW `implied_assocs` AS
         ((tpt.prop_type = 'string'
             AND tp.string_value IS NOT NULL
             AND sp.string_value = tp.string_value)
+            )
+	UNION SELECT 
+        sep.entity_id AS source_id,
+        tep.entity_id AS target_id,
+        am.assoc_type_id,
+        ast.assoc_type,
+        tp.id as target_prop_id,
+        tp.string_value,
+        tp.long_value
+    FROM
+        assoc_mappings am
+            JOIN
+        properties tp ON tp.prop_type_id = am.target_prop_type_id
+            JOIN
+        property_types tpt ON am.target_prop_type_id = tpt.id
+            JOIN
+        properties sp ON sp.prop_type_id = am.source_prop_type_id
+            JOIN
+        assoc_types ast ON ast.id = am.assoc_type_id
+            JOIN
+        entity_properties sep ON sep.property_id = sp.id
+            JOIN
+        entity_properties tep ON tep.property_id = tp.id
+    WHERE
+        ((tpt.prop_type = 'integer'
+            AND tp.long_value IS NOT NULL
+            AND sp.long_value = tp.long_value)
             );
         
    CREATE OR REPLACE VIEW `implied_sources` AS
