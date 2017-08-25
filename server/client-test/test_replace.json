@@ -1,0 +1,42 @@
+{
+    "values":
+    {
+        "location_id": {
+            "column": 0,
+            "type": "string",
+            "id": true
+        },
+        "country": {
+            "column": 1,
+            "type": "string",
+            "replace": [
+                [ "Bangladesh", "BD" ],
+                [ "Bhutan", "BT" ]
+            ]
+        },
+        "latitude": {
+            "column": 2,
+            "type": "float",
+            "regex": "^\\s*([-0-9]*\\.?\\d{0,3})"
+        },
+        "longitude": {
+            "column": 2,
+            "type": "float",
+            "regex": "([-0-9]*\\.?\\d{0,3})(\\d*)$"
+        },
+        "public_location": {
+            "column": 3,
+            "type": "string"
+        },
+        "public_gps_latitude": {
+            "column": 4,
+            "type": "float",
+            "regex": "^\\s*([-0-9]*\\.?\\d{0,3})"
+        },
+        "public_gps_longitude": {
+            "column": 4,
+            "type": "float",
+            "regex": "([-0-9]*\\.?\\d{0,3})\\d*$"
+        }
+    }
+}

@@ -100,8 +100,12 @@ class SourceDAO(EntityDAO):
                                 self._cursor.close()
                                 self._connection.close()
                                 raise
+                        if 'replace' in defn:
+                            for subs in defn['replace']:
+                                data_value = re.sub(subs[0], subs[1], data_value)
+                                print("Transformed value is:" + data_value + " from " + row[defn['column']])
 
-                    #Reset data_value in data after any conversions
+                        #Reset data_value in data after any conversions
                         data.data_value = data_value
 
                     except IndexError:
@@ -147,6 +151,7 @@ class SourceDAO(EntityDAO):
                 elif modified:
                     response.modified = response.modified + 1
 
+                #print("Entity_ID:" + str(entity_id))
                 self.update_associations(entity_id, [])
 
             self._connection.commit()

@@ -71,6 +71,32 @@ class TestUpload(TestBase):
 
         except ApiException as error:
             self.fail("Exception when calling EntityApi->load_source_entities: %s\n" % error)
+    """
+    """
+    def test_replace(self):
+
+        # create an instance of the API class
+        api_instance = swagger_client.SourceApi()
+        try:
+            api_instance.upload_source('test_replace', 'test_replace.txt',
+                                       additional_metadata='test_replace.json',
+                                       skip_header=True)
+
+            rec1 = self.find_entity(api_instance, 'test_replace', 'Bangladesh')
+
+            for prop in rec1.values:
+                if prop.data_name == 'country':
+                    self.assertEqual(prop.data_value, "BD")
+
+            rec2 = self.find_entity(api_instance, 'test_replace', 'Sarpang Tar, Sarpang')
+
+            for prop in rec2.values:
+                if prop.data_name == 'country':
+                    self.assertEqual(prop.data_value, "BT")
+
+
+        except ApiException as error:
+            self.fail("Exception when calling EntityApi->load_source_entities\n")
 
     """
     """
