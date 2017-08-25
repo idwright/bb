@@ -97,18 +97,18 @@ WHERE
         '''
 
         for srel in merges:
+            print("Merge {} {}".format(srel.source_id, srel.target_id))
             try:
             #Delete any that might cause duplicate entries (e.g. system implied_id true)
-                self._cursor.execute(query, (srel.source_id, srel.target_id))
+                self._cursor.execute(duplicate_query, (srel.source_id, srel.target_id))
 
                 dups = []
-                for (prop_id) in self._cursor:
+                for (prop_id,) in self._cursor:
                     dups.append(prop_id)
 
                 for (prop_id) in dups:
                     self._cursor.execute("DELETE FROM entity_properties WHERE entity_id = %s AND property_id = %s", (srel.target_id, prop_id))
 
-#            print("Merge {} {}".format(srel.source_id, srel.target_id))
                 self._cursor.execute(delete_system_query, (srel.target_id,))
 
                 self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
@@ -125,6 +125,8 @@ WHERE
                     print("Prop id:" + str(target_prop_id) + " values:" + string_val + ", " + str(long_val))
                     raise InvalidDataValueException("Error creating implied_association for {} - {}".
                                                     format(internal_id, merge_query % (srel.source_id, srel.target_id))) from err
+                else:
+                    raise err
 
 
 #            print(delete_query % srel.target_id)
