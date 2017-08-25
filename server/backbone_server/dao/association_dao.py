@@ -97,7 +97,7 @@ WHERE
         '''
 
         for srel in merges:
-            print("Merge {} {}".format(srel.source_id, srel.target_id))
+            #print("Merge {} {}".format(srel.source_id, srel.target_id))
             try:
             #Delete any that might cause duplicate entries (e.g. system implied_id true)
                 self._cursor.execute(duplicate_query, (srel.source_id, srel.target_id))
