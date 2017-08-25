@@ -63,6 +63,11 @@ paths:
           required: false
           default: false
           type: boolean
+        - name: entityType
+          in: query
+          description: what type of entity each row represents
+          required: false
+          type: string
       responses:
         '200':
           description: successful operation

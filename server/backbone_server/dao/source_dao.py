@@ -26,11 +26,10 @@ class SourceDAO(EntityDAO):
         return self.load_data(source, data_def, input_stream)
 
 #https://dev.mysql.com/doc/connector-python/en/connector-python-example-cursor-transaction.html
-    def load_data(self, source, data_def, input_stream, skip_header, update_only):
+    def load_data(self, source, data_def, input_stream, skip_header, update_only, entity_type):
 
         response = UploadResponse(0,0,0)
 
-        retcode = 200
 
         with input_stream as csvfile:
             data_reader = csv.reader(csvfile, delimiter='\t')
@@ -117,8 +116,9 @@ class SourceDAO(EntityDAO):
                     data.type_id = defn['type_id']
                     values.append(data)
 
-                if retcode != 200:
-                    break
+                if entity_type:
+                    data = ServerProperty('entity_type', 'string', entity_type, 'system', False)
+                    values.append(data)
 
                 assoc_dao = AssociationDAO(self._cursor)
 
@@ -158,7 +158,7 @@ class SourceDAO(EntityDAO):
             self._cursor.close()
             self._connection.close()
 
-            return response, retcode
+            return response
 
     def edit_source(self, source_rec, update_only):
 

@@ -122,7 +122,7 @@ def upload_entity(sourceId, entity):
 
     return result, 201
 
-def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, skipHeader=None):
+def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, skipHeader=None, entityType=None):
     """
     bulk upload of entities for a given source
     
@@ -151,7 +151,7 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, 
 #    profile = cProfile.Profile()
 #    profile.enable()
     try:
-        result, response_code = sd.load_data(sourceId, data_def, input_stream, skipHeader, updateOnly)
+        result = sd.load_data(sourceId, data_def, input_stream, skipHeader, updateOnly, entityType)
     except (InvalidDataValueException,InvalidDateFormatException) as nie:
         logging.exception(nie)
         return repr(nie), 422 #Unprocessable entity
@@ -160,4 +160,4 @@ def upload_source(sourceId, dataFile, additionalMetadata=None, updateOnly=None, 
 #    profile.dump_stats('upload_source_stats.cprof')
 #$ pyprof2calltree -k -i upload_source_stats.cprof
 
-    return result, response_code
+    return result, 201
