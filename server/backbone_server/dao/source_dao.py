@@ -103,7 +103,7 @@ class SourceDAO(EntityDAO):
                         if 'replace' in defn:
                             for subs in defn['replace']:
                                 data_value = re.sub(subs[0], subs[1], data_value)
-                                print("Transformed value is:" + data_value + " from " + row[defn['column']])
+                                #print("Transformed value is:" + data_value + " from " + row[defn['column']])
 
                         #Reset data_value in data after any conversions
                         data.data_value = data_value
