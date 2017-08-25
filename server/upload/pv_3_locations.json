@@ -8,7 +8,34 @@
         },
         "country": {
             "column": 1,
-            "type": "string"
+            "type": "string",
+            "replace": [
+                        [ "Bangladesh", "BD" ],
+                        [ "Bhutan", "BT" ],
+                        [ "Brazil", "BR" ],
+                        [ "Cambodia", "KH" ],
+                        [ "China", "CN" ],
+                        [ "Colombia", "CO" ],
+                        [ "El Salvador", "SV" ],
+                        [ "Ethiopia", "ET" ],
+                        [ "India", "IN" ],
+                        [ "Indonesia", "ID" ],
+                        [ "Madagascar", "MG" ],
+                        [ "Malaysia", "MY" ],
+                        [ "Mauritania", "MR" ],
+                        [ "Mexico", "MX" ],
+                        [ "Myanmar", "MM" ],
+                        [ "Nicaragua", "NI" ],
+                        [ "North Korea", "KP" ],
+                        [ "Panama", "PA" ],
+                        [ "Papua New Guinea", "PG" ],
+                        [ "South Korea", "KR" ],
+                        [ "Sri Lanka", "LK" ],
+                        [ "Sudan", "SD" ],
+                        [ "Thailand", "TH" ],
+                        [ "Vietnam", "VN" ]
+                    ]
+
         },
         "latitude": {
             "column": 2,

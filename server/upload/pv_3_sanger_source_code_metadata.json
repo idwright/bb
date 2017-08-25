@@ -16,7 +16,6 @@
             "column": 8,
             "type": "string",
             "fk_name": "location_id",
-            "ref_type": "sibling",
             "source": "pv_3_locations"
         }
     },
