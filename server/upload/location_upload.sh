@@ -16,7 +16,13 @@ do
         else
             UPDATE_ONLY=
         fi
-        time curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@${SOURCE}.json;type=text/json" -F dataFile="@${i};type=text/csv" "http://localhost:8080/v1/source/${SOURCE}/upload${SKIP}${UPDATE_ONLY}"
+        if [ ${SOURCE} = 'pv_3_sanger_source_code_metadata_XXXXXXXX' ]
+        then
+            ENT_TYPE='&entityType=sample'
+        else
+            ENT_TYPE=
+        fi
+        time curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@${SOURCE}.json;type=text/json" -F dataFile="@${i};type=text/csv" "http://localhost:8080/v1/source/${SOURCE}/upload${SKIP}${UPDATE_ONLY}${ENT_TYPE}"
         SKIP='?skipHeader=false'
         if [ $? -eq 0 ]
         then

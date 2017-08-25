@@ -36,7 +36,7 @@ split -l ${SPLIT_SIZE} legacy_samples_table_oxford_02JUN2017.csv ${SOURCE}_split
 SKIP=true
 for i in ${SOURCE}_split_*
 do
-    time curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@oxford_central_samples.json;type=text/json" -F dataFile="@${i};type=text/csv" "http://localhost:8080/v1/source/${SOURCE}/upload?skipHeader=${SKIP}"
+    time curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@oxford_central_samples.json;type=text/json" -F dataFile="@${i};type=text/csv" "http://localhost:8080/v1/source/${SOURCE}/upload?skipHeader=${SKIP}&entityType=sample"
     SKIP=false
     if [ $? -eq 0 ]
     then
