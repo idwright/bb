@@ -10,6 +10,8 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import 'hammerjs';
 
+import { LeafletModule } from '@asymmetrik/ngx-leaflet';
+
 import { AppComponent } from './app.component';
 import { EntitiesComponent } from './entities/entities.component';
 import { EntitiesListComponent } from './entities-list/entities-list.component';
@@ -29,6 +31,8 @@ import { EntitiesFullListComponent } from './entities-full-list/entities-full-li
 import { PropertiesSummaryComponent } from './properties-summary/properties-summary.component';
 import { PropertySummaryComponent } from './property-summary/property-summary.component';
 import { EntitiesByPropertyValueComponent } from './entities-by-property-value/entities-by-property-value.component';
+import { EntitiesMapComponent } from './entities-map/entities-map.component';
+import { AllEntitiesMapComponent } from './all-entities-map/all-entities-map.component';
 
 
 @NgModule({
@@ -48,7 +52,9 @@ import { EntitiesByPropertyValueComponent } from './entities-by-property-value/e
     EntitiesFullListComponent,
     PropertiesSummaryComponent,
     PropertySummaryComponent,
-    EntitiesByPropertyValueComponent
+    EntitiesByPropertyValueComponent,
+    EntitiesMapComponent,
+    AllEntitiesMapComponent
   ],
   imports: [
     BrowserModule,
@@ -58,7 +64,8 @@ import { EntitiesByPropertyValueComponent } from './entities-by-property-value/e
     AppRoutingModule,
     MaterialModule,
     BrowserAnimationsModule,
-    NgxDatatableModule
+    NgxDatatableModule,
+    LeafletModule.forRoot()
   ],
   providers: [
       EntityApi,
