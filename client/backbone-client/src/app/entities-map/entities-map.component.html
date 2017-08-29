@@ -1,2 +1,9 @@
-<div style="height: 800px;" leaflet [leafletOptions]="leaflet_options" [leafletLayersControl]="leafet_layers_control" [leafletLayers]="markers">
+<div leaflet style="height: 800px;"
+[leafletOptions]="leaflet_options"
+[leafletBaseLayers]="leaflet_baseLayers"
+[leafletLayersControlOptions]="leaflet_layersControlOptions"
+
+[leafletMarkerCluster]="markerClusterData"
+[leafletMarkerClusterOptions]="markerClusterOptions"
+(leafletMarkerClusterReady)="markerClusterReady($event)">
 </div>

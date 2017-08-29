@@ -4,7 +4,9 @@ import { Entities } from '../typescript-angular2-client/model/Entities';
 import { Entity } from '../typescript-angular2-client/model/Entity';
 import { Property } from '../typescript-angular2-client/model/Property';
 
+
 import * as L from 'leaflet';
+import 'leaflet.markercluster';
 
 @Component({
   selector: 'app-entities-map',
@@ -16,9 +18,31 @@ export class EntitiesMapComponent implements OnInit {
 
   _entities: Entities;
 
-  leaflet_options;
+  // Open Street Map Definition
+  LAYER_OSM = {
+    id: 'openstreetmap',
+    name: 'Open Street Map',
+    enabled: false,
+    layer: L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: 'Open Street Map'
+    })
+  };
 
-  leaflet_layers_control;
+  // Values to bind to Leaflet Directive
+  leaflet_layersControlOptions = { position: 'bottomright' };
+  leaflet_baseLayers = {
+    'Open Street Map': this.LAYER_OSM.layer
+  };
+  leaflet_options = {
+    zoom: 3,
+    center: L.latLng([-4.6991, 20.8422])
+  };
+  // Marker cluster stuff
+  markerClusterGroup: L.MarkerClusterGroup;
+  markerClusterData: any[] = [];
+  markerClusterOptions: L.MarkerClusterGroupOptions;
+
 
   markers: L.Layer[] = [];
 
@@ -52,23 +76,12 @@ export class EntitiesMapComponent implements OnInit {
           this.addMarker(lat, lng, loc);
         }
       });
+      this.markerClusterData = this.markers;
     }
+
   }
 
   ngOnInit() {
-    this.leaflet_options = {
-      layers: [
-        L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
-      ],
-      zoom: 3,
-      center: L.latLng([-4.6991, 20.8422])
-    };
-
-    this.leaflet_layers_control = {
-      baseLayers: {
-        'Open Street Map': L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '...' })
-      }
-    }
 
     console.log(this._entities);
 
@@ -77,12 +90,12 @@ export class EntitiesMapComponent implements OnInit {
 
   addMarker(lat, lng, marker_title) {
     let marker = L.marker(
-      [lat, lng],      
+      [lat, lng],
       {
-        title: marker_title,        
+        title: marker_title,
         icon: L.icon({
           iconSize: [25 * 0.5, 41 * 0.5],
-          iconAnchor: [13 * 0.5, 0 ],
+          iconAnchor: [13 * 0.5, 0],
           iconUrl: 'assets/marker-icon.png',
           shadowUrl: 'assets/marker-shadow.png'
         })
@@ -90,5 +103,12 @@ export class EntitiesMapComponent implements OnInit {
     );
 
     this.markers.push(marker);
+
+  }
+
+  markerClusterReady(group: L.MarkerClusterGroup) {
+
+    this.markerClusterGroup = group;
+
   }
 }
