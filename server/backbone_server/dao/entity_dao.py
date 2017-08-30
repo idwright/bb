@@ -474,6 +474,38 @@ class EntityDAO(BaseDAO):
 #            cnx.close()
 
 
+    def find_entity_by_fk(self, prop):
+
+        fetch_row = ('''SELECT HEX(e.id),e.added_id FROM assoc_mappings am
+                        JOIN property_types spt ON spt.id = am.source_prop_type_id
+                         JOIN property_types tpt ON tpt.id = am.source_prop_type_id
+                         JOIN assoc_types atp ON atp.id = am.assoc_type_id
+                         JOIN properties p ON p.prop_type_id = am.source_prop_type_id
+                         JOIN entity_properties ep ON ep.property_id = p.id
+                         JOIN entities e ON e.added_id = ep.entity_id
+                         WHERE am.target_prop_type_id=%s AND p.''' +
+                     self.get_data_field(prop.data_type) + ''' = %s ''')
+
+        #print(fetch_row % (prop.type_id, prop.data_value))
+        self._cursor.execute(fetch_row, (prop.type_id, prop.data_value))
+
+        property_details = []
+        for (entity_id, added_id) in self._cursor:
+            property_details.append({'entity_id': entity_id, 'added_id': added_id})
+
+        found = False
+        parent_entity_id = None
+
+        if len(property_details) == 1:
+#            print ("Found entity:" + repr(property_details))
+            parent_entity_id = property_details[0]['added_id']
+            found = True
+        elif len(property_details) > 1:
+            self._logger.critical("Duplicate entities:" + repr(id_properties))
+
+        return parent_entity_id, found
+
+
     def find_entity_by_properties(self, properties):
 
         fetch_row = ('''SELECT

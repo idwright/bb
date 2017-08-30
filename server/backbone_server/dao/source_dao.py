@@ -188,7 +188,11 @@ class SourceDAO(EntityDAO):
 
         if not found:
             if update_only:
-                return None, False, False
+                #print("No entity:" + repr(id_properties))
+                entity_id, found = self.find_entity_by_fk(id_properties[0])
+                if not found:
+                    #print("Still no entity:" + repr(id_properties))
+                    return None, False, False
             else:
                 entity_id = self.create_entity()
 

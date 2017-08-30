@@ -10,7 +10,7 @@ do
     for i in ${SOURCE}_split_*
     do
         echo ${i}
-        if [ ${SOURCE} = 'sanger_ega_dataset' ]
+        if [ ${SOURCE} = 'sanger_ega_dataset' -o ${SOURCE} = 'manage_sites_samples' ]
         then
             UPDATE_ONLY='&updateOnly=true'
         else
