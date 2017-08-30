@@ -10,7 +10,6 @@ import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import { NgxDatatableModule } from '@swimlane/ngx-datatable';
 import 'hammerjs';
 
-import { LeafletMarkerClusterModule } from '@asymmetrik/ngx-leaflet-markercluster';
 import { LeafletModule } from '@asymmetrik/ngx-leaflet';
 
 import { AppComponent } from './app.component';
@@ -66,8 +65,7 @@ import { AllEntitiesMapComponent } from './all-entities-map/all-entities-map.com
     MaterialModule,
     BrowserAnimationsModule,
     NgxDatatableModule,
-    LeafletModule,
-    LeafletMarkerClusterModule
+    LeafletModule
   ],
   providers: [
       EntityApi,

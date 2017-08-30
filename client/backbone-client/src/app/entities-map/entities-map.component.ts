@@ -13,8 +13,8 @@ import 'leaflet.markercluster';
   templateUrl: './entities-map.component.html',
   styleUrls: ['./entities-map.component.css']
 })
-export class EntitiesMapComponent implements OnInit {
 
+export class EntitiesMapComponent {
 
   _entities: Entities;
 
@@ -39,14 +39,10 @@ export class EntitiesMapComponent implements OnInit {
     center: L.latLng([-4.6991, 20.8422])
   };
   // Marker cluster stuff
-  markerClusterGroup: L.MarkerClusterGroup;
-  markerClusterData: any[] = [];
-  markerClusterOptions: L.MarkerClusterGroupOptions;
 
-
-  markers: L.Layer[] = [];
-
-  constructor() { }
+  markers = new Map<string, L.Layer[]>();
+  groups = new Map<string, L.MarkerClusterGroup>();
+  map;
 
   @Input()
   set entities(entities: Entities) {
@@ -61,34 +57,41 @@ export class EntitiesMapComponent implements OnInit {
         let lat: number = null;
         let lng: number = null;
         let loc: string = '';
+        let country: string = '';
         entity.values.forEach(prop => {
           if (prop.data_name == 'latitude') {
             lat = Number(prop.data_value);
-          }
-          if (prop.data_name == 'longitude') {
+          } else if (prop.data_name == 'longitude') {
             lng = Number(prop.data_value);
-          }
-          if (prop.data_name == 'location') {
-            loc = prop.data_value;
+          } else if (prop.data_name == 'location') {
+              loc = prop.data_value;
+          } else if (prop.data_name == 'location_id' && loc == '') {
+              loc = prop.data_value;
+          } else if (prop.data_name == 'country') {
+            country = prop.data_value;
           }
         });
         if (lat && lng) {
-          this.addMarker(lat, lng, loc);
+          this.addMarker(country, lat, lng, loc);
         }
       });
-      this.markerClusterData = this.markers;
+
+      this.markers.forEach((value: L.Layer[], key: string) => {
+        let mcg = L.markerClusterGroup();
+        mcg.clearLayers();
+        mcg.addLayers(value);
+        mcg.addTo(this.map);
+      });
+
     }
 
   }
 
-  ngOnInit() {
-
-    console.log(this._entities);
-
-    //this.addMarker();
+  onMapReady(map: L.Map) {
+    this.map = map;
   }
 
-  addMarker(lat, lng, marker_title) {
+  addMarker(country, lat, lng, marker_title) {
     let marker = L.marker(
       [lat, lng],
       {
@@ -102,13 +105,12 @@ export class EntitiesMapComponent implements OnInit {
       }
     );
 
-    this.markers.push(marker);
+    if (!this.markers.has(country)) {
+      this.markers.set(country, []);
+    }
+
+    this.markers.get(country).push(marker);
 
   }
 
-  markerClusterReady(group: L.MarkerClusterGroup) {
-
-    this.markerClusterGroup = group;
-
-  }
 }
