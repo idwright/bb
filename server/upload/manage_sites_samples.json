@@ -16,8 +16,7 @@
             "column": 3,
             "type": "integer",
             "source": "manage_sites",
-            "fk_name": "location_id",
-            "ref_type": "sibling"
+            "fk_name": "location_id"
         }
     },
     "values": {
