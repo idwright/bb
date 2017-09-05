@@ -152,7 +152,7 @@ class EntityDAO(BaseDAO):
 
     def find_or_create_assoc_type(self, assoc_type):
 
-        self._cursor.execute("SELECT id, assoc_type FROM `assoc_types` WHERE `assoc_name` = %s",
+        self._cursor.execute("SELECT id, assoc_type FROM assoc_types WHERE assoc_name = %s",
                              (assoc_type.assoc_name,))
 
         for (ati, att) in self._cursor:
@@ -160,7 +160,7 @@ class EntityDAO(BaseDAO):
             assoc_type.assoc_type = att
 
         if not assoc_type.ident:
-            self._cursor.execute("INSERT INTO `assoc_types` (`assoc_name`, `assoc_type`) VALUES (%s, %s)", 
+            self._cursor.execute("INSERT INTO assoc_types (assoc_name, assoc_type) VALUES (%s, %s)", 
                                  (assoc_type.assoc_name, assoc_type.assoc_type))
             assoc_type.ident = self._cursor.lastrowid
 #            cnx.commit()
@@ -173,7 +173,7 @@ class EntityDAO(BaseDAO):
 #        cnx = self.get_connection()
 #        cursor = cnx.cursor()
 
-        self._cursor.execute("SELECT id FROM `property_types` WHERE `source` = %s AND `prop_name` = %s AND `prop_type` = %s", (source, name, data_type))
+        self._cursor.execute("SELECT id FROM property_types WHERE source = %s AND prop_name = %s AND prop_type = %s", (source, name, data_type))
 
         property_type_id = None
         for (pti,) in self._cursor:
@@ -181,8 +181,8 @@ class EntityDAO(BaseDAO):
 
         if not property_type_id:
             try:
-                self._cursor.execute('''INSERT INTO `property_types` (`source`, `prop_name`, `prop_type`,
-                                 `prop_order`, `identity`) VALUES (%s, %s, %s, %s, %s)''',
+                self._cursor.execute('''INSERT INTO property_types (source, prop_name, prop_type,
+                                 prop_order, identity) VALUES (%s, %s, %s, %s, %s)''',
                                  (source, name, data_type, order, identity))
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_DUP_ENTRY:
@@ -205,7 +205,7 @@ class EntityDAO(BaseDAO):
             #Update property value
             #print("updating property:" + str(property_id) + repr(prop) + " type:" + str(type(prop.typed_data_value)))
             #print("updating property old_value:" + str(old_value) + " type:" + str(type(old_value)))
-            update_prop = ("UPDATE properties SET `" + prop.data_field + "` = %s WHERE id = %s;")
+            update_prop = ("UPDATE properties SET " + prop.data_field + " = %s WHERE id = %s;")
             try:
                 self._cursor.execute(update_prop, (prop.typed_data_value, property_id))
             except mysql.connector.Error as err:
@@ -226,11 +226,11 @@ class EntityDAO(BaseDAO):
     """
     def add_or_update_property_entity(self, entity_id, prop):
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + prop.data_field + ''' FROM `properties` p
-                     JOIN `property_types` AS pt ON pt.id = p.prop_type_id
-                     JOIN `entity_properties` AS ep ON ep.property_id = p.id
-                     JOIN `entities` AS e ON ep.entity_id = e.added_id
-                     WHERE `p`.`prop_type_id` = %s AND `added_id` = %s''')
+        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + prop.data_field + ''' FROM properties p
+                     JOIN property_types AS pt ON pt.id = p.prop_type_id
+                     JOIN entity_properties AS ep ON ep.property_id = p.id
+                     JOIN entities AS e ON ep.entity_id = e.added_id
+                     WHERE p.prop_type_id = %s AND added_id = %s''')
 
         self._cursor.execute(fetch_row, (prop.type_id, entity_id))
         property_id = None
@@ -282,10 +282,10 @@ class EntityDAO(BaseDAO):
             old_property_id = delete_old
             #Note - do not delete the old property, intended to be used for history
             #print ("Delete reference to old property value:" + str(entity_id) + ":" + str(old_property_id))
-            self._cursor.execute("DELETE FROM `entity_properties` WHERE `entity_id` = %s AND `property_id` = %s", (entity_id, old_property_id))
+            self._cursor.execute("DELETE FROM entity_properties WHERE entity_id = %s AND property_id = %s", (entity_id, old_property_id))
         if not linked:
             #print ("insert reference to new property value:" + str(entity_id) + ":" + str(property_id))
-            self._cursor.execute("INSERT INTO `entity_properties` (`entity_id`, `property_id`) VALUES (%s, %s)", (entity_id, property_id))
+            self._cursor.execute("INSERT INTO entity_properties (entity_id, property_id) VALUES (%s, %s)", (entity_id, property_id))
 
         #if modified:
         #    print("Modified entity_property:" + str(entity_id) + " " + repr(prop))
@@ -334,7 +334,7 @@ class EntityDAO(BaseDAO):
 
     def add_or_update_assoc_property(self, entity_id, fk, assoc_type, prop, property_type_id):
 
-        fetch_row = ("SELECT p.id as property_id, " + prop.data_field + " FROM `properties` p JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `p`.`prop_type_id` = %s AND `source_entity_id` = %s AND `target_entity_id` = %s AND `assoc_type_id` = %s")
+        fetch_row = ("SELECT p.id as property_id, " + prop.data_field + " FROM properties p JOIN assoc_properties AS ap ON ap.property_id = p.id WHERE p.prop_type_id = %s AND source_entity_id = %s AND target_entity_id = %s AND assoc_type_id = %s")
 
         values = (property_type_id, entity_id, fk, assoc_type.ident)
         #print(fetch_row)
@@ -370,7 +370,7 @@ class EntityDAO(BaseDAO):
     def count_entities_with_property_value(self, property_id, old_value, data_field):
 
         count = 0
-        count_query = "SELECT p.id FROM `properties` p LEFT JOIN `entity_properties` AS ep ON ep.property_id = p.id LEFT JOIN `assoc_properties` AS ap ON ap.property_id = p.id WHERE `" + data_field + "` = %s and p.id = %s LIMIT 5"
+        count_query = "SELECT p.id FROM properties p LEFT JOIN entity_properties AS ep ON ep.property_id = p.id LEFT JOIN assoc_properties AS ap ON ap.property_id = p.id WHERE " + data_field + " = %s and p.id = %s LIMIT 5"
 
         try:
 
@@ -392,7 +392,7 @@ class EntityDAO(BaseDAO):
         return count
 
     def find_property_with_value(self, prop):
-        count_query = ("SELECT p.id FROM `properties` p JOIN `property_types` AS pt ON pt.id = p.prop_type_id WHERE `" + prop.data_field + "` = %s AND `pt`.`source` = %s AND `pt`.`prop_name` = %s AND `pt`.`prop_type` = %s")
+        count_query = ("SELECT p.id FROM properties p JOIN property_types AS pt ON pt.id = p.prop_type_id WHERE " + prop.data_field + " = %s AND pt.source = %s AND pt.prop_name = %s AND pt.prop_type = %s")
 
         #print(count_query)
         #print(repr(prop))
@@ -434,7 +434,7 @@ class EntityDAO(BaseDAO):
             return existing_property_id
 
         #print ("insert_property: inserting")
-        insert_statement = ("INSERT INTO properties (`prop_type_id`, `" + prop.data_field + "`) VALUES (%s, %s);")
+        insert_statement = ("INSERT INTO properties (prop_type_id, " + prop.data_field + ") VALUES (%s, %s);")
 
         #print(insert_statement)
         #print (repr(prop))
@@ -458,14 +458,14 @@ class EntityDAO(BaseDAO):
             #Note - do not delete the old property, intended to be used for history
             #            print ("Delete reference to old property value:" +
             #            str(entity_id) + ":" + str(old_property_id))
-            self._cursor.execute('''DELETE FROM `entity_properties` WHERE `source_entity_id` = %s AND
-                                 target_entity_id = %s AND assoc_type_id = %s AND `property_id` = %s''',
+            self._cursor.execute('''DELETE FROM entity_properties WHERE source_entity_id = %s AND
+                                 target_entity_id = %s AND assoc_type_id = %s AND property_id = %s''',
                                  (entity_id, fk, assoc_type.ident, old_property_id))
 
         if not linked:
 #            cnx = self.get_connection()
 #            cursor = cnx.cursor()
-            query = ("INSERT INTO `assoc_properties` (`source_entity_id`, `target_entity_id`, `assoc_type_id`, `property_id`) VALUES (%s, %s, %s, %s)")
+            query = ("INSERT INTO assoc_properties (source_entity_id, target_entity_id, assoc_type_id, property_id) VALUES (%s, %s, %s, %s)")
 
             self._cursor.execute(query, (entity_id, fk, assoc_type.ident, property_id))
 
@@ -511,7 +511,7 @@ class EntityDAO(BaseDAO):
         fetch_row = ('''SELECT
                         HEX(e.id), e.added_id
                     FROM
-                        `properties` p
+                        properties p
                         JOIN property_types pt ON pt.id = p.prop_type_id
                         JOIN entity_properties ep ON ep.property_id = p.id
                         JOIN entities e ON e.added_id = ep.entity_id
@@ -520,11 +520,11 @@ class EntityDAO(BaseDAO):
         filters = []
         values = []
         for prop in properties:
-            pfilter = '`prop_name` = %s AND `source` = %s'
+            pfilter = 'prop_name = %s AND source = %s'
             values.append(prop.data_name)
             values.append(prop.source)
             if prop.data_value:
-                pfilter = pfilter + " AND `" + self.get_data_field(prop.data_type) +"` = %s"
+                pfilter = pfilter + " AND " + self.get_data_field(prop.data_type) +" = %s"
                 values.append(prop.data_value)
             filters.append(pfilter)
 
@@ -565,7 +565,7 @@ class EntityDAO(BaseDAO):
         return parent_entity_id, found
 
     def create_entity(self):
-        query = ("INSERT INTO `entities` (`id`) VALUES (ordered_uuid(uuid()))")
+        query = ("INSERT INTO entities (id) VALUES (ordered_uuid(uuid()))")
         args = ()
         self._cursor.execute(query, args)
         parent_entity_id = self._cursor.lastrowid
@@ -584,7 +584,7 @@ class EntityDAO(BaseDAO):
     def add_assoc(self, entity_id, fk, assoc_type_id):
 #        cnx = self.get_connection()
 #        cursor = cnx.cursor()
-        query = ("INSERT INTO `entity_assoc` (`source_entity_id`, `target_entity_id`, `assoc_type_id`) VALUES (%s, %s, %s)")
+        query = ("INSERT INTO entity_assoc (source_entity_id, target_entity_id, assoc_type_id) VALUES (%s, %s, %s)")
         args = (entity_id, fk, assoc_type_id)
 #        print (query)
 #        print (args)
@@ -628,7 +628,7 @@ class EntityDAO(BaseDAO):
             added_id = self.get_internal_id(entity_id)
 
         entity = Entity(entity_id)
-        props_query = 'SELECT `source`, `prop_name`, `prop_type`, `value`, `identity` FROM property_values WHERE `added_id` = %s'
+        props_query = 'SELECT source, prop_name, prop_type, value, identity FROM property_values WHERE added_id = %s'
 
         self._cursor.execute(props_query, (added_id,))
 
@@ -647,7 +647,7 @@ class EntityDAO(BaseDAO):
             properties.append(data)
 
         entity.values = properties
-        assocs_query = '''SELECT source_uuid, source_id, target_uuid, target_id, assoc_name, assoc_type_id FROM `associations`
+        assocs_query = '''SELECT source_uuid, source_id, target_uuid, target_id, assoc_name, assoc_type_id FROM associations
         WHERE source_id = %s OR target_id = %s;'''
         self._cursor.execute(assocs_query, (added_id, added_id,))
         links = []
@@ -660,8 +660,8 @@ class EntityDAO(BaseDAO):
             tad = ad[3]
             assoc_name = ad[4]
             ati = ad[5]
-            fetch_row = '''select `source`, `prop_name`, `prop_type`, `value`, `identity` from association_property_values
-                            WHERE `source_id` = %s AND `target_id` = %s AND `assoc_type_id` = %s'''
+            fetch_row = '''select source, prop_name, prop_type, value, identity from association_property_values
+                            WHERE source_id = %s AND target_id = %s AND assoc_type_id = %s'''
             self._cursor.execute(fetch_row, (sad, tad, ati))
             values = []
             for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
@@ -686,7 +686,7 @@ class EntityDAO(BaseDAO):
 
     def get_properties_by_name(self, source, prop_name):
 
-        self._cursor.execute("SELECT id, prop_type, source FROM `property_types` WHERE `prop_name` = %s", (prop_name,))
+        self._cursor.execute("SELECT id, prop_type, source FROM property_types WHERE prop_name = %s", (prop_name,))
         props = []
         for (pti, pt, src) in self._cursor:
             prop = ServerProperty()
@@ -820,7 +820,7 @@ class EntityDAO(BaseDAO):
             query_args = (prop.type_id, prop.source, prop.typed_data_value)
 
         columns_query = '''SELECT
-    pt.`source`, pt.prop_name, pt.prop_type, pt.identity
+    pt.source, pt.prop_name, pt.prop_type, pt.identity
 FROM
     properties p
         JOIN
@@ -840,7 +840,7 @@ WHERE
                         JOIN
                     property_types pt ON p.prop_type_id = pt.id ''' + where_clause + '''))
 GROUP BY pt.id
-ORDER BY pt.`source` , pt.prop_order, pt.prop_name;'''
+ORDER BY pt.source , pt.prop_order, pt.prop_name;'''
 
         #print(columns_query % query_args)
         self._cursor.execute(columns_query, query_args)
@@ -863,7 +863,7 @@ ORDER BY pt.`source` , pt.prop_order, pt.prop_name;'''
         pfilter = ''
         params = ()
         if source:
-            pfilter = ' WHERE `pt`.source = %s '
+            pfilter = ' WHERE pt.source = %s '
             params = (source,)
             query = '''SELECT COUNT(pt.prop_name), pt.prop_name, pt.source from property_types pt
             JOIN properties p ON p.prop_type_id = pt.id''' + pfilter + '''
@@ -916,7 +916,7 @@ ORDER BY pt.`source` , pt.prop_order, pt.prop_name;'''
         prop = props[0]
 
         if source:
-            pfilter = ' `pt`.`source` = %s AND '
+            pfilter = ' pt.source = %s AND '
             qargs = (source, prop_name, th)
         else:
             pfilter = ''
@@ -926,7 +926,7 @@ ORDER BY pt.`source` , pt.prop_order, pt.prop_name;'''
                  prop.data_field + ''' from entity_properties ep
             JOIN properties p ON p.id = ep.property_id
             JOIN property_types pt ON pt.id = p.prop_type_id
-            WHERE ''' + pfilter + ''' `pt`.`prop_name` = %s
+            WHERE ''' + pfilter + ''' pt.prop_name = %s
             GROUP BY (''' + prop.data_field + ''') HAVING COUNT(''' + prop.data_field + ''') > %s
                  order by CONVERT (prop_name USING utf8), ''' +
                  prop.data_field)

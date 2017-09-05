@@ -13,13 +13,13 @@ class AssociationDAO(BaseDAO):
 
     def create_mapping(self, source_prop_id, target_prop_id, assoc_type):
 
-        query = '''SELECT * FROM `assoc_mappings` WHERE source_prop_type_id = %s AND
+        query = '''SELECT * FROM assoc_mappings WHERE source_prop_type_id = %s AND
         target_prop_type_id = %s AND assoc_type_id = %s'''
 
         self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_type.ident))
 
         if not self._cursor.fetchone():
-            query = '''INSERT INTO `assoc_mappings` (source_prop_type_id, target_prop_type_id,
+            query = '''INSERT INTO assoc_mappings (source_prop_type_id, target_prop_type_id,
             assoc_type_id) VALUES (%s, %s, %s)'''
 
             self._cursor.execute(query, (source_prop_id, target_prop_id, assoc_type.ident))
@@ -55,10 +55,10 @@ class AssociationDAO(BaseDAO):
                 srel.target_id = tid
                 merges.append(srel)
 
-        merge_query = '''UPDATE `entity_properties` SET entity_id = %s WHERE entity_id = %s'''
-        merge_assoc_query = '''UPDATE `entity_assoc` ea
+        merge_query = '''UPDATE entity_properties SET entity_id = %s WHERE entity_id = %s'''
+        merge_assoc_query = '''UPDATE entity_assoc ea
         INNER JOIN
-    `assoc_properties` ap ON (ea.source_entity_id = ap.source_entity_id
+    assoc_properties ap ON (ea.source_entity_id = ap.source_entity_id
         AND ea.target_entity_id = ap.target_entity_id
         AND ea.assoc_type_id = ap.assoc_type_id)
 SET
@@ -77,8 +77,8 @@ WHERE
                                                     JOIN
                                                 property_types pt ON p.prop_type_id = pt.id
                                             WHERE
-                                                pt.`source` = 'system');'''
-        delete_query = '''DELETE FROM `entities` WHERE added_id = %s'''
+                                                pt.source = 'system');'''
+        delete_query = '''DELETE FROM entities WHERE added_id = %s'''
 
         duplicate_query = '''
 SELECT 
@@ -151,7 +151,7 @@ WHERE
 
     def find_missing_association_sources(self, internal_id):
 
-        query = '''SELECT source_prop_type_id, ims.`source`, ims.prop_name, ims.prop_type,
+        query = '''SELECT source_prop_type_id, ims.source, ims.prop_name, ims.prop_type,
         ims.string_value, ims.long_value
                     FROM implied_sources ims WHERE target_prop_id IN (SELECT property_id from
                     entity_properties where entity_id = %s);'''

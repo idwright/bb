@@ -235,7 +235,7 @@ class SourceDAO(EntityDAO):
                 ON pt.id = p.prop_type_id AND pt.identity = 1
             JOIN entity_properties ep ON ep.property_id = p.id
             JOIN entities e ON e.added_id = ep.entity_id
-            WHERE `''' + data_field + "` = %s AND p.prop_type_id = %s"
+            WHERE ''' + data_field + " = %s AND p.prop_type_id = %s"
 
         cursor.execute(entity_query, (source_id, prop_type_id))
         entity = cursor.fetchone()
@@ -287,10 +287,10 @@ class SourceDAO(EntityDAO):
 
     def get_report_count_by_source(self):
 
-        query = '''SELECT DISTINCT count(ep.property_id), `pt`.`source` from entity_properties ep
+        query = '''SELECT DISTINCT count(ep.property_id), pt.source from entity_properties ep
                     JOIN properties p ON p.id = ep.property_id
                     JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = 1
-                    GROUP BY `pt`.`source`, pt.id;'''
+                    GROUP BY pt.source, pt.id;'''
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
 
