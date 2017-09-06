@@ -16,7 +16,10 @@
         },
         "country": {
             "column": 3,
-            "type": "string"
+            "type": "string",
+             "replace": [
+                         [ "PNG", "PG" ]
+             ]
         },
         "description": {
             "column": 4,
