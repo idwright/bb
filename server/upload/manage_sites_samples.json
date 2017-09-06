@@ -16,7 +16,7 @@
             "column": 3,
             "type": "string",
             "source": "manage_sites",
-            "fk_name": "location_id"
+            "fk_name": "location"
         }
     },
     "values": {

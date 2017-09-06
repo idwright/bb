@@ -4,6 +4,7 @@
             "column": 0,
             "type": "string",
             "fk_name": "individual_code",
+             "ref_type": "sibling",
             "source": "oxford_central_samples"
         },
         "oxford_donor_code": {
@@ -21,6 +22,11 @@
             "column": 5,
             "type": "string",
             "source": "oxford_central_samples"
+        },
+        "location": {
+            "column": 6,
+            "type": "string",
+            "source": "location_pf_6"
         }
     },
     "values":
@@ -51,17 +57,9 @@
             "column": 5,
             "type": "string"
         },
-        "site": {
+        "location": {
             "column": 6,
             "type": "string"
-        },
-        "lat": {
-            "column": 7,
-            "type": "float"
-        },
-        "long": {
-            "column": 8,
-            "type": "float"
         },
         "collection_date": {
             "column": 9,

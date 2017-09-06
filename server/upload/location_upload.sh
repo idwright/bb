@@ -2,7 +2,7 @@ SPLIT_SIZE=1000
 
 
 
-for SOURCE in manage_sites manage_sites_samples pv_3_sanger_source_code_metadata pv_3_locations
+for SOURCE in manage_sites_samples manage_sites pv_3_locations
 do
     split -l ${SPLIT_SIZE} ${SOURCE}.txt ${SOURCE}_split_
 
@@ -10,18 +10,14 @@ do
     for i in ${SOURCE}_split_*
     do
         echo ${i}
-        if [ ${SOURCE} = 'sanger_ega_dataset' -o ${SOURCE} = 'manage_sites_samples' ]
+        UPDATE_ONLY='&updateOnly=true'
+        if [ ${SOURCE} = 'manage_sites_samples' ]
         then
-            UPDATE_ONLY='&updateOnly=true'
-        else
-            UPDATE_ONLY=
-        fi
-        if [ ${SOURCE} = 'pv_3_sanger_source_code_metadata_XXXXXXXX' ]
-        then
-            ENT_TYPE='&entityType=sample'
-        else
             ENT_TYPE=
+        else
+            ENT_TYPE='&entityType=location'
         fi
+
         time curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@${SOURCE}.json;type=text/json" -F dataFile="@${i};type=text/csv" "http://localhost:8080/v1/source/${SOURCE}/upload${SKIP}${UPDATE_ONLY}${ENT_TYPE}"
         SKIP='?skipHeader=false'
         if [ $? -eq 0 ]
@@ -31,3 +27,4 @@ do
     done
 done
 
+curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@location_pf_6.json;type=text/json" -F dataFile="@pf_6_metadata.txt;type=text/csv" 'http://localhost:8080/v1/source/location_pf_6/upload?skipHeader=true&entityType=location'

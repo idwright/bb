@@ -1,7 +1,7 @@
 {
     "values":
     {
-        "location_id": {
+        "location": {
             "column": 0,
             "type": "string",
             "id": true

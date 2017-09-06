@@ -12,10 +12,10 @@
             "ref_type": "sibling",
             "source": "oxford_central_samples"
         },
-        "collection_location": {
+        "location": {
             "column": 8,
             "type": "string",
-            "fk_name": "location_id",
+            "fk_name": "location",
             "source": "pv_3_locations"
         }
     },
@@ -37,7 +37,7 @@
             "type": "datetime",
             "date_format": "%Y-%m-%d"
         },
-        "collection_location": {
+        "location": {
             "column": 8,
             "type": "string"
         }
