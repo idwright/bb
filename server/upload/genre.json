@@ -6,9 +6,9 @@
             "source": "alfresco"
         },
         "location": {
-            "column": 5,
+            "column": 4,
             "type": "string",
-            "source": "genre_location"
+            "source": "location_genre"
         }
     },
     "values": {

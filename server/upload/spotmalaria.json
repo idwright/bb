@@ -13,9 +13,9 @@
             "ref_type": "sibling"
         },
         "location": {
-            "column": 5,
+            "column": 4,
             "type": "string",
-            "source": "spotmalaria_location"
+            "source": "location_spotmalaria"
         }
     },
     "values": {
