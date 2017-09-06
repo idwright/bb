@@ -12,9 +12,9 @@
             "fk_name": "individual_code",
             "ref_type": "sibling"
         },
-        "location_id": {
+        "location": {
             "column": 3,
-            "type": "integer",
+            "type": "string",
             "source": "manage_sites",
             "fk_name": "location_id"
         }
@@ -30,9 +30,9 @@
             "regex": "([0-9]{4})",
             "type": "string"
         },
-        "location_id": {
+        "location": {
             "column": 3,
-            "type": "integer"
+            "type": "string"
         }
     }
 }
