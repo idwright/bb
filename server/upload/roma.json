@@ -1,6 +1,6 @@
 {
     "refs": {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
             "type": "string",
             "source": "alfresco"
@@ -8,7 +8,7 @@
     },
     "values":
     {
-        "alfresco_code": {
+        "study_id": {
             "column": 0,
             "type": "string"
         },
