@@ -20,6 +20,10 @@ from swagger_server.models.upload_response import UploadResponse
 
 class SourceDAO(EntityDAO):
 
+    def __init__(self):
+        super().__init__()
+        self._logger = logging.getLogger(__name__)
+
     def load_data_file(self, source, data_def, filename):
 
         input_stream = open('example.csv')
