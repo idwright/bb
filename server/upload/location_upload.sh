@@ -31,5 +31,5 @@ curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/
 
 for SOURCE in spotmalaria vobs genre vivax
 do
-    curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@roma_location.json;type=text/json" -F dataFile="@${SOURCE}.txt;type=text/csv" 'http://localhost:8080/v1/source/location_${SOURCE}/upload?skipHeader=true&entityType=location'
+    curl --header 'Content-Type: multipart/form-data' --header 'Accept: application/json' -F additionalMetadata="@roma_location.json;type=text/json" -F dataFile="@${SOURCE}.txt;type=text/csv" "http://localhost:8080/v1/source/location_${SOURCE}/upload?skipHeader=true&entityType=location"
 done
