@@ -3,6 +3,7 @@ import csv
 import re
 import time
 import datetime
+from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
 from backbone_server.dao.model.server_property import ServerProperty
@@ -188,13 +189,15 @@ class SourceDAO(EntityDAO):
 
         if not found:
             if update_only:
-                #print("No entity:" + repr(id_properties))
+                self._logger.debug("No entity:" + repr(id_properties))
                 entity_id, found = self.find_entity_by_fk(id_properties[0])
                 if not found:
-                    #print("Still no entity:" + repr(id_properties))
+                    self._logger.debug("Still no entity:" + repr(id_properties))
                     return None, False, False
             else:
                 entity_id = self.create_entity()
+
+        self._logger.debug("Saving entity:" + str(entity_id))
 
         modified = self.save_entity(entity_id, source_rec, False)
 
@@ -205,7 +208,7 @@ class SourceDAO(EntityDAO):
 
         connection = self.get_connection()
         cursor = connection.cursor()
-        prop_query = ("SELECT id, prop_type FROM property_types WHERE source = %s AND identity = 1")
+        prop_query = ("SELECT id, prop_type FROM property_types WHERE source = %s AND identity = true")
         cursor.execute(prop_query, (source,))
 
         result = cursor.fetchone()
@@ -225,14 +228,20 @@ class SourceDAO(EntityDAO):
         prop_type_id = result[0]
         prop_type = result[1]
 
-        data_field = self.get_data_field(prop_type.decode('utf-8'))
+        if self._postgres:
+            data_field = self.get_data_field(prop_type)
+        else:
+            data_field = self.get_data_field(BaseDAO._decode(prop_type))
 
-        entity_query = '''SELECT
-            HEX(e.id), ep.entity_id
+        if BaseDAO._postgres:
+            sel = 'SELECT e.id'
+        else:
+            sel = 'SELECT HEX(e.id)'
+        entity_query = sel + ''', ep.entity_id
             FROM
                 properties p
             JOIN property_types pt
-                ON pt.id = p.prop_type_id AND pt.identity = 1
+                ON pt.id = p.prop_type_id AND pt.identity = true
             JOIN entity_properties ep ON ep.property_id = p.id
             JOIN entities e ON e.added_id = ep.entity_id
             WHERE ''' + data_field + " = %s AND p.prop_type_id = %s"
@@ -245,7 +254,7 @@ class SourceDAO(EntityDAO):
             connection.close()
             raise InvalidIdException("No record found for: {} {}".format(source, source_id))
 
-        entity_id = entity[0]
+        entity_id = str(entity[0])
         added_id = entity[1]
 
         cursor.close()
@@ -289,7 +298,7 @@ class SourceDAO(EntityDAO):
 
         query = '''SELECT DISTINCT count(ep.property_id), pt.source from entity_properties ep
                     JOIN properties p ON p.id = ep.property_id
-                    JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = 1
+                    JOIN property_types pt ON pt.id = p.prop_type_id AND pt.identity = true
                     GROUP BY pt.source, pt.id;'''
         self._connection = self.get_connection()
         self._cursor = self._connection.cursor()
@@ -299,7 +308,7 @@ class SourceDAO(EntityDAO):
         results = []
         for (count, source) in self._cursor:
             summ = SummaryItem()
-            summ.source_name = source.decode('utf-8')
+            summ.source_name = BaseDAO._decode(source)
             summ.num_items = count
             results.append(summ)
 

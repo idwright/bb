@@ -15,6 +15,7 @@ from swagger_server.models.relationship import Relationship
 from swagger_server.models.summary_item import SummaryItem
 import mysql.connector
 from mysql.connector import errorcode
+import uuid
 
 class EntityDAO(BaseDAO):
 
@@ -160,9 +161,9 @@ class EntityDAO(BaseDAO):
             assoc_type.assoc_type = att
 
         if not assoc_type.ident:
-            self._cursor.execute("INSERT INTO assoc_types (assoc_name, assoc_type) VALUES (%s, %s)", 
+            self._cursor.execute(BaseDAO.insert_statement("INSERT INTO assoc_types (assoc_name, assoc_type) VALUES (%s, %s)"), 
                                  (assoc_type.assoc_name, assoc_type.assoc_type))
-            assoc_type.ident = self._cursor.lastrowid
+            assoc_type.ident = BaseDAO.inserted_id(self._cursor)
 #            cnx.commit()
 #        cursor.close()
 #        cnx.close()
@@ -181,14 +182,14 @@ class EntityDAO(BaseDAO):
 
         if not property_type_id:
             try:
-                self._cursor.execute('''INSERT INTO property_types (source, prop_name, prop_type,
-                                 prop_order, identity) VALUES (%s, %s, %s, %s, %s)''',
+                self._cursor.execute(BaseDAO.insert_statement('''INSERT INTO property_types (source, prop_name, prop_type,
+                                 prop_order, identity) VALUES (%s, %s, %s, %s, %s)'''),
                                  (source, name, data_type, order, identity))
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_DUP_ENTRY:
                     raise InvalidDataValueException("Error inserting property {} {} {} {} - probably type mismatch"
                                                     .format(source, name, data_type, str(order))) from err
-            property_type_id = self._cursor.lastrowid
+            property_type_id = BaseDAO.inserted_id(self._cursor)
             #cnx.commit()
 #        cursor.close()
 #        cnx.close()
@@ -226,7 +227,7 @@ class EntityDAO(BaseDAO):
     """
     def add_or_update_property_entity(self, entity_id, prop):
 
-        fetch_row = ("SELECT HEX(e.id),e.added_id, p.id as property_id, " + prop.data_field + ''' FROM properties p
+        fetch_row = ("SELECT e.added_id, p.id as property_id, " + prop.data_field + ''' FROM properties p
                      JOIN property_types AS pt ON pt.id = p.prop_type_id
                      JOIN entity_properties AS ep ON ep.property_id = p.id
                      JOIN entities AS e ON ep.entity_id = e.added_id
@@ -238,7 +239,7 @@ class EntityDAO(BaseDAO):
 
         #print (fetch_row % (prop.type_id, entity_id))
         prop_matched_id = None
-        for (ent_id, added_id, prop_id, old_v) in self._cursor:
+        for (added_id, prop_id, old_v) in self._cursor:
             if prop.compare(ServerProperty.from_db_value(prop.data_type,old_v)):
                 #print ("match")
                 prop_matched_id = prop_id
@@ -321,7 +322,7 @@ class EntityDAO(BaseDAO):
     def get_db_prop_value(self, prop, db_value):
 
         converted_field = {
-            'string': lambda x: None if x is None else x.decode('utf-8'),
+            'string': lambda x: None if x is None else BaseDAO._decode(x),
             'integer': lambda x: x,
             'float': lambda x: x,
             'double': lambda x: x,
@@ -434,7 +435,7 @@ class EntityDAO(BaseDAO):
             return existing_property_id
 
         #print ("insert_property: inserting")
-        insert_statement = ("INSERT INTO properties (prop_type_id, " + prop.data_field + ") VALUES (%s, %s);")
+        insert_statement = BaseDAO.insert_statement("INSERT INTO properties (prop_type_id, " + prop.data_field + ") VALUES (%s, %s)")
 
         #print(insert_statement)
         #print (repr(prop))
@@ -444,7 +445,7 @@ class EntityDAO(BaseDAO):
             if err.errno == errorcode.ER_WARN_DATA_OUT_OF_RANGE:
                 raise InvalidDataValueException("Bad value for property {} {}".format(prop.type_id,
                                                                                       str(prop.typed_data_value))) from err
-        new_property_id = self._cursor.lastrowid
+        new_property_id = BaseDAO.inserted_id(self._cursor)
         #print ("Added property id:" + str(new_property_id) + repr(prop))
 
         return new_property_id
@@ -476,7 +477,11 @@ class EntityDAO(BaseDAO):
 
     def find_entity_by_fk(self, prop):
 
-        fetch_row = ('''SELECT HEX(e.id),e.added_id FROM assoc_mappings am
+        if BaseDAO._postgres:
+            sel = "SELECT e.id"
+        else:
+            sel = "SELECT HEX(e.id)"
+        fetch_row = (sel + ''',e.added_id FROM assoc_mappings am
                         JOIN property_types spt ON spt.id = am.source_prop_type_id
                          JOIN property_types tpt ON tpt.id = am.source_prop_type_id
                          JOIN assoc_types atp ON atp.id = am.assoc_type_id
@@ -491,7 +496,7 @@ class EntityDAO(BaseDAO):
 
         property_details = []
         for (entity_id, added_id) in self._cursor:
-            property_details.append({'entity_id': entity_id, 'added_id': added_id})
+            property_details.append({'entity_id': str(entity_id), 'added_id': added_id})
 
         found = False
         parent_entity_id = None
@@ -508,8 +513,11 @@ class EntityDAO(BaseDAO):
 
     def find_entity_by_properties(self, properties):
 
-        fetch_row = ('''SELECT
-                        HEX(e.id), e.added_id
+        if BaseDAO._postgres:
+            sel = "SELECT e.id"
+        else:
+            sel = "SELECT HEX(e.id)"
+        fetch_row = (sel + ''', e.added_id
                     FROM
                         properties p
                         JOIN property_types pt ON pt.id = p.prop_type_id
@@ -539,7 +547,7 @@ class EntityDAO(BaseDAO):
 
         property_details = []
         for (entity_id, added_id) in self._cursor:
-            property_details.append({'entity_id': entity_id, 'added_id': added_id})
+            property_details.append({'entity_id': str(entity_id), 'added_id': added_id})
 #        print((prop_name, source, prop_value))
 #        print (property_details)
 #        cursor.close()
@@ -565,10 +573,19 @@ class EntityDAO(BaseDAO):
         return parent_entity_id, found
 
     def create_entity(self):
-        query = ("INSERT INTO entities (id) VALUES (ordered_uuid(uuid()))")
-        args = ()
-        self._cursor.execute(query, args)
-        parent_entity_id = self._cursor.lastrowid
+        parent_entity_id = None
+        if self._postgres:
+            query = ("INSERT INTO entities (id) VALUES (%s) RETURNING added_id")
+            uuid_val = uuid.uuid4()
+            args = (uuid_val,)
+            self._cursor.execute(query, args)
+            parent_entity_id = self._cursor.fetchone()[0]
+        else:
+            query = ("INSERT INTO entities (id) VALUES ((ordered_uuid(uuid())))")
+            args = ()
+
+            self._cursor.execute(query, args)
+            parent_entity_id = self._cursor.lastrowid
 
         return parent_entity_id
 
@@ -603,7 +620,11 @@ class EntityDAO(BaseDAO):
     def get_internal_id(self, entity_id):
         added_id = None
 
-        added_id_query = 'SELECT added_id FROM entities WHERE id = UNHEX(%s);'
+        if self._postgres:
+            added_id_query = 'SELECT added_id FROM entities WHERE id = (%s);'
+            entity_id = uuid.UUID(entity_id)
+        else:
+            added_id_query = 'SELECT added_id FROM entities WHERE id = UNHEX(%s);'
         self._cursor.execute(added_id_query, (entity_id,))
         res = self._cursor.fetchone()
         if res:
@@ -635,10 +656,12 @@ class EntityDAO(BaseDAO):
         properties = []
         for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
             data = Property()
-            data.data_type = prop_type.decode('utf-8')
-            data.data_name = prop_name.decode('utf-8')
+            data.data_type = BaseDAO._decode(prop_type)
+            data.data_name = BaseDAO._decode(prop_name)
             data.identity = bool(identity)
-            data.source = source.decode('utf-8')
+            data.source = BaseDAO._decode(source)
+            if isinstance(prop_value, memoryview):
+                prop_value = bytes(prop_value).decode('utf-8')
             if prop_value is None:
                 data.data_value = ''
             else:
@@ -666,17 +689,24 @@ class EntityDAO(BaseDAO):
             values = []
             for (source, prop_name, prop_type, prop_value, identity) in self._cursor:
                 data = Property()
-                data.data_type = prop_type.decode('utf-8')
-                data.data_name = prop_name.decode('utf-8')
+                data.data_type = BaseDAO._decode(prop_type)
+                data.data_name = BaseDAO._decode(prop_name)
                 data.identity = bool(identity)
-                data.source = source.decode('utf-8')
+                data.source = BaseDAO._decode(source)
+                if isinstance(prop_value, memoryview):
+                    prop_value = bytes(prop_value).decode('utf-8')
                 if prop_value is None:
                     data.data_value = ''
                 else:
                     data.data_value = prop_value
                 values.append(data)
 
-            data = Relationship(ad[2], ad[0], assoc_name, values)
+            suuid = str(ad[0])
+            tuuid = str(ad[2])
+#            if BaseDAO._postgres:
+#                suuid = uuid.UUID(suuid)
+#                tuuid = uuid.UUID(tuuid)
+            data = Relationship(tuuid, suuid, assoc_name, values)
             refs.append(data)
 
 
@@ -691,9 +721,9 @@ class EntityDAO(BaseDAO):
         for (pti, pt, src) in self._cursor:
             prop = ServerProperty()
             prop.type_id = pti
-            prop.data_type = pt.decode('utf-8')
+            prop.data_type = BaseDAO._decode(pt)
             prop.data_name = prop_name
-            prop.source = src.decode('utf-8')
+            prop.source = BaseDAO._decode(src)
             if source is None or prop.source == source:
                 props.append(prop)
 
@@ -714,10 +744,13 @@ class EntityDAO(BaseDAO):
 
         props = self.get_properties_by_name(source, prop_name)
 
+        if BaseDAO._postgres:
+            sel = "SELECT e.id"
+        else:
+            sel = "SELECT HEX(e.id)"
         for prop in props:
             prop.data_value = prop_value
-            props_query = '''SELECT
-                HEX(e.id), e.added_id
+            props_query = sel + ''', e.added_id
                 FROM
                     properties p
                 JOIN entity_properties ep ON ep.property_id = p.id
@@ -743,7 +776,7 @@ class EntityDAO(BaseDAO):
 
                     ents = []
                     for (ent_id, added_id,) in self._cursor:
-                        ents.append({'ent_id': ent_id, 'added_id': added_id})
+                        ents.append({'ent_id': str(ent_id), 'added_id': added_id})
 
                     for ent in ents:
                         entities.append(self.get_entity_by_id(ent["ent_id"], ent["added_id"]))
@@ -847,9 +880,9 @@ ORDER BY pt.source , pt.prop_order, pt.prop_name;'''
         columns = []
         for (source, prop_name, prop_type, identity) in self._cursor:
             sprop = ServerProperty()
-            sprop.data_name = prop_name.decode('utf-8')
-            sprop.source = source.decode('utf-8')
-            sprop.prop_type = prop_type.decode('utf-8')
+            sprop.data_name = BaseDAO._decode(prop_name)
+            sprop.source = BaseDAO._decode(source)
+            sprop.prop_type = BaseDAO._decode(prop_type)
             sprop.identity = ServerProperty.from_db_value('boolean', identity)
             columns.append(sprop)
 
@@ -876,8 +909,8 @@ ORDER BY pt.source , pt.prop_order, pt.prop_name;'''
             results = []
             for (count, pname, psource) in self._cursor:
                 summ = SummaryItem()
-                summ.source_name = psource.decode('utf-8')
-                summ.prop_name = pname.decode('utf-8')
+                summ.source_name = BaseDAO._decode(psource)
+                summ.prop_name = BaseDAO._decode(pname)
                 summ.num_items = count
                 results.append(summ)
         else:
@@ -892,7 +925,7 @@ ORDER BY pt.source , pt.prop_order, pt.prop_name;'''
             results = []
             for (count, pname) in self._cursor:
                 summ = SummaryItem()
-                summ.prop_name = pname.decode('utf-8')
+                summ.prop_name = BaseDAO._decode(pname)
                 summ.num_items = count
                 results.append(summ)
 

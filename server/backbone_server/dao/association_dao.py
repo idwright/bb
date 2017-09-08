@@ -4,11 +4,14 @@ from backbone_server.dao.model.server_relationship import ServerRelationship
 from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
 import mysql.connector
 from mysql.connector import errorcode
+import logging
 
 class AssociationDAO(BaseDAO):
 
     def __init__(self, cursor):
+        super().__init__()
         self._cursor = cursor
+        self._logger = logging.getLogger(__name__)
 
 
     def create_mapping(self, source_prop_id, target_prop_id, assoc_type):
@@ -47,7 +50,7 @@ class AssociationDAO(BaseDAO):
         for (sid, tid, ati, spv, lpv, tpi) in self._cursor:
             if sid != tid:
                 if spv:
-                    string_val = spv.decode('utf-8')
+                    string_val = BaseDAO._decode(spv)
                 long_val = lpv
                 target_prop_id = tpi
                 srel = ServerRelationship()
@@ -113,12 +116,36 @@ WHERE
 
                 self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
 
-#            print("Merge assoc:" + merge_assoc_query %
-#                                 (srel.target_id, srel.target_id, srel.source_id))
-                self._cursor.execute('SET foreign_key_checks = 0')
-                self._cursor.execute(merge_assoc_query,
+                if BaseDAO._postgres:
+                    self._cursor.execute('''UPDATE assoc_properties SET target_entity_id = %s WHERE
+                                         target_entity_id = %s RETURNING source_entity_id,
+                                         target_entity_id,
+                                         assoc_type_id''',(srel.target_id,srel.source_id))
+
+                    updated_props = []
+                    for (seid, teid, atid) in self._cursor:
+                        updated_props.append({
+                            'seid': seid,
+                            'teid': teid,
+                            'atid': atid
+                        })
+
+                    for updated_prop in updated_props:
+                        self._cursor.execute('''UPDATE entity_assoc
+                                         SET
+                                             target_entity_id = %s
+                                         WHERE
+                                             target_entity_id = %s
+                                         AND source_entity_id = %s
+                                         AND assoc_type_id =
+                                             %s''',(updated_prop['teid'], updated_prop['teid'], updated_prop['seid'], updated_prop['atid']))
+
+                else:
+                    self._logger.debug("Merge assoc:" + merge_assoc_query % (srel.target_id, srel.target_id, srel.source_id))
+                    self._cursor.execute('SET foreign_key_checks = 0')
+                    self._cursor.execute(merge_assoc_query,
                                      (srel.target_id, srel.target_id, srel.source_id))
-                self._cursor.execute('SET foreign_key_checks = 1')
+                    self._cursor.execute('SET foreign_key_checks = 1')
             except mysql.connector.Error as err:
                 if err.errno == errorcode.ER_DUP_ENTRY:
                     print("Error creating implied_association {} {}".format(internal_id, merge_query % (srel.source_id, srel.target_id)))
@@ -158,24 +185,26 @@ WHERE
 
         missing_properties = []
 
+        self._logger.debug("Looking for association sources for {}".format(internal_id))
         self._cursor.execute(query, (internal_id,))
 
         for (spti, source, prop_name, prop_type, string_val, long_val) in self._cursor:
             #print("{} {} {} {}".format(spti, source, pt, val))
             prop = ServerProperty()
             prop.type_id = spti
-            prop.source = source.decode('utf-8')
-            prop.data_type = prop_type.decode('utf-8')
-            prop.data_name = prop_name.decode('utf-8')
+            prop.source = BaseDAO._decode(source)
+            prop.data_type = BaseDAO._decode(prop_type)
+            prop.data_name = BaseDAO._decode(prop_name)
             prop.identity = True
             if prop.data_type == 'string':
-                prop.data_value = string_val.decode('utf-8')
+                prop.data_value = BaseDAO._decode(string_val)
                 if prop.data_value == '':
                     continue
             elif prop.data_type == 'integer':
                 prop.data_value = str(long_val)
             missing_properties.append(prop)
 
+        self._logger.debug("Found {}".format(len(missing_properties)))
         return missing_properties
 
     def delete_implied_associations(self, internal_id):

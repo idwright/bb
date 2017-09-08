@@ -4,6 +4,7 @@ import datetime
 from swagger_server.util import deserialize_model
 from swagger_server.models.property import Property
 from backbone_server.errors.invalid_data_value_exception import InvalidDataValueException
+from backbone_server.dao.base_dao import BaseDAO
 
 class ServerProperty(Property):
 
@@ -135,7 +136,7 @@ class ServerProperty(Property):
     def from_db_value(db_type, value):
 
         converted_field = {
-            'string': lambda x: x.decode('utf-8'),
+            'string': lambda x: BaseDAO._decode(x),
             'integer': lambda x: x,
             'float': lambda x: ServerProperty.float_value(x),
             'double': lambda x: ServerProperty.double_value(x),
