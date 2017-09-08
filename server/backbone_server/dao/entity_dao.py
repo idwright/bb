@@ -19,6 +19,10 @@ import uuid
 
 class EntityDAO(BaseDAO):
 
+    def __init__(self):
+        super().__init__()
+        self._logger = logging.getLogger(__name__)
+
     """
         updates an entity
 
