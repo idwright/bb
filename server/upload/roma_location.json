@@ -8,11 +8,12 @@
         "country": {
             "column": 5,
             "replace": [
+                        [ "the Democratic Republic of the Congo", "CD" ],
                         [ "the Federal Democratic Republic of Ethiopia", "ET" ],
                         [ "the Federative Republic of Brazil", "BR" ],
                         [ "the Kingdom of Cambodia", "KH" ],
                         [ "the Kingdom of Thailand", "TH" ],
-                        [ "the Lao People's Democratic Republic", "Lao PDR" ],
+                        [ "the Lao People's Democratic Republic", "LA" ],
                         [ "the People's Republic of Bangladesh", "BD" ],
                         [ "the Republic of Cameroon", "CM" ],
                         [ "the Republic of Colombia", "CO" ],
