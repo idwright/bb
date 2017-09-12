@@ -17,6 +17,7 @@ import mysql.connector
 from mysql.connector import errorcode
 import uuid
 import logging
+import psycopg2
 
 class EntityDAO(BaseDAO):
 
@@ -191,9 +192,17 @@ class EntityDAO(BaseDAO):
                                  prop_order, identity) VALUES (%s, %s, %s, %s, %s)'''),
                                  (source, name, data_type, order, identity))
             except mysql.connector.Error as err:
+                #MySQL
                 if err.errno == errorcode.ER_DUP_ENTRY:
                     raise InvalidDataValueException("Error inserting property {} {} {} {} - probably type mismatch"
                                                     .format(source, name, data_type, str(order))) from err
+                else:
+                    self._logger.fatal(repr(error))
+            except psycopg2.IntegrityError as err:
+                raise InvalidDataValueException("Error inserting property {} {} {} {} - probably type mismatch"
+                                                    .format(source, name, data_type, str(order))) from err
+            except:
+                self._logger.exception('')
             property_type_id = BaseDAO.inserted_id(self._cursor)
             #cnx.commit()
 #        cursor.close()
