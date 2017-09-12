@@ -1,0 +1,559 @@
+--
+-- PostgreSQL database dump
+--
+
+-- Dumped from database version 9.6.5
+-- Dumped by pg_dump version 9.6.5
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+DROP DATABASE backbone;
+--
+-- Name: backbone; Type: DATABASE; Schema: -; Owner: postgres
+--
+
+CREATE DATABASE backbone WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_GB.UTF-8' LC_CTYPE = 'en_GB.UTF-8';
+
+
+ALTER DATABASE backbone OWNER TO postgres;
+
+\connect backbone
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = on;
+SET check_function_bodies = false;
+SET client_min_messages = warning;
+SET row_security = off;
+
+--
+-- Name: backbone; Type: SCHEMA; Schema: -; Owner: iwright
+--
+
+CREATE SCHEMA backbone;
+
+
+ALTER SCHEMA backbone OWNER TO iwright;
+
+--
+-- Name: plpgsql; Type: EXTENSION; Schema: -; Owner: 
+--
+
+CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
+
+
+--
+-- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: 
+--
+
+COMMENT ON EXTENSION plpgsql IS 'PL/pgSQL procedural language';
+
+
+SET search_path = backbone, pg_catalog;
+
+SET default_tablespace = '';
+
+SET default_with_oids = false;
+
+
+--
+-- Name: entities; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE entities (
+    added_id bigint NOT NULL PRIMARY KEY,
+    id uuid
+);
+
+
+ALTER TABLE entities OWNER TO iwright;
+
+
+--
+-- Name: property_types; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE property_types (
+    id bigint NOT NULL PRIMARY KEY,
+    source character varying(32) NOT NULL,
+    prop_name character varying(64) NOT NULL,
+    prop_type character varying(32) DEFAULT 'string'::character varying,
+    prop_order integer DEFAULT 0,
+    identity boolean,
+    versionable boolean,
+    UNIQUE (source,prop_name),
+    UNIQUE (source,prop_name,prop_type)
+);
+
+ALTER TABLE property_types OWNER TO iwright;
+
+--
+-- Name: properties; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE properties (
+    id bigint NOT NULL PRIMARY KEY,
+    prop_type_id bigint NOT NULL REFERENCES property_types(id),
+    boolean_value boolean,
+    long_value numeric,
+    float_value numeric(6,3),
+    double_value numeric(12,6),
+    string_value text,
+    serializable_value bytea,
+    json_value json,
+    datetime_value timestamp
+);
+
+
+ALTER TABLE properties OWNER TO iwright;
+
+--
+-- Name: entity_properties; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE entity_properties (
+    entity_id bigint NOT NULL REFERENCES entities(added_id),
+    property_id bigint NOT NULL REFERENCES properties(id)
+);
+
+
+ALTER TABLE entity_properties OWNER TO iwright;
+
+--
+-- Name: assoc_types; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE assoc_types (
+    id bigint NOT NULL PRIMARY KEY,
+    assoc_name character varying(128) NOT NULL,
+    assoc_type character varying(32) DEFAULT 'parent-child'::character varying NOT NULL,
+    UNIQUE (assoc_name)
+);
+
+
+ALTER TABLE assoc_types OWNER TO iwright;
+
+
+--
+-- Name: entity_assoc; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE entity_assoc (
+    source_entity_id bigint NOT NULL REFERENCES entities(added_id),
+    target_entity_id bigint NOT NULL REFERENCES entities(added_id),
+    assoc_type_id numeric NOT NULL
+);
+
+
+ALTER TABLE entity_assoc OWNER TO iwright;
+
+--
+-- Name: assoc_properties; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE assoc_properties (
+    source_entity_id bigint NOT NULL REFERENCES entities(added_id),
+    target_entity_id bigint NOT NULL REFERENCES entities(added_id),
+    assoc_type_id bigint NOT NULL REFERENCES assoc_types(id),
+    property_id bigint NOT NULL REFERENCES properties(id)
+);
+
+
+ALTER TABLE assoc_properties OWNER TO iwright;
+--
+-- Name: assoc_mappings; Type: TABLE; Schema: backbone; Owner: iwright
+--
+
+CREATE TABLE assoc_mappings (
+    source_prop_type_id bigint NOT NULL REFERENCES property_types(id),
+    target_prop_type_id bigint NOT NULL REFERENCES property_types(id),
+    assoc_type_id bigint NOT NULL REFERENCES assoc_types(id)
+);
+
+
+ALTER TABLE assoc_mappings OWNER TO iwright;
+--
+-- Name: assoc_types_id_seq; Type: SEQUENCE; Schema: backbone; Owner: iwright
+--
+
+CREATE SEQUENCE assoc_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE assoc_types_id_seq OWNER TO iwright;
+
+--
+-- Name: assoc_types_id_seq; Type: SEQUENCE OWNED BY; Schema: backbone; Owner: iwright
+--
+
+ALTER SEQUENCE assoc_types_id_seq OWNED BY assoc_types.id;
+
+--
+-- Name: association_property_values; Type: VIEW; Schema: backbone; Owner: iwright
+--
+
+CREATE VIEW association_property_values AS
+ SELECT s.id AS source_uuid,
+    s.added_id AS source_id,
+    t.id AS target_uuid,
+    t.added_id AS target_id,
+    a.assoc_name,
+    ap.assoc_type_id,
+    p.id AS property_id,
+    pt.source,
+    pt.prop_name,
+    pt.prop_type,
+    pt.identity,
+        CASE pt.prop_type
+            WHEN 'string'::text THEN convert_to(p.string_value, 'UTF8'::name)
+            WHEN 'integer'::text THEN convert_to(((p.long_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'boolean'::text THEN convert_to(((p.boolean_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'float'::text THEN convert_to(((p.float_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'double'::text THEN convert_to(((p.double_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'blob'::text THEN convert_to(((p.serializable_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'json'::text THEN convert_to(((p.json_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'datetime'::text THEN convert_to(((p.datetime_value)::character varying)::text, 'UTF8'::name)
+            ELSE NULL::bytea
+        END AS value
+   FROM (((((assoc_properties ap
+     JOIN entities s ON ((ap.source_entity_id = s.added_id)))
+     JOIN entities t ON ((ap.target_entity_id = t.added_id)))
+     JOIN assoc_types a ON ((ap.assoc_type_id = a.id)))
+     JOIN properties p ON ((ap.property_id = p.id)))
+     JOIN property_types pt ON ((pt.id = p.prop_type_id)));
+
+
+ALTER TABLE association_property_values OWNER TO iwright;
+
+--
+-- Name: associations; Type: VIEW; Schema: backbone; Owner: iwright
+--
+
+CREATE VIEW associations AS
+ SELECT s.id AS source_uuid,
+    s.added_id AS source_id,
+    t.id AS target_uuid,
+    t.added_id AS target_id,
+    a.assoc_name,
+    ea.assoc_type_id
+   FROM (((entity_assoc ea
+     JOIN entities s ON ((ea.source_entity_id = s.added_id)))
+     JOIN entities t ON ((ea.target_entity_id = t.added_id)))
+     JOIN assoc_types a ON ((ea.assoc_type_id = (a.id)::numeric)));
+
+
+ALTER TABLE associations OWNER TO iwright;
+
+--
+-- Name: entities_added_id_seq; Type: SEQUENCE; Schema: backbone; Owner: iwright
+--
+
+CREATE SEQUENCE entities_added_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE entities_added_id_seq OWNER TO iwright;
+
+--
+-- Name: entities_added_id_seq; Type: SEQUENCE OWNED BY; Schema: backbone; Owner: iwright
+--
+
+ALTER SEQUENCE entities_added_id_seq OWNED BY entities.added_id;
+
+
+--
+-- Name: implied_assocs; Type: VIEW; Schema: backbone; Owner: iwright
+--
+
+CREATE VIEW implied_assocs AS
+ SELECT sep.entity_id AS source_id,
+    tep.entity_id AS target_id,
+    am.assoc_type_id,
+    ast.assoc_type,
+    tp.id AS target_prop_id,
+    tp.string_value,
+    tp.long_value
+   FROM ((((((assoc_mappings am
+     JOIN properties tp ON ((tp.prop_type_id = am.target_prop_type_id)))
+     JOIN property_types tpt ON ((am.target_prop_type_id = tpt.id)))
+     JOIN properties sp ON ((sp.prop_type_id = am.source_prop_type_id)))
+     JOIN assoc_types ast ON ((ast.id = am.assoc_type_id)))
+     JOIN entity_properties sep ON ((sep.property_id = sp.id)))
+     JOIN entity_properties tep ON ((tep.property_id = tp.id)))
+  WHERE ((((tpt.prop_type)::text = 'string'::text) AND (tp.string_value IS NOT NULL) AND (sp.string_value = tp.string_value)) OR (((tpt.prop_type)::text = 'integer'::text) AND (tp.long_value IS NOT NULL) AND (sp.long_value = tp.long_value)));
+
+
+ALTER TABLE implied_assocs OWNER TO iwright;
+
+--
+-- Name: implied_sources; Type: VIEW; Schema: backbone; Owner: iwright
+--
+
+CREATE VIEW implied_sources AS
+ SELECT am.source_prop_type_id,
+    am.target_prop_type_id,
+    spt.source,
+    spt.prop_name,
+    tp.id AS target_prop_id,
+    tpt.prop_type,
+    tp.string_value,
+    tp.long_value
+   FROM (((((assoc_mappings am
+     JOIN property_types spt ON ((am.source_prop_type_id = spt.id)))
+     JOIN property_types tpt ON ((am.target_prop_type_id = tpt.id)))
+     JOIN properties tp ON ((tp.prop_type_id = am.target_prop_type_id)))
+     LEFT JOIN properties sp ON (((sp.prop_type_id = am.source_prop_type_id) AND ((((tpt.prop_type)::text = 'string'::text) AND (sp.string_value = tp.string_value)) OR (((tpt.prop_type)::text = 'integer'::text) AND (sp.long_value = tp.long_value))))))
+     JOIN assoc_types ast ON ((ast.id = am.assoc_type_id)))
+  WHERE ((sp.id IS NULL) AND (NOT ((tp.string_value IS NULL) AND (tp.long_value IS NULL))));
+
+
+ALTER TABLE implied_sources OWNER TO iwright;
+
+--
+-- Name: properties_id_seq; Type: SEQUENCE; Schema: backbone; Owner: iwright
+--
+
+CREATE SEQUENCE properties_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE properties_id_seq OWNER TO iwright;
+
+--
+-- Name: properties_id_seq; Type: SEQUENCE OWNED BY; Schema: backbone; Owner: iwright
+--
+
+ALTER SEQUENCE properties_id_seq OWNED BY properties.id;
+
+
+--
+-- Name: property_types_id_seq; Type: SEQUENCE; Schema: backbone; Owner: iwright
+--
+
+CREATE SEQUENCE property_types_id_seq
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE property_types_id_seq OWNER TO iwright;
+
+--
+-- Name: property_types_id_seq; Type: SEQUENCE OWNED BY; Schema: backbone; Owner: iwright
+--
+
+ALTER SEQUENCE property_types_id_seq OWNED BY property_types.id;
+
+
+--
+-- Name: property_values; Type: VIEW; Schema: backbone; Owner: iwright
+--
+
+CREATE VIEW property_values AS
+ SELECT e.id,
+    e.added_id,
+    ep.entity_id,
+    p.id AS property_id,
+    pt.id AS prop_type_id,
+    pt.source,
+    pt.prop_name,
+    pt.prop_type,
+    pt.identity,
+        CASE pt.prop_type
+            WHEN 'string'::text THEN convert_to(p.string_value, 'UTF8'::name)
+            WHEN 'integer'::text THEN convert_to(((p.long_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'boolean'::text THEN convert_to(((p.boolean_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'float'::text THEN convert_to(((p.float_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'double'::text THEN convert_to(((p.double_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'blob'::text THEN convert_to(((p.serializable_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'json'::text THEN convert_to(((p.json_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'datetime'::text THEN convert_to(((p.datetime_value)::character varying)::text, 'UTF8'::name)
+            ELSE NULL::bytea
+        END AS value
+   FROM (((properties p
+     JOIN property_types pt ON ((pt.id = p.prop_type_id)))
+     JOIN entity_properties ep ON ((ep.property_id = p.id)))
+     JOIN entities e ON ((ep.entity_id = e.added_id)));
+
+
+ALTER TABLE property_values OWNER TO iwright;
+
+SET search_path = public, pg_catalog;
+
+--
+-- Name: association_property_values; Type: VIEW; Schema: public; Owner: iwright
+--
+
+CREATE VIEW association_property_values AS
+ SELECT s.id AS source_uuid,
+    s.added_id AS source_id,
+    t.id AS target_uuid,
+    t.added_id AS target_id,
+    a.assoc_name,
+    ap.assoc_type_id,
+    p.id AS property_id,
+    pt.source,
+    pt.prop_name,
+    pt.prop_type,
+    pt.identity,
+        CASE pt.prop_type
+            WHEN 'string'::text THEN convert_to(p.string_value, 'UTF8'::name)
+            WHEN 'integer'::text THEN convert_to(((p.long_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'boolean'::text THEN convert_to(((p.boolean_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'float'::text THEN convert_to(((p.float_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'double'::text THEN convert_to(((p.double_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'blob'::text THEN convert_to(((p.serializable_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'json'::text THEN convert_to(((p.json_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'datetime'::text THEN convert_to(((p.datetime_value)::character varying)::text, 'UTF8'::name)
+            ELSE NULL::bytea
+        END AS value
+   FROM (((((backbone.assoc_properties ap
+     JOIN backbone.entities s ON ((ap.source_entity_id = s.added_id)))
+     JOIN backbone.entities t ON ((ap.target_entity_id = t.added_id)))
+     JOIN backbone.assoc_types a ON ((ap.assoc_type_id = a.id)))
+     JOIN backbone.properties p ON ((ap.property_id = p.id)))
+     JOIN backbone.property_types pt ON ((pt.id = p.prop_type_id)));
+
+
+ALTER TABLE association_property_values OWNER TO iwright;
+
+--
+-- Name: associations; Type: VIEW; Schema: public; Owner: iwright
+--
+
+CREATE VIEW associations AS
+ SELECT s.id AS source_uuid,
+    s.added_id AS source_id,
+    t.id AS target_uuid,
+    t.added_id AS target_id,
+    a.assoc_name,
+    ea.assoc_type_id
+   FROM (((backbone.entity_assoc ea
+     JOIN backbone.entities s ON ((ea.source_entity_id = s.added_id)))
+     JOIN backbone.entities t ON ((ea.target_entity_id = t.added_id)))
+     JOIN backbone.assoc_types a ON ((ea.assoc_type_id = (a.id)::numeric)));
+
+
+ALTER TABLE associations OWNER TO iwright;
+
+--
+-- Name: implied_assocs; Type: VIEW; Schema: public; Owner: iwright
+--
+
+CREATE VIEW implied_assocs AS
+ SELECT sep.entity_id AS source_id,
+    tep.entity_id AS target_id,
+    am.assoc_type_id,
+    ast.assoc_type,
+    tp.id AS target_prop_id,
+    tp.string_value,
+    tp.long_value
+   FROM ((((((backbone.assoc_mappings am
+     JOIN backbone.properties tp ON ((tp.prop_type_id = am.target_prop_type_id)))
+     JOIN backbone.property_types tpt ON ((am.target_prop_type_id = tpt.id)))
+     JOIN backbone.properties sp ON ((sp.prop_type_id = am.source_prop_type_id)))
+     JOIN backbone.assoc_types ast ON ((ast.id = am.assoc_type_id)))
+     JOIN backbone.entity_properties sep ON ((sep.property_id = sp.id)))
+     JOIN backbone.entity_properties tep ON ((tep.property_id = tp.id)))
+  WHERE ((((tpt.prop_type)::text = 'string'::text) AND (tp.string_value IS NOT NULL) AND (sp.string_value = tp.string_value)) OR (((tpt.prop_type)::text = 'integer'::text) AND (tp.long_value IS NOT NULL) AND (sp.long_value = tp.long_value)));
+
+
+ALTER TABLE implied_assocs OWNER TO iwright;
+
+--
+-- Name: property_values; Type: VIEW; Schema: public; Owner: iwright
+--
+
+CREATE VIEW property_values AS
+ SELECT e.id,
+    e.added_id,
+    ep.entity_id,
+    p.id AS property_id,
+    pt.id AS prop_type_id,
+    pt.source,
+    pt.prop_name,
+    pt.prop_type,
+    pt.identity,
+        CASE pt.prop_type
+            WHEN 'string'::text THEN convert_to(p.string_value, 'UTF8'::name)
+            WHEN 'integer'::text THEN convert_to(((p.long_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'boolean'::text THEN convert_to(((p.boolean_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'float'::text THEN convert_to(((p.float_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'double'::text THEN convert_to(((p.double_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'blob'::text THEN convert_to(((p.serializable_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'json'::text THEN convert_to(((p.json_value)::character varying)::text, 'UTF8'::name)
+            WHEN 'datetime'::text THEN convert_to(((p.datetime_value)::character varying)::text, 'UTF8'::name)
+            ELSE NULL::bytea
+        END AS value
+   FROM (((backbone.properties p
+     JOIN backbone.property_types pt ON ((pt.id = p.prop_type_id)))
+     JOIN backbone.entity_properties ep ON ((ep.property_id = p.id)))
+     JOIN backbone.entities e ON ((ep.entity_id = e.added_id)));
+
+
+ALTER TABLE property_values OWNER TO iwright;
+
+SET search_path = backbone, pg_catalog;
+
+--
+-- Name: assoc_types id; Type: DEFAULT; Schema: backbone; Owner: iwright
+--
+
+ALTER TABLE ONLY assoc_types ALTER COLUMN id SET DEFAULT nextval('assoc_types_id_seq'::regclass);
+
+
+--
+-- Name: entities added_id; Type: DEFAULT; Schema: backbone; Owner: iwright
+--
+
+ALTER TABLE ONLY entities ALTER COLUMN added_id SET DEFAULT nextval('entities_added_id_seq'::regclass);
+
+
+--
+-- Name: properties id; Type: DEFAULT; Schema: backbone; Owner: iwright
+--
+
+ALTER TABLE ONLY properties ALTER COLUMN id SET DEFAULT nextval('properties_id_seq'::regclass);
+
+
+--
+-- Name: property_types id; Type: DEFAULT; Schema: backbone; Owner: iwright
+--
+
+ALTER TABLE ONLY property_types ALTER COLUMN id SET DEFAULT nextval('property_types_id_seq'::regclass);
+
+
+--
+-- Name: public; Type: ACL; Schema: -; Owner: postgres
+--
+
+GRANT ALL ON SCHEMA public TO PUBLIC;
+
+
+--
+-- PostgreSQL database dump complete
+--
+
