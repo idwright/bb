@@ -16,6 +16,7 @@ from swagger_server.models.summary_item import SummaryItem
 import mysql.connector
 from mysql.connector import errorcode
 import uuid
+import logging
 
 class EntityDAO(BaseDAO):
 
@@ -510,7 +511,7 @@ class EntityDAO(BaseDAO):
             parent_entity_id = property_details[0]['added_id']
             found = True
         elif len(property_details) > 1:
-            self._logger.critical("Duplicate entities:" + repr(id_properties))
+            self._logger.critical("Duplicate entities:" + repr(prop))
 
         return parent_entity_id, found
 

@@ -3,6 +3,7 @@ import csv
 import re
 import time
 import datetime
+import logging
 from backbone_server.dao.base_dao import BaseDAO
 from backbone_server.dao.entity_dao import EntityDAO
 from backbone_server.dao.association_dao import AssociationDAO
