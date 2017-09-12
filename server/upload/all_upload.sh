@@ -1,10 +1,18 @@
 SPLIT_SIZE=1000
 
 
-./oxford_central_samples_upload.sh
 
-for SOURCE in vobs genre spotmalaria vivax vw_vrpipe pf_6_metadata pv_3_sanger_source_code_metadata pv_3_broad_metadata pv_3_broad_sra_accessions pv_3_chapellhill_sra_accessions
+SOURCES="vobs genre spotmalaria vivax vw_vrpipe pf_6_metadata pv_3_sanger_source_code_metadata pv_3_broad_metadata pv_3_broad_sra_accessions pv_3_chapellhill_sra_accessions"
     #sanger_ega_dataset 
+
+if [ "$1" != "" ]
+then
+    SOURCES=$1
+else
+    ./oxford_central_samples_upload.sh
+fi
+
+for SOURCE in ${SOURCES}
 do
     split -l ${SPLIT_SIZE} ${SOURCE}.txt ${SOURCE}_split_
 
@@ -29,4 +37,7 @@ do
     done
 done
 
-./location_upload.sh
+if [ "$1" = "" ]
+then
+    ./location_upload.sh
+fi
