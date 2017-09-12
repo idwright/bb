@@ -1,4 +1,4 @@
-
+import configparser
 import logging
 import mysql.connector
 from mysql.connector import errorcode
@@ -8,21 +8,10 @@ from psycopg2.extras import LoggingConnection
 
 import logging.config
 
-logging.config.fileConfig('../backbone_server/dao/logging.conf')
+config_dir = '../backbone_server/dao/'
+logging.config.fileConfig(config_dir + 'logging.conf')
 
 class BaseDAO(object):
-    config = {
-        'user': 'root',
-        'password': 'root',
-        'host': '127.0.0.1',
-        'database': 'backbone',
-        'raise_on_warnings': True,
-    }
-
-    psql_config = {
-        'user': 'iwright',
-        'database': 'backbone'
-    }
 
     _postgres = False
 
@@ -33,6 +22,18 @@ class BaseDAO(object):
     _cursor = None
 
     def __init__(self):
+
+        config = configparser.ConfigParser()
+        config.read(config_dir + 'backbone.ini')
+
+        self._postgres = (config['database']['type'] == 'postgres')
+        BaseDAO._postgres = self._postgres
+
+        if self._postgres:
+            self.psql_config = config['postgres_connection']
+        else:
+            self.config = config._sections['mysql_connection']
+            self.config['raise_on_warnings'] = config['mysql_connection'].getboolean('raise_on_warnings')
         #logging.basicConfig(level=logging.DEBUG)
         self._logger = logging.getLogger(__name__)
         #logging.getLogger('connexion.apis.flask_api').setLevel(logging.DEBUG)

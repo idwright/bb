@@ -238,7 +238,7 @@ class SourceDAO(EntityDAO):
         else:
             data_field = self.get_data_field(BaseDAO._decode(prop_type))
 
-        if BaseDAO._postgres:
+        if self._postgres:
             sel = 'SELECT e.id'
         else:
             sel = 'SELECT HEX(e.id)'

@@ -116,7 +116,7 @@ WHERE
 
                 self._cursor.execute(merge_query, (srel.source_id, srel.target_id))
 
-                if BaseDAO._postgres:
+                if self._postgres:
                     self._cursor.execute('''UPDATE assoc_properties SET target_entity_id = %s WHERE
                                          target_entity_id = %s RETURNING source_entity_id,
                                          target_entity_id,

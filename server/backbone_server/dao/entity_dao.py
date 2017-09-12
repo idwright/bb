@@ -491,7 +491,7 @@ class EntityDAO(BaseDAO):
 
     def find_entity_by_fk(self, prop):
 
-        if BaseDAO._postgres:
+        if self._postgres:
             sel = "SELECT e.id"
         else:
             sel = "SELECT HEX(e.id)"
@@ -527,7 +527,7 @@ class EntityDAO(BaseDAO):
 
     def find_entity_by_properties(self, properties):
 
-        if BaseDAO._postgres:
+        if self._postgres:
             sel = "SELECT e.id"
         else:
             sel = "SELECT HEX(e.id)"
@@ -717,7 +717,7 @@ class EntityDAO(BaseDAO):
 
             suuid = str(ad[0])
             tuuid = str(ad[2])
-#            if BaseDAO._postgres:
+#            if self._postgres:
 #                suuid = uuid.UUID(suuid)
 #                tuuid = uuid.UUID(tuuid)
             data = Relationship(tuuid, suuid, assoc_name, values)
@@ -758,7 +758,7 @@ class EntityDAO(BaseDAO):
 
         props = self.get_properties_by_name(source, prop_name)
 
-        if BaseDAO._postgres:
+        if self._postgres:
             sel = "SELECT e.id"
         else:
             sel = "SELECT HEX(e.id)"
