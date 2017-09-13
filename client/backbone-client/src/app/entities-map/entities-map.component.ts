@@ -63,9 +63,9 @@ export class EntitiesMapComponent {
             lat = Number(prop.data_value);
           } else if (prop.data_name == 'longitude') {
             lng = Number(prop.data_value);
-          } else if (prop.data_name == 'location') {
+          } else if (prop.data_name == 'location' && loc == '') {
               loc = prop.data_value;
-          } else if (prop.data_name == 'location_id' && loc == '') {
+          } else if (prop.data_name == 'name') {
               loc = prop.data_value;
           } else if (prop.data_name == 'country') {
             country = prop.data_value;
