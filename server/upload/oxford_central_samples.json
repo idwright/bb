@@ -7,6 +7,11 @@
             "id": true,
             "comment": "sample.individual_code"
         },
+        "individual_source_code": {
+            "column": 6,
+            "type": "string",
+            "comment": "sample.individual_source_code"
+        },
         "species": {
             "column": 12,
             "type": "string"
