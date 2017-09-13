@@ -5,10 +5,10 @@
             "type": "string",
             "source": "alfresco"
         },
-        "oxford_code": {
+        "individual_source_code": {
             "column": 1,
             "type": "string",
-            "fk_name": "individual_code",
+            "fk_name": "individual_source_code",
             "ref_type": "sibling",
             "source": "oxford_central_samples"
         },
@@ -27,7 +27,7 @@
             "regex": "([0-9]{4})",
             "id": true
         },
-        "oxford_code": {
+        "individual_source_code": {
             "column": 1,
             "type": "string",
             "id": true
