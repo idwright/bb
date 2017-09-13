@@ -115,6 +115,21 @@ CREATE TABLE properties (
 
 
 ALTER TABLE properties OWNER TO iwright;
+CREATE INDEX string_idx ON properties (string_value);
+
+CREATE INDEX long_idx ON properties (long_value);
+
+CREATE INDEX float_idx ON properties (float_value);
+
+CREATE INDEX datetime_idx ON properties (datetime_value);
+
+CREATE UNIQUE INDEX prop_string_idx ON properties (prop_type_id,string_value);
+
+CREATE UNIQUE INDEX prop_long_idx ON properties (prop_type_id,long_value);
+
+CREATE UNIQUE INDEX prop_float_idx ON properties (prop_type_id,float_value);
+
+CREATE UNIQUE INDEX prop_datetime_idx ON properties (prop_type_id,datetime_value);
 
 --
 -- Name: entity_properties; Type: TABLE; Schema: backbone; Owner: iwright
@@ -150,7 +165,8 @@ ALTER TABLE assoc_types OWNER TO iwright;
 CREATE TABLE entity_assoc (
     source_entity_id bigint NOT NULL REFERENCES entities(added_id),
     target_entity_id bigint NOT NULL REFERENCES entities(added_id),
-    assoc_type_id numeric NOT NULL
+    assoc_type_id numeric NOT NULL,
+    PRIMARY KEY (source_entity_id, target_entity_id, assoc_type_id)
 );
 
 
@@ -161,10 +177,12 @@ ALTER TABLE entity_assoc OWNER TO iwright;
 --
 
 CREATE TABLE assoc_properties (
-    source_entity_id bigint NOT NULL REFERENCES entities(added_id),
-    target_entity_id bigint NOT NULL REFERENCES entities(added_id),
-    assoc_type_id bigint NOT NULL REFERENCES assoc_types(id),
-    property_id bigint NOT NULL REFERENCES properties(id)
+    source_entity_id bigint NOT NULL,
+    target_entity_id bigint NOT NULL,
+    assoc_type_id bigint NOT NULL,
+    property_id bigint NOT NULL REFERENCES properties(id),
+    PRIMARY KEY (source_entity_id, target_entity_id, assoc_type_id),
+    FOREIGN KEY (source_entity_id, target_entity_id, assoc_type_id) REFERENCES entity_assoc (source_entity_id, target_entity_id, assoc_type_id)
 );
 
 
@@ -176,7 +194,8 @@ ALTER TABLE assoc_properties OWNER TO iwright;
 CREATE TABLE assoc_mappings (
     source_prop_type_id bigint NOT NULL REFERENCES property_types(id),
     target_prop_type_id bigint NOT NULL REFERENCES property_types(id),
-    assoc_type_id bigint NOT NULL REFERENCES assoc_types(id)
+    assoc_type_id bigint NOT NULL REFERENCES assoc_types(id),
+    PRIMARY KEY (source_prop_type_id, target_prop_type_id, assoc_type_id)
 );
 
 
@@ -297,7 +316,11 @@ CREATE VIEW implied_assocs AS
      JOIN assoc_types ast ON ((ast.id = am.assoc_type_id)))
      JOIN entity_properties sep ON ((sep.property_id = sp.id)))
      JOIN entity_properties tep ON ((tep.property_id = tp.id)))
-  WHERE ((((tpt.prop_type)::text = 'string'::text) AND (tp.string_value IS NOT NULL) AND (sp.string_value = tp.string_value)) OR (((tpt.prop_type)::text = 'integer'::text) AND (tp.long_value IS NOT NULL) AND (sp.long_value = tp.long_value)));
+  WHERE ((((tpt.prop_type)::text = 'string'::text) AND (tp.string_value IS NOT NULL) AND
+  (sp.string_value = tp.string_value)));
+  
+-- significant performance hit
+-- OR (((tpt.prop_type)::text = 'integer'::text) AND (tp.long_value IS NOT NULL) AND (sp.long_value = tp.long_value)));
 
 
 ALTER TABLE implied_assocs OWNER TO iwright;
@@ -319,10 +342,13 @@ CREATE VIEW implied_sources AS
      JOIN property_types spt ON ((am.source_prop_type_id = spt.id)))
      JOIN property_types tpt ON ((am.target_prop_type_id = tpt.id)))
      JOIN properties tp ON ((tp.prop_type_id = am.target_prop_type_id)))
-     LEFT JOIN properties sp ON (((sp.prop_type_id = am.source_prop_type_id) AND ((((tpt.prop_type)::text = 'string'::text) AND (sp.string_value = tp.string_value)) OR (((tpt.prop_type)::text = 'integer'::text) AND (sp.long_value = tp.long_value))))))
+     LEFT JOIN properties sp ON (((sp.prop_type_id = am.source_prop_type_id) AND 
+            ((((tpt.prop_type)::text = 'string'::text) AND (sp.string_value = tp.string_value)))))
      JOIN assoc_types ast ON ((ast.id = am.assoc_type_id)))
   WHERE ((sp.id IS NULL) AND (NOT ((tp.string_value IS NULL) AND (tp.long_value IS NULL))));
 
+-- significant performance hit
+-- OR  (((tpt.prop_type)::text = 'integer'::text) AND (sp.long_value = tp.long_value))))))
 
 ALTER TABLE implied_sources OWNER TO iwright;
 
