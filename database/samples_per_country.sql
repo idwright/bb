@@ -38,25 +38,37 @@ CREATE OR REPLACE VIEW samples_per_country AS
 		GROUP BY pcnt.value;
         
 
--- This is very slow use as part of CREATE TABLE dup_locs AS SELECT * FROM duplicate_locations;
--- Actually too slow to use - over 2 days
--- without pv3 ~45 minutes
-CREATE OR REPLACE VIEW duplicate_location_values AS
+-- This is very slow use as part of CREATE TABLE dup_locs AS SELECT * FROM interim_duplicate_location_values;
+CREATE OR REPLACE VIEW interim_duplicate_location_values AS
 	SELECT pv.duplicate_id, pv.oxford_code,
-		msname.value AS manage_sites_name, pf6name.value AS pf6_name, pv3name.value AS pv3_name,
-		mslatitude.value AS manage_sites_latitude, pf6latitude.value AS pf6_latitude, pv3latitude.value AS pv3_latitude,
-		mslongitude.value AS manage_sites_longitude, pf6longitude.value AS pf6_longitude, pv3longitude.value AS pv3_longitude
+		msname.value AS manage_sites_name, pf6name.value AS pf6_name,
+		mslatitude.value AS manage_sites_latitude, pf6latitude.value AS pf6_latitude,
+		mslongitude.value AS manage_sites_longitude, pf6longitude.value AS pf6_longitude
         FROM duplicate_locations pv
 		LEFT JOIN samples_with_location swl ON swl.sample_id = pv.duplicate_id AND swl.location_source =  'manage_sites'
         LEFT JOIN samples_with_location swlpf6 ON swlpf6.sample_id = pv.duplicate_id AND swlpf6.location_source =  'location_pf_6'
-        LEFT JOIN samples_with_location swlpv3 ON swlpv3.sample_id = pv.duplicate_id AND swlpv3.location_source =  'pv_3_sanger_source_code_metadata'
         LEFT JOIN property_values msname ON msname.entity_id = swl.location_id AND msname.prop_name='name'
         LEFT JOIN property_values pf6name ON pf6name.entity_id = swlpf6.location_id AND pf6name.prop_name='location'
-        LEFT JOIN property_values pv3name ON pf6name.entity_id = swlpv3.location_id AND pv3name.prop_name='location'
         LEFT JOIN property_values mslatitude ON mslatitude.entity_id = swl.location_id AND mslatitude.prop_name='latitude'
-        LEFT JOIN property_values pf6latitude ON pf6latitude.entity_id = swlpf6.location_id AND pf6latitude.prop_name='latitude'
-        LEFT JOIN property_values pv3latitude ON pv3latitude.entity_id = swlpv3.location_id AND pv3latitude.prop_name='latitude'
+        LEFT JOIN property_values pf6latitude ON pf6latitude.entity_id = swlpf6.location_id AND pf6latitude.prop_name='latitude'        
         LEFT JOIN property_values mslongitude ON mslongitude.entity_id = swl.location_id AND mslongitude.prop_name='longitude'
         LEFT JOIN property_values pf6longitude ON pf6longitude.entity_id = swlpf6.location_id AND pf6longitude.prop_name='longitude'
-        LEFT JOIN property_values pv3longitude ON pv3longitude.entity_id = swlpv3.location_id AND pv3longitude.prop_name='longitude';
-		
+        ;
+	
+CREATE OR REPLACE VIEW duplicate_location_values AS	
+SELECT DISTINCT
+    manage_sites_name,
+    pf6_name,
+    pv3name.value AS pv3_name,
+    manage_sites_latitude,
+    pf6_latitude,
+    pv3latitude.value AS pv3_latitude,
+    manage_sites_longitude,
+    pf6_longitude,
+    pv3longitude.value AS pv3_longitude
+FROM
+    dup_locs dl
+    LEFT JOIN samples_with_location swlpv3 ON swlpv3.sample_id = dl.duplicate_id AND swlpv3.location_source =  'pv_3_locations'
+    LEFT JOIN property_values pv3name ON pv3name.entity_id = swlpv3.location_id AND pv3name.prop_name='location'
+    LEFT JOIN property_values pv3latitude ON pv3latitude.entity_id = swlpv3.location_id AND pv3latitude.prop_name='latitude'
+    LEFT JOIN property_values pv3longitude ON pv3longitude.entity_id = swlpv3.location_id AND pv3longitude.prop_name='longitude';
